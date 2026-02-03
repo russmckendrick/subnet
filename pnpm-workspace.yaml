@@ -1,0 +1,7 @@
+onlyBuiltDependencies:
+  - e
+  - esbuild
+  - p
+  - r
+  - t
+  - u
