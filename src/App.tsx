@@ -1,13 +1,10 @@
 import { Layout } from '@/components/layout/Layout'
 import { CidrInput } from '@/components/calculator/CidrInput'
 import { ResultsPanel } from '@/components/calculator/ResultsPanel'
-import { BinaryBreakdown } from '@/components/calculator/BinaryBreakdown'
+import { CalculatorDetails } from '@/components/calculator/CalculatorDetails'
 import { QuickReference } from '@/components/calculator/QuickReference'
-import { CloudContext } from '@/components/cloud/CloudContext'
-import { SubnetMap } from '@/components/visual-map/SubnetMap'
 import { SubnetSplitter } from '@/components/splitter/SubnetSplitter'
 import { SupernetTool } from '@/components/tools/SupernetTool'
-import { ExportMenu } from '@/components/export/ExportMenu'
 import { Tabs } from '@/components/shared/Tabs'
 import { useCalculatorStore, type AppTab } from '@/store/calculator-store'
 import { useUrlSync } from '@/hooks/use-url-sync'
@@ -72,10 +69,7 @@ function App() {
           <div>
             <CidrInput />
             <ResultsPanel />
-            <CloudContext />
-            <SubnetMap />
-            <BinaryBreakdown />
-            <ExportMenu />
+            <CalculatorDetails />
           </div>
         )}
 

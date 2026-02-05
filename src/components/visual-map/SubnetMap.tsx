@@ -4,7 +4,7 @@ import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { ipv4ToString } from '@/lib/ipv4'
 import { parseCidr } from '@/lib/cidr'
 
-export function SubnetMap() {
+function SubnetMapInner() {
   const { result, splits, remainingSpace, parentCidr, activeTab } = useCalculatorStore()
 
   const isSplitterMode = activeTab === 'splitter'
@@ -35,13 +35,8 @@ export function SubnetMap() {
     })
   })() : []
 
-  // Calculate usage percentage for the splitter
-  const usedSize = splits.reduce((sum, s) => sum + s.size, 0)
-  const usagePercent = totalSize > 0 ? Math.round((usedSize / totalSize) * 100) : 0
-
   return (
-    <CollapsibleSection title={showingSplits ? `Address Space Visualization — ${usagePercent}% allocated` : 'Address Space Visualization'} defaultOpen={true} delay={0.4}>
-
+    <>
       {showingSplits ? (
         <div className="space-y-3">
           {/* Proportional bar for splits */}
@@ -171,7 +166,7 @@ export function SubnetMap() {
             </div>
           </div>
 
-          {/* Sub-block grid (compact) */}
+          {/* Sub-block grid (compact) with gradient */}
           <div className="flex gap-px rounded-lg overflow-hidden">
             {prefixBlocks.map((block, i) => (
               <motion.div
@@ -185,7 +180,14 @@ export function SubnetMap() {
                     ? 'rgb(6, 182, 212)'
                     : block.isLast
                     ? 'rgb(245, 158, 11)'
-                    : `rgba(6, 182, 212, ${0.08 + (i % 2) * 0.06})`,
+                    : (() => {
+                        const total = prefixBlocks.length - 1
+                        const t = total > 0 ? i / total : 0
+                        const r = Math.round(6 + (245 - 6) * t)
+                        const g = Math.round(182 + (158 - 182) * t)
+                        const b = Math.round(212 + (11 - 212) * t)
+                        return `rgba(${r}, ${g}, ${b}, 0.15)`
+                      })(),
                 }}
               >
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
@@ -219,6 +221,30 @@ export function SubnetMap() {
           </div>
         </div>
       ) : null}
+    </>
+  )
+}
+
+/** Content-only export (no CollapsibleSection wrapper) for use in tabbed panels */
+export function SubnetMapContent() {
+  return <SubnetMapInner />
+}
+
+export function SubnetMap() {
+  const { splits, result, activeTab, parentCidr } = useCalculatorStore()
+  const showingSplits = splits.length > 0
+  const isSplitterMode = activeTab === 'splitter'
+  const displayResult = isSplitterMode ? parseCidr(parentCidr) : result
+
+  if (!displayResult) return null
+
+  const usedSize = splits.reduce((sum, s) => sum + s.size, 0)
+  const totalSize = displayResult.totalAddresses
+  const usagePercent = totalSize > 0 ? Math.round((usedSize / totalSize) * 100) : 0
+
+  return (
+    <CollapsibleSection title={showingSplits ? `Address Space Visualization — ${usagePercent}% allocated` : 'Address Space Visualization'} defaultOpen={true} delay={0.4}>
+      <SubnetMapInner />
     </CollapsibleSection>
   )
 }

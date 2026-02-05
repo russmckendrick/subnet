@@ -14,7 +14,7 @@ interface TabsProps {
 
 export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
   return (
-    <div className="flex gap-1 p-1 rounded-xl bg-black/[0.04] dark:bg-white/[0.06]">
+    <div className="flex gap-1 p-1 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] overflow-x-auto whitespace-nowrap">
       {tabs.map((tab) => (
         <button
           key={tab.id}

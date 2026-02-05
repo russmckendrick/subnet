@@ -13,7 +13,7 @@ export function CollapsibleSection({ title, children, defaultOpen = true, delay 
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
-    <AnimatedCard delay={delay} className="p-4 mt-2">
+    <AnimatedCard delay={delay} className="p-3 sm:p-4 mt-2">
       <button
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}

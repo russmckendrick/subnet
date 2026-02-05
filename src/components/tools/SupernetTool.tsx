@@ -1,13 +1,16 @@
-import { useCalculatorStore } from '@/store/calculator-store'
+import { useCalculatorStore, type AppTab } from '@/store/calculator-store'
 import { AnimatedCard } from '@/components/shared/AnimatedCard'
 import { CopyButton } from '@/components/shared/CopyButton'
 import { parseCidr } from '@/lib/cidr'
 
+const EXAMPLE_CIDRS = '10.0.0.0/24\n10.0.1.0/24\n10.0.2.0/24'
+
 export function SupernetTool() {
-  const { supernetInputs, setSupernetInputs, supernetResult } = useCalculatorStore()
+  const { supernetInputs, setSupernetInputs, supernetResult, setRawInput, setActiveTab } = useCalculatorStore()
 
   const lines = supernetInputs.split('\n').map((l) => l.trim()).filter(Boolean)
   const parsedLines = lines.map((l) => ({ input: l, valid: parseCidr(l) !== null }))
+  const hasEnoughInputs = parsedLines.filter(l => l.valid).length >= 2
 
   return (
     <div className="space-y-4">
@@ -47,6 +50,34 @@ export function SupernetTool() {
             ))}
           </div>
         )}
+
+        {/* Example state when no valid input */}
+        {!hasEnoughInputs && lines.length === 0 && (
+          <div className="mt-4 pt-4 border-t border-black/[0.04] dark:border-white/[0.06]">
+            <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">
+              Supernetting finds the smallest single CIDR block that contains all input networks. Useful for route aggregation and summarization.
+            </p>
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-medium">
+                Try example:
+              </span>
+              {['10.0.0.0/24', '10.0.1.0/24', '10.0.2.0/24'].map((cidr) => (
+                <span
+                  key={cidr}
+                  className="text-xs font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20"
+                >
+                  {cidr}
+                </span>
+              ))}
+              <button
+                onClick={() => setSupernetInputs(EXAMPLE_CIDRS)}
+                className="text-xs font-medium text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors px-2.5 py-1 rounded-lg hover:bg-cyan-500/5"
+              >
+                Load example
+              </button>
+            </div>
+          </div>
+        )}
       </AnimatedCard>
 
       {supernetResult && (
@@ -84,6 +115,21 @@ export function SupernetTool() {
               </div>
             )
           })()}
+          {/* Cross-tab: View in Calculator */}
+          <div className="mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.06] flex justify-end">
+            <button
+              onClick={() => {
+                setRawInput(supernetResult)
+                setActiveTab('calculator' as AppTab)
+              }}
+              className="text-xs font-medium text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-cyan-500/5"
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+              View in Calculator
+            </button>
+          </div>
         </AnimatedCard>
       )}
     </div>

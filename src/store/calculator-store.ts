@@ -59,7 +59,19 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   supernetInputs: '',
   supernetResult: null,
 
-  setActiveTab: (tab) => set({ activeTab: tab }),
+  setActiveTab: (tab) => {
+    const { rawInput, splitPrefixes } = get()
+    const update: Partial<CalculatorState> = { activeTab: tab }
+    // Auto-sync Calculator CIDR into Splitter when switching to splitter with no allocations
+    if (tab === 'splitter' && splitPrefixes.length === 0 && rawInput.trim()) {
+      const result = parseCidr(rawInput)
+      if (result) {
+        const calc = recalcSplits(rawInput, [], [])
+        Object.assign(update, { parentCidr: rawInput, splitPrefixes: [], splitLabels: [], ...calc })
+      }
+    }
+    set(update)
+  },
 
   setRawInput: (input) => {
     const result = parseCidr(input)

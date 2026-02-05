@@ -22,7 +22,7 @@ const EXPORT_OPTIONS: ExportOption[] = [
   { id: 'url', label: 'Share URL', icon: '#' },
 ]
 
-export function ExportMenu() {
+function ExportMenuInner() {
   const { result, splits } = useCalculatorStore()
   const { copy, isCopied } = useClipboard()
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('terraform')
@@ -51,7 +51,7 @@ export function ExportMenu() {
   const content = getExportContent(selectedFormat)
 
   return (
-    <CollapsibleSection title="Export" defaultOpen={false} delay={0.45}>
+    <div>
       <div className="flex items-center justify-end mb-4">
         <motion.button
           whileTap={{ scale: 0.95 }}
@@ -98,6 +98,22 @@ export function ExportMenu() {
           </pre>
         </motion.div>
       </AnimatePresence>
+    </div>
+  )
+}
+
+/** Content-only export for use in tabbed panels */
+export function ExportMenuContent() {
+  return <ExportMenuInner />
+}
+
+export function ExportMenu() {
+  const { result } = useCalculatorStore()
+  if (!result) return null
+
+  return (
+    <CollapsibleSection title="Export" defaultOpen={false} delay={0.45}>
+      <ExportMenuInner />
     </CollapsibleSection>
   )
 }

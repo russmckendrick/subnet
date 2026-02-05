@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { ipv4ToString } from '@/lib/ipv4'
+import { parseCidr } from '@/lib/cidr'
 
 const PREFIX_OPTIONS = Array.from({ length: 33 }, (_, i) => {
   const mask = i === 0 ? 0 : (~0 << (32 - i)) >>> 0
@@ -25,57 +26,67 @@ function extractIp(raw: string): string {
   return slashIdx === -1 ? raw.trim() : raw.slice(0, slashIdx)
 }
 
-export function CidrInput() {
+interface CidrInputProps {
+  target?: 'calculator' | 'splitter'
+  autoFocus?: boolean
+}
+
+export function CidrInput({ target = 'calculator', autoFocus = true }: CidrInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const { rawInput, setRawInput, result } = useCalculatorStore()
+  const { rawInput, setRawInput, parentCidr, setParentCidr, result } = useCalculatorStore()
   useKeyboardShortcuts(inputRef)
+
+  // Determine which store value to use based on target
+  const storeValue = target === 'splitter' ? parentCidr : rawInput
+  const setStoreValue = target === 'splitter' ? setParentCidr : setRawInput
 
   const [advancedMode, setAdvancedMode] = useState(false)
 
   // For the split mode, we keep a local IP string so user can type partial IPs.
-  // The prefix is derived from rawInput directly (dropdown changes are instant).
-  const [splitIp, setSplitIp] = useState(() => extractIp(rawInput))
+  const [splitIp, setSplitIp] = useState(() => extractIp(storeValue))
   const [splitIpSource, setSplitIpSource] = useState<'local' | 'store'>('store')
 
   // Derive prefix from store
-  const currentPrefix = extractPrefix(rawInput)
+  const currentPrefix = extractPrefix(storeValue)
 
-  // When rawInput changes from store (URL hash etc) and we didn't cause it, sync splitIp
-  const storeIp = extractIp(rawInput)
+  // When store value changes from store (URL hash etc) and we didn't cause it, sync splitIp
+  const storeIp = extractIp(storeValue)
   if (splitIpSource === 'store' && splitIp !== storeIp) {
     setSplitIp(storeIp)
   }
 
-  const isValid = result !== null
-  const hasInput = rawInput.trim().length > 0
+  // For calculator target, use the parsed result; for splitter, parse parentCidr
+  const isValid = target === 'splitter'
+    ? (storeValue.trim().length > 0 ? parseCidr(storeValue) !== null : false)
+    : result !== null
+  const hasInput = storeValue.trim().length > 0
 
   useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
+    if (autoFocus) inputRef.current?.focus()
+  }, [autoFocus])
 
   const handleIpChange = useCallback((newIp: string) => {
     setSplitIp(newIp)
     setSplitIpSource('local')
     if (newIp.trim()) {
-      setRawInput(`${newIp}/${currentPrefix}`)
+      setStoreValue(`${newIp}/${currentPrefix}`)
     } else {
-      setRawInput('')
+      setStoreValue('')
     }
-    // After a microtask, mark source as store again so future store changes sync
     queueMicrotask(() => setSplitIpSource('store'))
-  }, [currentPrefix, setRawInput])
+  }, [currentPrefix, setStoreValue])
 
   const handlePrefixChange = useCallback((newPrefix: number) => {
     if (splitIp.trim()) {
-      setRawInput(`${splitIp}/${newPrefix}`)
+      setStoreValue(`${splitIp}/${newPrefix}`)
     }
-  }, [splitIp, setRawInput])
+  }, [splitIp, setStoreValue])
 
   const handleClear = useCallback(() => {
     setSplitIp('')
     setSplitIpSource('store')
-    setRawInput('')
-  }, [setRawInput])
+    setStoreValue('')
+  }, [setStoreValue])
 
   const borderClass = hasInput && isValid
     ? 'border-cyan-500/40 dark:border-cyan-500/30 shadow-cyan-500/10'
@@ -95,6 +106,32 @@ export function CidrInput() {
           ${borderClass}
           bg-white/80 dark:bg-white/[0.06]`}
       >
+        {/* Mode toggle */}
+        <div className="flex items-center justify-end px-5 pt-3 pb-0">
+          <div className="flex gap-0.5 p-0.5 rounded-lg bg-black/[0.04] dark:bg-white/[0.06]">
+            <button
+              onClick={() => setAdvancedMode(false)}
+              className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
+                !advancedMode
+                  ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20'
+                  : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 border border-transparent'
+              }`}
+            >
+              Guided
+            </button>
+            <button
+              onClick={() => setAdvancedMode(true)}
+              className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
+                advancedMode
+                  ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20'
+                  : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 border border-transparent'
+              }`}
+            >
+              CIDR
+            </button>
+          </div>
+        </div>
+
         {advancedMode ? (
           <div className="flex items-center px-5 py-4">
             <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500 mr-3">
@@ -105,8 +142,8 @@ export function CidrInput() {
             <input
               ref={inputRef}
               type="text"
-              value={rawInput}
-              onChange={(e) => setRawInput(e.target.value)}
+              value={storeValue}
+              onChange={(e) => setStoreValue(e.target.value)}
               placeholder="Enter CIDR notation... (e.g. 10.0.0.0/16)"
               className="flex-1 bg-transparent text-xl font-mono font-medium text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none"
               spellCheck={false}
@@ -183,15 +220,6 @@ export function CidrInput() {
             </p>
           </motion.div>
         )}
-      </div>
-
-      <div className="flex justify-center mt-2">
-        <button
-          onClick={() => setAdvancedMode(!advancedMode)}
-          className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-        >
-          {advancedMode ? 'Switch to guided input' : 'Switch to CIDR notation'}
-        </button>
       </div>
     </motion.div>
   )
