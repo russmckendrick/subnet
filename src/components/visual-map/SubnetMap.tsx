@@ -1,6 +1,6 @@
 import { motion } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
-import { AnimatedCard } from '@/components/shared/AnimatedCard'
+import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { ipv4ToString } from '@/lib/ipv4'
 import { parseCidr } from '@/lib/cidr'
 
@@ -40,17 +40,7 @@ export function SubnetMap() {
   const usagePercent = totalSize > 0 ? Math.round((usedSize / totalSize) * 100) : 0
 
   return (
-    <AnimatedCard delay={0.55} className="p-5 mt-3">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-          Address Space Visualization
-        </h3>
-        {showingSplits && (
-          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
-            {usagePercent}% allocated
-          </span>
-        )}
-      </div>
+    <CollapsibleSection title={showingSplits ? `Address Space Visualization — ${usagePercent}% allocated` : 'Address Space Visualization'} defaultOpen={true} delay={0.4}>
 
       {showingSplits ? (
         <div className="space-y-3">
@@ -229,6 +219,6 @@ export function SubnetMap() {
           </div>
         </div>
       ) : null}
-    </AnimatedCard>
+    </CollapsibleSection>
   )
 }

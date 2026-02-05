@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { useClipboard } from '@/hooks/use-clipboard'
 import { toJSON, toCSV, toTerraform, toPulumi, toCloudFormation } from '@/lib/export'
-import { AnimatedCard } from '@/components/shared/AnimatedCard'
+import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 
 type ExportFormat = 'json' | 'csv' | 'terraform' | 'pulumi' | 'cloudformation' | 'url'
 
@@ -51,11 +51,8 @@ export function ExportMenu() {
   const content = getExportContent(selectedFormat)
 
   return (
-    <AnimatedCard delay={0.6} className="p-5 mt-3">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-          Export
-        </h3>
+    <CollapsibleSection title="Export" defaultOpen={false} delay={0.45}>
+      <div className="flex items-center justify-end mb-4">
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => copy(content, `export-${selectedFormat}`)}
@@ -96,11 +93,11 @@ export function ExportMenu() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
         >
-          <pre className="bg-slate-950 text-slate-300 text-xs font-mono rounded-xl p-4 overflow-x-auto max-h-64 overflow-y-auto">
+          <pre className="bg-slate-950 text-slate-300 text-xs font-mono rounded-xl p-4 overflow-x-auto max-h-48 overflow-y-auto">
             <code>{content}</code>
           </pre>
         </motion.div>
       </AnimatePresence>
-    </AnimatedCard>
+    </CollapsibleSection>
   )
 }

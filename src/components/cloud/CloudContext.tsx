@@ -1,6 +1,6 @@
 import { useCalculatorStore } from '@/store/calculator-store'
 import { ProviderCard } from './ProviderCard'
-import { AnimatedCard } from '@/components/shared/AnimatedCard'
+import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 
 export function CloudContext() {
   const { result } = useCalculatorStore()
@@ -13,15 +13,12 @@ export function CloudContext() {
   ]
 
   return (
-    <AnimatedCard delay={0.5} className="p-5 mt-3">
-      <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
-        Cloud Provider Context
-      </h3>
+    <CollapsibleSection title="Cloud Provider Context" defaultOpen={false} delay={0.35}>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {providers.map((p) => (
           <ProviderCard key={p.provider.id} data={p} prefix={result.prefixLength} />
         ))}
       </div>
-    </AnimatedCard>
+    </CollapsibleSection>
   )
 }

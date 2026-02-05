@@ -1,7 +1,7 @@
 import { motion } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { getBinaryBits, formatBinaryWithDots } from '@/lib/binary'
-import { AnimatedCard } from '@/components/shared/AnimatedCard'
+import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 
 export function BinaryBreakdown() {
   const { result } = useCalculatorStore()
@@ -14,11 +14,7 @@ export function BinaryBreakdown() {
   const maskOctets = formatBinaryWithDots(maskBits)
 
   return (
-    <AnimatedCard delay={0.45} className="p-5 mt-3">
-      <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
-        Binary Breakdown
-      </h3>
-
+    <CollapsibleSection title="Binary Breakdown" defaultOpen={false} delay={0.3}>
       <div className="space-y-3">
         {/* Network address binary */}
         <div>
@@ -35,7 +31,7 @@ export function BinaryBreakdown() {
                       key={bi}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5 + (oi * 8 + bi) * 0.015 }}
+                      transition={{ delay: 0.1 + (oi * 8 + bi) * 0.015 }}
                       className={`w-[0.65rem] text-center font-semibold ${
                         bit.type === 'network'
                           ? 'text-cyan-600 dark:text-cyan-400'
@@ -95,6 +91,6 @@ export function BinaryBreakdown() {
           </div>
         </div>
       </div>
-    </AnimatedCard>
+    </CollapsibleSection>
   )
 }

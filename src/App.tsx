@@ -72,9 +72,9 @@ function App() {
           <div>
             <CidrInput />
             <ResultsPanel />
-            <BinaryBreakdown />
             <CloudContext />
             <SubnetMap />
+            <BinaryBreakdown />
             <ExportMenu />
           </div>
         )}
