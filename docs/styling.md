@@ -1,6 +1,6 @@
 # Styling & Theming
 
-subnet.fit uses Tailwind CSS v4 with custom theme tokens, class-based dark mode, glassmorphism card patterns, and Motion for animations.
+subnet.fit uses a **Solarized**-based design system ("Obsidian"), Tailwind CSS v4 with custom theme tokens, class-based dark mode, and Motion for animations.
 
 ## Tailwind CSS v4 Setup
 
@@ -29,7 +29,7 @@ Dark mode uses a custom variant that targets the `.dark` class on any ancestor:
 @custom-variant dark (&:where(.dark, .dark *));
 ```
 
-The `dark` class is toggled on `<html>` by the theme store. This enables `dark:` utilities throughout the app (e.g. `dark:bg-slate-800`, `dark:text-white`).
+The `dark` class is toggled on `<html>` by the theme store. This enables `dark:` utilities throughout the app (e.g. `dark:bg-[#073642]`, `dark:text-[#93a1a1]`).
 
 ### Toggle Behavior
 
@@ -38,73 +38,140 @@ The Header component renders a sun/moon toggle button. Clicking it calls `toggle
 2. Adds/removes the `dark` class on `<html>`
 3. Persists the choice to `localStorage`
 
+## Typography
+
+Two Google Fonts are loaded in `index.html`:
+
+| Role | Font | Weight range |
+|------|------|-------------|
+| Display / UI | **Schibsted Grotesk** | 400–900 |
+| Monospace / Data | **Martian Mono** | 300–700 |
+
+Configured in `src/index.css`:
+
+```css
+@theme {
+  --font-sans: 'Schibsted Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Martian Mono', ui-monospace, monospace;
+}
+```
+
 ## Custom Theme Tokens
 
 Defined in `src/index.css` using Tailwind's `@theme` directive:
 
 ```css
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  /* Solarized accents */
+  --color-network-bit: #268bd2;   /* sol blue */
+  --color-host-bit: #d33682;      /* sol magenta */
+  --color-sol-cyan: #2aa198;
+  --color-sol-blue: #268bd2;
+  --color-sol-magenta: #d33682;
+  --color-sol-green: #859900;
+  --color-sol-red: #dc322f;
+  --color-sol-yellow: #b58900;
+  --color-sol-violet: #6c71c4;
+  --color-sol-orange: #cb4b16;
 
-  --color-network-bit: #06b6d4;
-  --color-host-bit: #f59e0b;
-  --color-aws: #ff9900;
-  --color-azure: #0078d4;
-  --color-gcp: #4285f4;
+  /* Cloud providers - mapped to Solarized */
+  --color-aws: #cb4b16;    /* sol orange */
+  --color-azure: #268bd2;  /* sol blue */
+  --color-gcp: #6c71c4;    /* sol violet */
 }
 ```
 
-These tokens are available as Tailwind utilities (e.g. `text-network-bit`, `bg-aws`).
+These tokens are available as Tailwind utilities (e.g. `text-network-bit`, `bg-aws`). However, most components use hardcoded Solarized hex values directly in Tailwind classes (e.g. `text-[#2aa198]`) for consistency.
 
-## Color Conventions
+## Solarized Color System
 
-| Color | Hex | Usage |
-|-------|-----|-------|
-| Cyan (`network-bit`) | `#06b6d4` | Network portion bits in binary breakdown |
-| Amber (`host-bit`) | `#f59e0b` | Host portion bits in binary breakdown |
-| AWS orange | `#ff9900` | AWS provider card accent |
-| Azure blue | `#0078d4` | Azure provider card accent |
-| GCP blue | `#4285f4` | GCP provider card accent |
+### Base Tones — Dark Mode (Solarized Dark)
+
+| Role | Solarized name | Hex |
+|------|---------------|-----|
+| Background | base03 | `#002b36` |
+| Card / Surface | base02 | `#073642` |
+| Secondary content | base01 | `#586e75` |
+| Body text | base0 | `#839496` |
+| Emphasized text | base1 | `#93a1a1` |
+
+### Base Tones — Light Mode (Solarized Light)
+
+| Role | Solarized name | Hex |
+|------|---------------|-----|
+| Background | base3 | `#fdf6e3` |
+| Card / Surface | base2 | `#eee8d5` |
+| Secondary content | base1 | `#93a1a1` |
+| Body text | base00 | `#657b83` |
+| Emphasized text | base01 | `#586e75` |
+
+### Accent Colors (same in both modes)
+
+| Role | Color | Hex |
+|------|-------|-----|
+| Primary accent / links / active states | Cyan | `#2aa198` |
+| Network bits (binary breakdown) | Blue | `#268bd2` |
+| Host bits (binary breakdown) | Magenta | `#d33682` |
+| Valid input / success | Green | `#859900` |
+| Error / invalid | Red | `#dc322f` |
+| Warnings / highlights | Yellow | `#b58900` |
+| Secondary accent | Violet | `#6c71c4` |
+| Tertiary accent | Orange | `#cb4b16` |
+
+### Cloud Provider Colors
+
+| Provider | Solarized mapping | Hex |
+|----------|------------------|-----|
+| AWS | Orange | `#cb4b16` |
+| Azure | Blue | `#268bd2` |
+| GCP | Violet | `#6c71c4` |
 
 Subnet splits use a rotating palette of 16 colors defined in `subnet-math.ts`.
 
-## Glassmorphism Cards
+## Card Styling
 
-The `AnimatedCard` shared component applies a frosted-glass effect using the `.glass-card` utility:
+The `AnimatedCard` shared component provides solid Solarized surfaces with no glassmorphism:
 
-```css
-.glass-card {
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-```
-
-Cards combine this with semi-transparent backgrounds (`bg-white/60 dark:bg-white/[0.04]`) and subtle borders (`border-black/[0.06] dark:border-white/[0.08]`).
+- **Dark mode:** `bg-[#073642]` background, `border-[#586e75]/30` border, no shadow
+- **Light mode:** `bg-[#eee8d5]` background, `border-[#93a1a1]/30` border, subtle `shadow-sm`
+- **Corners:** `rounded-lg` (8px)
 
 ## Background Treatment
 
-### Background Orbs
+### Dot Grid
 
-Two fixed, blurred orbs provide subtle depth:
+The body background uses a subtle CSS dot grid pattern instead of gradient orbs:
 
-```tsx
-<div className="bg-orb absolute -top-48 -left-48 w-[600px] h-[600px] bg-indigo-500" />
-<div className="bg-orb absolute top-1/2 -right-64 w-[500px] h-[500px] bg-cyan-500" />
+```css
+.dark body {
+  background-color: #002b36;
+  background-image: radial-gradient(circle, #073642 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+:not(.dark) body {
+  background-color: #fdf6e3;
+  background-image: radial-gradient(circle, #eee8d5 1px, transparent 1px);
+  background-size: 24px 24px;
+}
 ```
 
-The `.bg-orb` class applies `border-radius: 50%`, `filter: blur(120px)`, and reduced opacity (0.04 light / 0.06 dark).
+The dot grid provides subtle texture without distraction. No fixed-position blurred orbs or radial ambient gradients.
 
-### Body Gradients
+## Border Conventions
 
-Radial gradients provide a subtle ambient glow:
-
-- **Dark mode** — Deep navy (`#0c0f1a`) with indigo and cyan radial gradients at low opacity
-- **Light mode** — Slate white (`#f8fafc`) with the same gradients at even lower opacity
+| Context | Dark mode | Light mode |
+|---------|-----------|------------|
+| Card borders | `border-[#586e75]/30` | `border-[#93a1a1]/30` |
+| Dividers / separators | `border-[#586e75]/20` | `border-[#586e75]/20` |
+| Input borders (default) | `border-[#586e75]/30` | `border-[#93a1a1]/20` |
+| Input borders (valid) | `border-[#859900]/40` | `border-[#859900]/40` |
+| Input borders (invalid) | `border-[#dc322f]/40` | `border-[#dc322f]/40` |
+| Input borders (focus) | `border-[#2aa198]/40` | `border-[#2aa198]/40` |
 
 ## Animation Patterns
 
-The app uses the `motion` library (Framer Motion) for:
+The app uses the `motion` library (Motion, imported from `motion/react`) for:
 
 ### Staggered Entrances
 
@@ -132,7 +199,7 @@ The sun/moon icon rotates on theme switch:
 
 ### Shared Layout
 
-The `AnimatedCard` wraps content in a `motion.div` for layout animations when cards appear/disappear.
+Tab indicators use `layoutId` for smooth spring-animated transitions between active states.
 
 ## Custom Scrollbar
 
@@ -140,14 +207,14 @@ A slim custom scrollbar is defined for WebKit browsers:
 
 - 6px width
 - Transparent track
-- Semi-transparent thumb with rounded corners and hover highlight
+- Solarized base01 thumb (`rgba(88, 110, 117, 0.4)`) with rounded corners and hover highlight
 
 ## Selection Color
 
-Text selection uses a cyan tint:
+Text selection uses a Solarized cyan tint:
 
 ```css
 ::selection {
-  background: rgba(6, 182, 212, 0.2);
+  background: rgba(42, 161, 152, 0.25);
 }
 ```

@@ -33,8 +33,8 @@ Additional metadata shown: IP class (A–E), private/public status, and RFC type
 ### Binary Breakdown
 
 Visual representation of the IP address in binary, with each bit color-coded:
-- **Cyan** bits = network portion (determined by prefix length)
-- **Amber** bits = host portion
+- **Blue** bits = network portion (determined by prefix length)
+- **Magenta** bits = host portion
 
 Bits are grouped into four octets separated by dots, matching dotted-decimal notation.
 

@@ -206,9 +206,9 @@ interface CloudContext {
 
 | Provider | Reserved | Min Prefix | Max Prefix | Brand Color |
 |----------|----------|------------|------------|-------------|
-| AWS | 5 | /16 | /28 | `#ff9900` |
-| Azure | 5 | /8 | /29 | `#0078d4` |
-| GCP | 4 | /8 | /29 | `#4285f4` |
+| AWS | 5 | /16 | /28 | `#cb4b16` (Solarized orange) |
+| Azure | 5 | /8 | /29 | `#268bd2` (Solarized blue) |
+| GCP | 4 | /8 | /29 | `#6c71c4` (Solarized violet) |
 
 ### Exports
 

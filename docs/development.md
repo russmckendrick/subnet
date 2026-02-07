@@ -133,7 +133,7 @@ subnet/
 │   │   ├── cloud/           CloudContext, ProviderCard
 │   │   ├── tools/           SupernetTool
 │   │   ├── export/          ExportMenu
-│   │   ├── shared/          AnimatedCard, Badge, CopyButton, Tabs
+│   │   ├── shared/          AnimatedCard, Badge, CollapsibleSection, CopyButton, Tabs
 │   │   └── layout/          Layout, Header, Footer
 │   ├── App.tsx            Root component with tab routing
 │   ├── main.tsx           Entry point (ReactDOM.createRoot)
@@ -170,7 +170,8 @@ Create a new directory under `components/` for the feature domain:
 - Import from `@/store/calculator-store` to read state and call actions
 - Import from `@/lib/` for any display formatting
 - Use `AnimatedCard` from `shared/` for consistent card styling
-- Use Tailwind utilities with `dark:` variants for theme support
+- Use hardcoded Solarized hex values in Tailwind classes (e.g. `text-[#2aa198]`, `bg-[#073642]`) — see [Styling & Theming](../docs/styling.md) for the full palette
+- Use `dark:` variants for theme support
 
 ### 4. Wire into App.tsx
 
