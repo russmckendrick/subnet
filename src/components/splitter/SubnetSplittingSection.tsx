@@ -25,7 +25,7 @@ export function SubnetSplittingSection() {
   const allocatedPercent = totalSize > 0 ? ((usedSize / totalSize) * 100).toFixed(1) : '0'
 
   return (
-    <AnimatedCard delay={0.1} className="p-5">
+    <AnimatedCard delay={0.1} className="mt-2 p-5">
       {/* Inline summary bar */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#586e75] mb-4 font-mono">
         <span className="font-semibold text-[#586e75] dark:text-[#93a1a1]">{rawInput}</span>
@@ -40,7 +40,7 @@ export function SubnetSplittingSection() {
       {/* Visualization bar */}
       {splits.length > 0 && (
         <div className="mb-4">
-          <div className="flex h-12 rounded-lg overflow-hidden border border-[#586e75]/20 bg-[#fdf6e3] dark:bg-[#002b36]/50">
+          <div className="flex h-16 rounded-lg overflow-hidden border border-[#586e75]/20 bg-[#fdf6e3] dark:bg-[#002b36]/50">
             {splits.map((split, i) => {
               const widthPercent = (split.size / totalSize) * 100
               return (
@@ -53,26 +53,32 @@ export function SubnetSplittingSection() {
                   style={{ backgroundColor: split.color + '30' }}
                 >
                   <div
-                    className="absolute inset-x-0 bottom-0 h-1"
+                    className="absolute inset-x-0 bottom-0 h-1.5"
                     style={{ backgroundColor: split.color }}
                   />
                   <div className="absolute inset-0 flex flex-col items-center justify-center px-1">
-                    <span className="text-[10px] font-mono font-bold truncate"
+                    <span className="text-[11px] font-semibold truncate max-w-full px-0.5"
+                      style={{ color: split.color }}>
+                      {widthPercent > 8 ? split.label : ''}
+                    </span>
+                    <span className="text-[11px] font-mono font-bold truncate"
                       style={{ color: split.color }}>
                       /{split.prefixLength}
                     </span>
-                    {widthPercent > 8 && (
-                      <span className="text-[9px] text-[#586e75] truncate">
-                        {split.size.toLocaleString()}
+                    {widthPercent > 12 && (
+                      <span className="text-[9px] text-[#586e75] dark:text-[#586e75] truncate">
+                        {split.size.toLocaleString()} addr
                       </span>
                     )}
                   </div>
                   {/* Tooltip */}
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                     <div className="bg-[#002b36] text-[#93a1a1] text-[10px] font-mono rounded-lg px-3 py-2 whitespace-nowrap shadow-xl border border-[#586e75]/30">
-                      <div className="font-semibold text-[11px]">{split.label}</div>
+                      <div className="font-semibold text-[11px] text-[#93a1a1]">{split.label}</div>
                       <div className="text-[#839496] mt-0.5">{split.cidr}</div>
+                      <div className="text-[#586e75]">{split.firstHost} — {split.lastHost}</div>
                       <div className="text-[#586e75]">{split.usableHosts.toLocaleString()} usable hosts</div>
+                      <div className="text-[#586e75]">{((split.size / totalSize) * 100).toFixed(1)}% of parent</div>
                     </div>
                   </div>
                 </motion.div>
@@ -228,6 +234,46 @@ export function SubnetSplittingSection() {
               </span>
             </div>
           )}
+
+          {/* Detail cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-4">
+            {splits.map((split, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 + i * 0.05 }}
+                className="flex items-center gap-2.5 rounded-lg border border-[#586e75]/10 px-3 py-2 bg-[#fdf6e3]/50 dark:bg-[#002b36]/30"
+              >
+                <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: split.color }} />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-semibold text-[#586e75] dark:text-[#93a1a1] truncate">
+                    {split.label}
+                  </div>
+                  <div className="text-[10px] font-mono text-[#93a1a1] dark:text-[#586e75]">
+                    {split.cidr} · {split.usableHosts.toLocaleString()} hosts
+                  </div>
+                </div>
+                <div className="text-[10px] font-mono font-semibold text-[#93a1a1] dark:text-[#586e75] shrink-0">
+                  {((split.size / totalSize) * 100).toFixed(1)}%
+                </div>
+              </motion.div>
+            ))}
+            {remainingSpace > 0 && (
+              <div className="flex items-center gap-2.5 rounded-lg border border-dashed border-[#586e75]/20 px-3 py-2">
+                <div className="w-3 h-3 rounded-sm bg-[#93a1a1] dark:bg-[#586e75] shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-semibold text-[#93a1a1] dark:text-[#586e75]">Unallocated</div>
+                  <div className="text-[10px] font-mono text-[#93a1a1] dark:text-[#586e75]">
+                    {remainingSpace.toLocaleString()} addresses
+                  </div>
+                </div>
+                <div className="text-[10px] font-mono font-semibold text-[#93a1a1] dark:text-[#586e75] shrink-0">
+                  {((remainingSpace / totalSize) * 100).toFixed(1)}%
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </AnimatedCard>

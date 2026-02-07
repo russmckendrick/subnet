@@ -54,9 +54,11 @@ Shows how the current subnet would behave on each major cloud provider:
 
 Each provider card shows usable hosts after reserved addresses are subtracted, and warns if the prefix is outside the provider's allowed range.
 
-### Subnet Map
+### Address Space Visualization
 
-A proportional visual map of the subnet showing address space distribution.
+A proportional visual map of the subnet showing address space distribution. Displays a gradient bar from the network address (blue) to the broadcast address (magenta) with sub-block grid and legend.
+
+This section is only visible when no subnet splits are allocated — when splits exist, the visualization is integrated directly into the Subnet Splitting section below to avoid duplication.
 
 ### Export Menu
 
@@ -90,11 +92,17 @@ Each subnet gets an editable label (defaults to "Subnet 1", "Subnet 2", etc.). L
 
 ### Visualization
 
-A proportional bar visualization shows each subnet's relative size within the parent network, color-coded per subnet. Remaining unallocated space is shown in grey.
+A proportional bar visualization (h-16) shows each subnet's relative size within the parent network, color-coded per subnet. Each segment displays the subnet label (when wide enough), prefix length, and address count. Hovering reveals a detailed tooltip with CIDR, address range, usable host count, and percentage of parent space. Remaining unallocated space is shown with a striped pattern.
+
+When splits are present, the separate "Address Space Visualization" collapsible in the details section is hidden, so all visualization is consolidated in this single section.
 
 ### Allocation Table
 
 Displays each subnet's CIDR, network/broadcast addresses, host range, size, and usable host count.
+
+### Detail Cards
+
+Below the allocation table, a responsive grid of summary cards shows each subnet's label, CIDR, usable host count, and percentage of the parent space. An "Unallocated" card with a dashed border appears when space remains.
 
 ## Supernet Tab
 

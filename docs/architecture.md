@@ -103,38 +103,33 @@ flowchart TD
     Layout["Layout"]
     Header["Header"]
     Footer["Footer"]
-    Tabs["Tabs"]
 
     App --> Layout
     Layout --> Header
     Layout --> Footer
-    App --> Tabs
 
-    subgraph CalculatorTab["Calculator Tab"]
+    subgraph MainContent["Main Content (always visible)"]
         CidrInput["CidrInput"]
         ResultsPanel["ResultsPanel"]
-        BinaryBreakdown["BinaryBreakdown"]
+        SubnetSplitting["SubnetSplittingSection<br/>(includes visualization bar + detail cards)"]
+        DetailsSection["DetailsSection"]
+    end
+
+    subgraph DetailsSub["DetailsSection children"]
+        SubnetMap["SubnetMap<br/>(hidden when splits exist)"]
         CloudContext["CloudContext"]
-        SubnetMap["SubnetMap"]
+        BinaryBreakdown["BinaryBreakdown"]
         ExportMenu["ExportMenu"]
     end
 
-    subgraph SplitterTab["Splitter Tab"]
-        SubnetSplitter["SubnetSplitter"]
-    end
-
-    subgraph SupernetTab["Supernet Tab"]
+    subgraph Drawers["Drawers"]
+        QuickReference["QuickReference"]
         SupernetTool["SupernetTool"]
     end
 
-    subgraph ReferenceTab["Reference Tab"]
-        QuickReference["QuickReference"]
-    end
-
-    Tabs --> CalculatorTab
-    Tabs --> SplitterTab
-    Tabs --> SupernetTab
-    Tabs --> ReferenceTab
+    App --> MainContent
+    App --> Drawers
+    DetailsSection --> DetailsSub
 
     CloudContext --> ProviderCard["ProviderCard (x3)"]
     ResultsPanel --> SubnetInfoCard["SubnetInfoCard (x8)"]

@@ -5,7 +5,7 @@ A client-side CIDR/subnet calculator and network planner. All computation happen
 ## Features
 
 - **CIDR Calculator** — Parse any IPv4 CIDR notation and get network address, broadcast, netmask, wildcard mask, host range, IP class, RFC type, and binary representations
-- **Subnet Splitter** — Divide a parent network into multiple subnets with custom prefix lengths and labels, with proportional visual mapping
+- **Subnet Splitter** — Divide a parent network into multiple subnets with custom prefix lengths and labels, with integrated proportional visualization bar and detail cards
 - **Supernet Calculator** — Aggregate multiple CIDRs into the smallest containing supernet
 - **Reference Table** — Collapsible lookup table for all prefix lengths (/0–/32) with masks, wildcards, and host counts
 - **Cloud Provider Context** — See AWS, Azure, and GCP reserved addresses, prefix limits, and usable host calculations for any subnet
@@ -53,8 +53,8 @@ src/
 ├── hooks/          Side-effect hooks (URL sync, keyboard, clipboard)
 ├── components/     UI organized by feature domain
 │   ├── calculator/   CIDR input, results, binary breakdown, reference
-│   ├── splitter/     Subnet splitting interface
-│   ├── visual-map/   Proportional subnet visualization
+│   ├── splitter/     Subnet splitting with integrated visualization
+│   ├── visual-map/   Address space visualization (calculator mode)
 │   ├── cloud/        Cloud provider context cards
 │   ├── tools/        Supernet calculator
 │   ├── export/       IaC and data export menu

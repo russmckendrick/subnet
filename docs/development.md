@@ -129,8 +129,8 @@ subnet/
 │   ├── components/        UI components by feature domain
 │   │   ├── calculator/      CidrInput, ResultsPanel, BinaryBreakdown,
 │   │   │                    SubnetInfoCard, QuickReference
-│   │   ├── splitter/        SubnetSplitter
-│   │   ├── visual-map/      SubnetMap
+│   │   ├── splitter/        SubnetSplittingSection (with integrated visualization)
+│   │   ├── visual-map/      SubnetMap (shown only when no splits exist)
 │   │   ├── cloud/           CloudContext, ProviderCard
 │   │   ├── tools/           SupernetTool
 │   │   ├── export/          ExportMenu

@@ -11,19 +11,18 @@ export function DetailsSection() {
   if (!result) return null
 
   const showingSplits = splits.length > 0
-  const usedSize = splits.reduce((sum, s) => sum + s.size, 0)
-  const totalSize = result.totalAddresses
-  const usagePercent = totalSize > 0 ? Math.round((usedSize / totalSize) * 100) : 0
 
   return (
     <div>
-      <CollapsibleSection
-        title={showingSplits ? `Address Space Visualization — ${usagePercent}% allocated` : 'Address Space Visualization'}
-        defaultOpen={true}
-        delay={0.2}
-      >
-        <SubnetMapContent />
-      </CollapsibleSection>
+      {!showingSplits && (
+        <CollapsibleSection
+          title="Address Space Visualization"
+          defaultOpen={true}
+          delay={0.2}
+        >
+          <SubnetMapContent />
+        </CollapsibleSection>
+      )}
 
       <CollapsibleSection title="Cloud Provider Context" defaultOpen={false} delay={0.25}>
         <CloudContextContent />
