@@ -45,7 +45,37 @@ Uses `@tailwindcss/vite` plugin (not PostCSS). Dark mode requires this custom va
 @custom-variant dark (&:where(.dark, .dark *));
 ```
 
-The `dark` class is toggled on `<html>` by the theme store. Custom theme colors are defined with `@theme` in `index.css` (network-bit cyan, host-bit amber, cloud provider brand colors).
+The `dark` class is toggled on `<html>` by the theme store. The visual design uses the **Solarized** color system with custom theme colors defined in `@theme` in `index.css`.
+
+### Design System — "Obsidian" / Solarized
+
+**Typography:**
+- **Display/UI**: Schibsted Grotesk (Google Fonts)
+- **Monospace/Data**: Martian Mono (Google Fonts)
+
+**Solarized palette (applied via hardcoded hex values in Tailwind classes):**
+
+| Role | Dark mode | Light mode |
+|------|-----------|------------|
+| Background | `#002b36` (base03) | `#fdf6e3` (base3) |
+| Card/Surface | `#073642` (base02) | `#eee8d5` (base2) |
+| Secondary content | `#586e75` (base01) | `#93a1a1` (base1) |
+| Body text | `#839496` (base0) | `#657b83` (base00) |
+| Emphasized text | `#93a1a1` (base1) | `#586e75` (base01) |
+
+**Accent colors (same in both modes):**
+- Primary/links: Cyan `#2aa198`
+- Network bits: Blue `#268bd2`
+- Host bits: Magenta `#d33682`
+- Valid/success: Green `#859900`
+- Error: Red `#dc322f`
+- Warnings: Yellow `#b58900`
+- Secondary: Violet `#6c71c4`
+- Tertiary: Orange `#cb4b16`
+
+**Cloud provider colors** map to Solarized: AWS → Orange `#cb4b16`, Azure → Blue `#268bd2`, GCP → Violet `#6c71c4`.
+
+**Visual treatment:** No glassmorphism or gradient orbs. Solid Solarized backgrounds with subtle CSS dot grid pattern. `rounded-lg` (8px) corners. Minimal shadows (near-zero in dark, subtle in light). Body backgrounds use `radial-gradient(circle, ... 1px, transparent 1px)` at 24px spacing.
 
 ### Path Alias
 

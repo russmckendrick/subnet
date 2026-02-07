@@ -40,7 +40,7 @@ function SubnetMapInner() {
       {showingSplits ? (
         <div className="space-y-3">
           {/* Proportional bar for splits */}
-          <div className="flex h-16 rounded-xl overflow-hidden border border-black/[0.06] dark:border-white/[0.08] bg-slate-50 dark:bg-slate-900/50">
+          <div className="flex h-16 rounded-lg overflow-hidden border border-[#586e75]/20 bg-[#fdf6e3] dark:bg-[#002b36]/50">
             {splits.map((split, i) => {
               const widthPercent = (split.size / totalSize) * 100
               return (
@@ -68,19 +68,19 @@ function SubnetMapInner() {
                       /{split.prefixLength}
                     </span>
                     {widthPercent > 12 && (
-                      <span className="text-[9px] text-slate-500 dark:text-slate-400 truncate">
+                      <span className="text-[9px] text-[#586e75] dark:text-[#586e75] truncate">
                         {split.size.toLocaleString()} addr
                       </span>
                     )}
                   </div>
                   {/* Tooltip */}
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                    <div className="bg-slate-900 text-white text-[10px] font-mono rounded-lg px-3 py-2 whitespace-nowrap shadow-xl border border-white/10">
-                      <div className="font-semibold text-[11px]">{split.label}</div>
-                      <div className="text-slate-300 mt-0.5">{split.cidr}</div>
-                      <div className="text-slate-400">{split.firstHost} — {split.lastHost}</div>
-                      <div className="text-slate-400">{split.usableHosts.toLocaleString()} usable hosts</div>
-                      <div className="text-slate-400">{((split.size / totalSize) * 100).toFixed(1)}% of parent</div>
+                    <div className="bg-[#002b36] text-[#93a1a1] text-[10px] font-mono rounded-lg px-3 py-2 whitespace-nowrap shadow-xl border border-[#586e75]/30">
+                      <div className="font-semibold text-[11px] text-[#93a1a1]">{split.label}</div>
+                      <div className="text-[#839496] mt-0.5">{split.cidr}</div>
+                      <div className="text-[#586e75]">{split.firstHost} — {split.lastHost}</div>
+                      <div className="text-[#586e75]">{split.usableHosts.toLocaleString()} usable hosts</div>
+                      <div className="text-[#586e75]">{((split.size / totalSize) * 100).toFixed(1)}% of parent</div>
                     </div>
                   </div>
                 </motion.div>
@@ -91,10 +91,10 @@ function SubnetMapInner() {
                 initial={{ width: 0 }}
                 animate={{ width: `${(remainingSpace / totalSize) * 100}%` }}
                 transition={{ duration: 0.5, delay: splits.length * 0.1 }}
-                className="flex items-center justify-center bg-slate-100/50 dark:bg-slate-800/30"
-                style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(148,163,184,0.06) 4px, rgba(148,163,184,0.06) 8px)' }}
+                className="flex items-center justify-center bg-[#eee8d5]/50 dark:bg-[#073642]/30"
+                style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(88,110,117,0.06) 4px, rgba(88,110,117,0.06) 8px)' }}
               >
-                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
+                <span className="text-[10px] text-[#93a1a1] dark:text-[#586e75] font-mono">
                   {(remainingSpace / totalSize * 100).toFixed(0)}% free
                 </span>
               </motion.div>
@@ -109,32 +109,32 @@ function SubnetMapInner() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 + i * 0.05 }}
-                className="flex items-center gap-2.5 rounded-lg border border-black/[0.04] dark:border-white/[0.06] px-3 py-2 bg-black/[0.01] dark:bg-white/[0.02]"
+                className="flex items-center gap-2.5 rounded-lg border border-[#586e75]/10 px-3 py-2 bg-[#fdf6e3]/50 dark:bg-[#002b36]/30"
               >
                 <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: split.color }} />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[11px] font-semibold text-slate-700 dark:text-slate-200 truncate">
+                  <div className="text-[11px] font-semibold text-[#586e75] dark:text-[#93a1a1] truncate">
                     {split.label}
                   </div>
-                  <div className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                  <div className="text-[10px] font-mono text-[#93a1a1] dark:text-[#586e75]">
                     {split.cidr} · {split.usableHosts.toLocaleString()} hosts
                   </div>
                 </div>
-                <div className="text-[10px] font-mono font-semibold text-slate-400 dark:text-slate-500 shrink-0">
+                <div className="text-[10px] font-mono font-semibold text-[#93a1a1] dark:text-[#586e75] shrink-0">
                   {((split.size / totalSize) * 100).toFixed(1)}%
                 </div>
               </motion.div>
             ))}
             {remainingSpace > 0 && (
-              <div className="flex items-center gap-2.5 rounded-lg border border-dashed border-black/[0.06] dark:border-white/[0.06] px-3 py-2">
-                <div className="w-3 h-3 rounded-sm bg-slate-300 dark:bg-slate-600 shrink-0" />
+              <div className="flex items-center gap-2.5 rounded-lg border border-dashed border-[#586e75]/20 px-3 py-2">
+                <div className="w-3 h-3 rounded-sm bg-[#93a1a1] dark:bg-[#586e75] shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Unallocated</div>
-                  <div className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                  <div className="text-[11px] font-semibold text-[#93a1a1] dark:text-[#586e75]">Unallocated</div>
+                  <div className="text-[10px] font-mono text-[#93a1a1] dark:text-[#586e75]">
                     {remainingSpace.toLocaleString()} addresses
                   </div>
                 </div>
-                <div className="text-[10px] font-mono font-semibold text-slate-400 dark:text-slate-500 shrink-0">
+                <div className="text-[10px] font-mono font-semibold text-[#93a1a1] dark:text-[#586e75] shrink-0">
                   {((remainingSpace / totalSize) * 100).toFixed(1)}%
                 </div>
               </div>
@@ -144,23 +144,23 @@ function SubnetMapInner() {
       ) : displayResult ? (
         <div className="space-y-3">
           {/* Compact proportional bar showing the address range */}
-          <div className="relative h-10 rounded-xl overflow-hidden border border-black/[0.06] dark:border-white/[0.08]">
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500 z-10" />
+          <div className="relative h-10 rounded-lg overflow-hidden border border-[#586e75]/20">
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#268bd2] z-10" />
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: '100%' }}
               transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-cyan-500/10 to-amber-500/20"
+              className="absolute inset-0 bg-gradient-to-r from-[#268bd2]/20 via-[#268bd2]/10 to-[#d33682]/20"
             />
-            <div className="absolute right-0 top-0 bottom-0 w-1 bg-amber-500 z-10" />
+            <div className="absolute right-0 top-0 bottom-0 w-1 bg-[#d33682] z-10" />
             <div className="absolute inset-0 flex items-center justify-between px-3">
-              <span className="text-[10px] font-mono text-cyan-700 dark:text-cyan-400 font-semibold">
+              <span className="text-[10px] font-mono text-[#268bd2] font-semibold">
                 {displayResult.networkAddress}
               </span>
-              <span className="text-xs font-mono text-slate-600 dark:text-slate-300 font-bold">
+              <span className="text-xs font-mono text-[#586e75] dark:text-[#93a1a1] font-bold">
                 /{displayResult.prefixLength}
               </span>
-              <span className="text-[10px] font-mono text-amber-700 dark:text-amber-400 font-semibold">
+              <span className="text-[10px] font-mono text-[#d33682] font-semibold">
                 {displayResult.broadcastAddress}
               </span>
             </div>
@@ -177,21 +177,22 @@ function SubnetMapInner() {
                 className="flex-1 h-6 group relative cursor-pointer"
                 style={{
                   backgroundColor: block.isFirst
-                    ? 'rgb(6, 182, 212)'
+                    ? '#268bd2'
                     : block.isLast
-                    ? 'rgb(245, 158, 11)'
+                    ? '#d33682'
                     : (() => {
                         const total = prefixBlocks.length - 1
                         const t = total > 0 ? i / total : 0
-                        const r = Math.round(6 + (245 - 6) * t)
-                        const g = Math.round(182 + (158 - 182) * t)
-                        const b = Math.round(212 + (11 - 212) * t)
+                        // Interpolate from sol blue to sol magenta
+                        const r = Math.round(38 + (211 - 38) * t)
+                        const g = Math.round(139 + (54 - 139) * t)
+                        const b = Math.round(210 + (130 - 210) * t)
                         return `rgba(${r}, ${g}, ${b}, 0.15)`
                       })(),
                 }}
               >
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  <div className="bg-slate-900 text-white text-[10px] font-mono rounded px-2 py-1 whitespace-nowrap shadow-lg">
+                  <div className="bg-[#002b36] text-[#93a1a1] text-[10px] font-mono rounded px-2 py-1 whitespace-nowrap shadow-lg">
                     {block.startAddr}
                   </div>
                 </div>
@@ -200,22 +201,22 @@ function SubnetMapInner() {
           </div>
 
           {/* Stats summary */}
-          <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+          <div className="flex items-center justify-between text-[11px] text-[#586e75]">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-cyan-500" />
+                <span className="w-2 h-2 rounded-full bg-[#268bd2]" />
                 Network
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-cyan-500/20 border border-cyan-500/30" />
+                <span className="w-2 h-2 rounded-full bg-[#268bd2]/20 border border-[#268bd2]/30" />
                 {displayResult.usableHosts.toLocaleString()} usable hosts
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                <span className="w-2 h-2 rounded-full bg-[#d33682]" />
                 Broadcast
               </span>
             </div>
-            <span className="font-mono text-slate-400 dark:text-slate-500">
+            <span className="font-mono text-[#93a1a1] dark:text-[#586e75]">
               {displayResult.totalAddresses.toLocaleString()} total
             </span>
           </div>

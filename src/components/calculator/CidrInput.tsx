@@ -89,10 +89,10 @@ export function CidrInput({ target = 'calculator', autoFocus = true }: CidrInput
   }, [setStoreValue])
 
   const borderClass = hasInput && isValid
-    ? 'border-cyan-500/40 dark:border-cyan-500/30 shadow-cyan-500/10'
+    ? 'border-[#859900]/40 shadow-[#859900]/10'
     : hasInput && !isValid
-    ? 'border-red-500/40 dark:border-red-500/30 shadow-red-500/10'
-    : 'border-black/[0.06] dark:border-white/[0.1]'
+    ? 'border-[#dc322f]/40 shadow-[#dc322f]/10'
+    : 'border-[#93a1a1]/20 dark:border-[#586e75]/30'
 
   return (
     <motion.div
@@ -102,19 +102,19 @@ export function CidrInput({ target = 'calculator', autoFocus = true }: CidrInput
       className="w-full max-w-2xl mx-auto mb-6"
     >
       <div
-        className={`relative glass-card rounded-2xl border-2 transition-colors duration-300 shadow-xl
+        className={`relative rounded-lg border-2 transition-colors duration-300 shadow-xl
           ${borderClass}
-          bg-white/80 dark:bg-white/[0.06]`}
+          bg-[#eee8d5] dark:bg-[#073642]`}
       >
         {/* Mode toggle */}
         <div className="flex items-center justify-end px-5 pt-3 pb-0">
-          <div className="flex gap-0.5 p-0.5 rounded-lg bg-black/[0.04] dark:bg-white/[0.06]">
+          <div className="flex gap-0.5 p-0.5 rounded-md bg-[#fdf6e3] dark:bg-[#002b36]">
             <button
               onClick={() => setAdvancedMode(false)}
               className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
                 !advancedMode
-                  ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20'
-                  : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 border border-transparent'
+                  ? 'bg-[#2aa198]/10 text-[#2aa198] border border-[#2aa198]/20'
+                  : 'text-[#93a1a1] dark:text-[#586e75] hover:text-[#586e75] dark:hover:text-[#93a1a1] border border-transparent'
               }`}
             >
               Guided
@@ -123,8 +123,8 @@ export function CidrInput({ target = 'calculator', autoFocus = true }: CidrInput
               onClick={() => setAdvancedMode(true)}
               className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
                 advancedMode
-                  ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20'
-                  : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 border border-transparent'
+                  ? 'bg-[#2aa198]/10 text-[#2aa198] border border-[#2aa198]/20'
+                  : 'text-[#93a1a1] dark:text-[#586e75] hover:text-[#586e75] dark:hover:text-[#93a1a1] border border-transparent'
               }`}
             >
               CIDR
@@ -134,7 +134,7 @@ export function CidrInput({ target = 'calculator', autoFocus = true }: CidrInput
 
         {advancedMode ? (
           <div className="flex items-center px-5 py-4">
-            <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500 mr-3">
+            <div className="flex items-center gap-3 text-[#93a1a1] dark:text-[#586e75] mr-3">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
               </svg>
@@ -145,7 +145,7 @@ export function CidrInput({ target = 'calculator', autoFocus = true }: CidrInput
               value={storeValue}
               onChange={(e) => setStoreValue(e.target.value)}
               placeholder="Enter CIDR notation... (e.g. 10.0.0.0/16)"
-              className="flex-1 bg-transparent text-xl font-mono font-medium text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none"
+              className="flex-1 bg-transparent text-xl font-mono font-medium text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40 focus:outline-none"
               spellCheck={false}
               autoComplete="off"
             />
@@ -154,7 +154,7 @@ export function CidrInput({ target = 'calculator', autoFocus = true }: CidrInput
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 onClick={handleClear}
-                className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-400 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-[#fdf6e3] dark:hover:bg-[#002b36] text-[#93a1a1] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -164,7 +164,7 @@ export function CidrInput({ target = 'calculator', autoFocus = true }: CidrInput
           </div>
         ) : (
           <div className="flex items-center gap-2 px-5 py-4">
-            <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500 mr-1">
+            <div className="flex items-center gap-3 text-[#93a1a1] dark:text-[#586e75] mr-1">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
               </svg>
@@ -175,17 +175,17 @@ export function CidrInput({ target = 'calculator', autoFocus = true }: CidrInput
               value={splitIp}
               onChange={(e) => handleIpChange(e.target.value)}
               placeholder="IP address (e.g. 10.0.0.0)"
-              className="flex-1 min-w-0 bg-transparent text-xl font-mono font-medium text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none"
+              className="flex-1 min-w-0 bg-transparent text-xl font-mono font-medium text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40 focus:outline-none"
               spellCheck={false}
               autoComplete="off"
             />
             <div className="shrink-0 flex items-center">
-              <span className="text-slate-300 dark:text-slate-600 text-xl font-mono mr-1">/</span>
+              <span className="text-[#93a1a1] dark:text-[#586e75] text-xl font-mono mr-1">/</span>
               <select
                 value={currentPrefix}
                 onChange={(e) => handlePrefixChange(Number(e.target.value))}
-                className="bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white text-sm font-mono font-medium rounded-lg px-2 py-1.5 border border-black/[0.06] dark:border-white/[0.1] focus:outline-none focus:ring-2 focus:ring-cyan-500/30 cursor-pointer appearance-none pr-7"
-                style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.3rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.2em 1.2em' }}
+                className="bg-[#fdf6e3] dark:bg-[#002b36] text-[#586e75] dark:text-[#93a1a1] text-sm font-mono font-medium rounded-lg px-2 py-1.5 border border-[#93a1a1]/20 dark:border-[#586e75]/30 focus:outline-none focus:ring-2 focus:ring-[#2aa198]/30 cursor-pointer appearance-none pr-7"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23586e75' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.3rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.2em 1.2em' }}
               >
                 {PREFIX_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -199,7 +199,7 @@ export function CidrInput({ target = 'calculator', autoFocus = true }: CidrInput
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 onClick={handleClear}
-                className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-400 transition-colors shrink-0"
+                className="p-1.5 rounded-lg hover:bg-[#fdf6e3] dark:hover:bg-[#002b36] text-[#93a1a1] transition-colors shrink-0"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -215,7 +215,7 @@ export function CidrInput({ target = 'calculator', autoFocus = true }: CidrInput
             animate={{ height: 'auto', opacity: 1 }}
             className="px-5 pb-3 overflow-hidden"
           >
-            <p className="text-sm text-red-500 dark:text-red-400">
+            <p className="text-sm text-[#dc322f]">
               Invalid {advancedMode ? 'CIDR notation. Use format: 192.168.1.0/24' : 'IP address. Use format: 192.168.1.0'}
             </p>
           </motion.div>

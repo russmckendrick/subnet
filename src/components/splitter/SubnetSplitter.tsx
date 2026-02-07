@@ -40,7 +40,7 @@ export function SubnetSplitter() {
               setRawInput(parentCidr)
               setActiveTab('calculator' as AppTab)
             }}
-            className="text-xs text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors flex items-center gap-1"
+            className="text-xs text-[#2aa198] hover:text-[#2aa198]/80 transition-colors flex items-center gap-1"
           >
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -54,20 +54,20 @@ export function SubnetSplitter() {
       {parentResult && (
         <AnimatedCard delay={0.1} className="p-5">
           {/* Inline summary bar */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400 mb-4 font-mono">
-            <span className="font-semibold text-slate-700 dark:text-slate-200">{parentCidr}</span>
-            <span className="text-slate-300 dark:text-slate-600">&middot;</span>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#586e75] mb-4 font-mono">
+            <span className="font-semibold text-[#586e75] dark:text-[#93a1a1]">{parentCidr}</span>
+            <span className="text-[#93a1a1] dark:text-[#586e75]">&middot;</span>
             <span>{totalSize.toLocaleString()} total</span>
-            <span className="text-slate-300 dark:text-slate-600">&middot;</span>
+            <span className="text-[#93a1a1] dark:text-[#586e75]">&middot;</span>
             <span>{usedSize.toLocaleString()} allocated ({allocatedPercent}%)</span>
-            <span className="text-slate-300 dark:text-slate-600">&middot;</span>
+            <span className="text-[#93a1a1] dark:text-[#586e75]">&middot;</span>
             <span>{remainingSpace.toLocaleString()} remaining</span>
           </div>
 
           {/* Visualization bar (inline, no collapsible wrapper) */}
           {splits.length > 0 && (
             <div className="mb-4">
-              <div className="flex h-12 rounded-xl overflow-hidden border border-black/[0.06] dark:border-white/[0.08] bg-slate-50 dark:bg-slate-900/50">
+              <div className="flex h-12 rounded-lg overflow-hidden border border-[#586e75]/20 bg-[#fdf6e3] dark:bg-[#002b36]/50">
                 {splits.map((split, i) => {
                   const widthPercent = (split.size / totalSize) * 100
                   return (
@@ -89,17 +89,17 @@ export function SubnetSplitter() {
                           /{split.prefixLength}
                         </span>
                         {widthPercent > 8 && (
-                          <span className="text-[9px] text-slate-500 dark:text-slate-400 truncate">
+                          <span className="text-[9px] text-[#586e75] truncate">
                             {split.size.toLocaleString()}
                           </span>
                         )}
                       </div>
                       {/* Tooltip */}
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                        <div className="bg-slate-900 text-white text-[10px] font-mono rounded-lg px-3 py-2 whitespace-nowrap shadow-xl border border-white/10">
+                        <div className="bg-[#002b36] text-[#93a1a1] text-[10px] font-mono rounded-lg px-3 py-2 whitespace-nowrap shadow-xl border border-[#586e75]/30">
                           <div className="font-semibold text-[11px]">{split.label}</div>
-                          <div className="text-slate-300 mt-0.5">{split.cidr}</div>
-                          <div className="text-slate-400">{split.usableHosts.toLocaleString()} usable hosts</div>
+                          <div className="text-[#839496] mt-0.5">{split.cidr}</div>
+                          <div className="text-[#586e75]">{split.usableHosts.toLocaleString()} usable hosts</div>
                         </div>
                       </div>
                     </motion.div>
@@ -110,10 +110,10 @@ export function SubnetSplitter() {
                     initial={{ width: 0 }}
                     animate={{ width: `${(remainingSpace / totalSize) * 100}%` }}
                     transition={{ duration: 0.5, delay: splits.length * 0.1 }}
-                    className="flex items-center justify-center bg-slate-100/50 dark:bg-slate-800/30"
-                    style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(148,163,184,0.06) 4px, rgba(148,163,184,0.06) 8px)' }}
+                    className="flex items-center justify-center bg-[#eee8d5]/50 dark:bg-[#073642]/30"
+                    style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(88,110,117,0.06) 4px, rgba(88,110,117,0.06) 8px)' }}
                   >
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
+                    <span className="text-[10px] text-[#93a1a1] dark:text-[#586e75] font-mono">
                       {(remainingSpace / totalSize * 100).toFixed(0)}% free
                     </span>
                   </motion.div>
@@ -124,14 +124,14 @@ export function SubnetSplitter() {
 
           {/* Controls header with add and reset */}
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <h3 className="text-xs font-medium text-[#586e75] uppercase tracking-wider">
               Subnet Allocations
             </h3>
             <div className="flex items-center gap-2">
               {availablePrefixes.length > 0 && (
                 <select
-                  className="bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.08]
-                    rounded-lg px-2 py-1.5 text-sm font-mono text-slate-700 dark:text-slate-200 focus:outline-none"
+                  className="bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 border border-[#586e75]/20
+                    rounded-lg px-2 py-1.5 text-sm font-mono text-[#586e75] dark:text-[#93a1a1] focus:outline-none"
                   defaultValue=""
                   onChange={(e) => {
                     const val = parseInt(e.target.value, 10)
@@ -154,7 +154,7 @@ export function SubnetSplitter() {
               {splits.length > 0 && (
                 <button
                   onClick={resetSplits}
-                  className="text-xs text-red-500 hover:text-red-400 transition-colors px-2 py-1"
+                  className="text-xs text-[#dc322f] hover:text-[#dc322f]/80 transition-colors px-2 py-1"
                 >
                   Reset
                 </button>
@@ -164,7 +164,7 @@ export function SubnetSplitter() {
 
           {splits.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">
+              <p className="text-sm text-[#93a1a1] dark:text-[#586e75] mb-4">
                 Add subnets to start planning your network.
               </p>
               {/* Quick-add pills */}
@@ -173,10 +173,10 @@ export function SubnetSplitter() {
                   <button
                     key={p}
                     onClick={() => addSplit(p)}
-                    className="group relative text-xs font-mono px-3 py-1.5 rounded-lg border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] text-slate-600 dark:text-slate-300 hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-colors"
+                    className="group relative text-xs font-mono px-3 py-1.5 rounded-lg border border-[#586e75]/20 bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 text-[#586e75] dark:text-[#93a1a1] hover:border-[#2aa198]/30 hover:bg-[#2aa198]/5 transition-colors"
                   >
                     /{p}
-                    <span className="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-slate-500 dark:text-slate-400 whitespace-nowrap bg-slate-900 text-white rounded px-2 py-0.5">
+                    <span className="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] whitespace-nowrap bg-[#002b36] text-[#93a1a1] rounded px-2 py-0.5">
                       {Math.pow(2, 32 - p).toLocaleString()} addr
                     </span>
                   </button>
@@ -187,7 +187,7 @@ export function SubnetSplitter() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-black/[0.04] dark:border-white/[0.06]">
+                  <tr className="text-xs text-[#586e75] uppercase tracking-wider border-b border-[#586e75]/20">
                     <th className="text-left py-2 pr-3 font-medium">Label</th>
                     <th className="text-left py-2 pr-3 font-medium">CIDR</th>
                     <th className="text-left py-2 pr-3 font-medium">Range</th>
@@ -203,7 +203,7 @@ export function SubnetSplitter() {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      className="border-b border-black/[0.02] dark:border-white/[0.03]"
+                      className="border-b border-[#586e75]/10"
                     >
                       <td className="py-2 pr-3">
                         <div className="flex items-center gap-2">
@@ -212,30 +212,30 @@ export function SubnetSplitter() {
                             type="text"
                             value={split.label}
                             onChange={(e) => updateSplitLabel(i, e.target.value)}
-                            className="bg-transparent text-sm text-slate-700 dark:text-slate-200 focus:outline-none
-                              border-b border-transparent focus:border-cyan-500/40 w-24"
+                            className="bg-transparent text-sm text-[#586e75] dark:text-[#93a1a1] focus:outline-none
+                              border-b border-transparent focus:border-[#2aa198]/40 w-24"
                           />
                         </div>
                       </td>
-                      <td className="py-2 pr-3 font-mono text-xs text-slate-700 dark:text-slate-300">
+                      <td className="py-2 pr-3 font-mono text-xs text-[#586e75] dark:text-[#839496]">
                         <div className="flex items-center gap-1">
                           {split.cidr}
                           <CopyButton text={split.cidr} copyKey={`split-${i}`} />
                         </div>
                       </td>
-                      <td className="py-2 pr-3 font-mono text-xs text-slate-500 dark:text-slate-400">
+                      <td className="py-2 pr-3 font-mono text-xs text-[#93a1a1] dark:text-[#586e75]">
                         {split.firstHost} - {split.lastHost}
                       </td>
-                      <td className="py-2 pr-3 text-right font-mono text-xs text-slate-600 dark:text-slate-400">
+                      <td className="py-2 pr-3 text-right font-mono text-xs text-[#657b83] dark:text-[#839496]">
                         {split.size.toLocaleString()}
                       </td>
-                      <td className="py-2 pr-3 text-right font-mono text-xs text-slate-600 dark:text-slate-400">
+                      <td className="py-2 pr-3 text-right font-mono text-xs text-[#657b83] dark:text-[#839496]">
                         {split.usableHosts.toLocaleString()}
                       </td>
                       <td className="py-2 text-right">
                         <button
                           onClick={() => removeSplit(i)}
-                          className="p-1 rounded hover:bg-red-500/10 text-slate-400 hover:text-red-500 transition-colors"
+                          className="p-1 rounded hover:bg-[#dc322f]/10 text-[#93a1a1] hover:text-[#dc322f] transition-colors"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -248,9 +248,9 @@ export function SubnetSplitter() {
               </table>
 
               {remainingSpace > 0 && (
-                <div className="flex justify-between items-center mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.06]">
-                  <span className="text-xs text-slate-500 dark:text-slate-400">Remaining</span>
-                  <span className="text-xs font-mono font-semibold text-slate-600 dark:text-slate-300">
+                <div className="flex justify-between items-center mt-3 pt-3 border-t border-[#586e75]/20">
+                  <span className="text-xs text-[#586e75]">Remaining</span>
+                  <span className="text-xs font-mono font-semibold text-[#586e75] dark:text-[#93a1a1]">
                     {remainingSpace.toLocaleString()} addresses
                   </span>
                 </div>

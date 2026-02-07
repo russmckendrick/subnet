@@ -58,8 +58,8 @@ function ExportMenuInner() {
           onClick={() => copy(content, `export-${selectedFormat}`)}
           className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
             isCopied(`export-${selectedFormat}`)
-              ? 'bg-emerald-500/20 text-emerald-500'
-              : 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/20'
+              ? 'bg-[#859900]/20 text-[#859900]'
+              : 'bg-[#2aa198]/10 text-[#2aa198] hover:bg-[#2aa198]/20'
           }`}
         >
           {isCopied(`export-${selectedFormat}`) ? 'Copied!' : 'Copy to clipboard'}
@@ -74,8 +74,8 @@ function ExportMenuInner() {
             onClick={() => setSelectedFormat(opt.id)}
             className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors border ${
               selectedFormat === opt.id
-                ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20'
-                : 'bg-black/[0.02] dark:bg-white/[0.03] text-slate-500 dark:text-slate-400 border-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'
+                ? 'bg-[#2aa198]/10 text-[#2aa198] border-[#2aa198]/20'
+                : 'bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 text-[#586e75] border-transparent hover:bg-[#fdf6e3] dark:hover:bg-[#002b36]/50'
             }`}
           >
             <span className="font-mono mr-1 opacity-50">{opt.icon}</span>
@@ -93,7 +93,7 @@ function ExportMenuInner() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
         >
-          <pre className="bg-slate-950 text-slate-300 text-xs font-mono rounded-xl p-4 overflow-x-auto max-h-48 overflow-y-auto">
+          <pre className="bg-[#002b36] text-[#839496] text-xs font-mono rounded-lg p-4 overflow-x-auto max-h-48 overflow-y-auto">
             <code>{content}</code>
           </pre>
         </motion.div>

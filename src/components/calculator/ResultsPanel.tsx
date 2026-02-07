@@ -48,7 +48,7 @@ export function ResultsPanel() {
         <div className="flex items-start justify-between mb-4">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-2xl font-mono font-bold text-slate-900 dark:text-white">
+              <span className="text-2xl font-mono font-bold text-[#586e75] dark:text-[#93a1a1]">
                 {result.networkAddress}/{result.prefixLength}
               </span>
               <Badge color={rfcColor as 'emerald'}>
@@ -60,19 +60,19 @@ export function ResultsPanel() {
             </div>
             <div className="flex items-center gap-4 sm:gap-6 mt-2">
               <div>
-                <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-medium">
+                <span className="text-[10px] text-[#586e75] dark:text-[#586e75] uppercase tracking-wider font-medium">
                   Network Address
                 </span>
-                <div className="text-lg font-mono font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                <div className="text-lg font-mono font-semibold text-[#586e75] dark:text-[#93a1a1] flex items-center gap-1.5">
                   {result.networkAddress}
                   <CopyButton text={result.networkAddress} copyKey="network" />
                 </div>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-medium">
+                <span className="text-[10px] text-[#586e75] dark:text-[#586e75] uppercase tracking-wider font-medium">
                   Usable Hosts
                 </span>
-                <div className="text-lg font-semibold text-cyan-600 dark:text-cyan-400 flex items-center gap-1.5">
+                <div className="text-lg font-semibold text-[#2aa198] flex items-center gap-1.5">
                   {formatNumber(result.usableHosts)}
                   <CopyButton text={String(result.usableHosts)} copyKey="usable" />
                 </div>
@@ -83,13 +83,13 @@ export function ResultsPanel() {
         </div>
 
         {/* Secondary tier */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 sm:gap-y-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.06]">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 sm:gap-y-3 pt-3 border-t border-[#586e75]/20">
           {secondaryFields.map((field) => (
             <div key={field.copyKey}>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-medium">
+              <span className="text-[10px] text-[#586e75] dark:text-[#586e75] uppercase tracking-wider font-medium">
                 {field.label}
               </span>
-              <div className={`text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1 ${field.mono === false ? '' : 'font-mono'}`}>
+              <div className={`text-sm font-semibold text-[#657b83] dark:text-[#839496] flex items-center gap-1 ${field.mono === false ? '' : 'font-mono'}`}>
                 {field.value}
                 <CopyButton text={field.value} copyKey={field.copyKey} />
               </div>
@@ -98,13 +98,13 @@ export function ResultsPanel() {
         </div>
 
         {/* Split action button */}
-        <div className="mt-4 pt-3 border-t border-black/[0.04] dark:border-white/[0.06] flex justify-end">
+        <div className="mt-4 pt-3 border-t border-[#586e75]/20 flex justify-end">
           <button
             onClick={() => {
               setParentCidr(rawInput)
               setActiveTab('splitter' as AppTab)
             }}
-            className="text-xs font-medium text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-cyan-500/5"
+            className="text-xs font-medium text-[#2aa198] hover:text-[#2aa198]/80 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-[#2aa198]/5"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6z" />

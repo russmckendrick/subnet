@@ -18,8 +18,8 @@ export function CopyButton({ text, label, copyKey, className = '' }: CopyButtonP
       onClick={() => copy(text, copyKey)}
       className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors
         ${copied
-          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-          : 'bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-500 dark:hover:text-slate-300'
+          ? 'bg-[#859900]/15 text-[#859900]'
+          : 'bg-[#eee8d5] hover:bg-[#eee8d5]/80 text-[#93a1a1] hover:text-[#586e75] dark:bg-[#002b36] dark:hover:bg-[#002b36]/80 dark:text-[#586e75] dark:hover:text-[#93a1a1]'
         }
         ${className}`}
       title={`Copy ${label ?? 'value'}`}

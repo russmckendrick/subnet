@@ -4,12 +4,12 @@ interface BadgeProps {
 }
 
 const colorClasses = {
-  emerald: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
-  violet: 'bg-violet-500/15 text-violet-700 dark:text-violet-400 border-violet-500/20',
-  amber: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/20',
-  cyan: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border-cyan-500/20',
-  red: 'bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/20',
-  slate: 'bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-500/20',
+  emerald: 'bg-[#859900]/15 text-[#859900] border-[#859900]/20',
+  violet: 'bg-[#6c71c4]/15 text-[#6c71c4] border-[#6c71c4]/20',
+  amber: 'bg-[#b58900]/15 text-[#b58900] border-[#b58900]/20',
+  cyan: 'bg-[#2aa198]/15 text-[#2aa198] border-[#2aa198]/20',
+  red: 'bg-[#dc322f]/15 text-[#dc322f] border-[#dc322f]/20',
+  slate: 'bg-[#586e75]/15 text-[#586e75] dark:text-[#93a1a1] border-[#586e75]/20',
 }
 
 export function Badge({ children, color = 'slate' }: BadgeProps) {
