@@ -31,7 +31,7 @@ const GENERIC_TO_PROVIDER: Record<CloudProvider, Record<string, string>> = {
     server: 'azure-vm',
     database: 'azure-sql',
     'load-balancer': 'azure-lb',
-    firewall: 'azure-nsg',
+    firewall: 'azure-firewall',
     vpc: 'azure-vnet',
     'internet-gateway': 'azure-appgw',
     'nat-gateway': 'azure-nat',

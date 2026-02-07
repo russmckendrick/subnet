@@ -89,6 +89,9 @@ const AZURE_CATEGORIES: PaletteCategory[] = [
       { type: 'azure-dns', label: 'DNS Zone' },
       { type: 'azure-vpngw', label: 'VPN Gateway' },
       { type: 'azure-expressroute', label: 'ExpressRoute' },
+      { type: 'azure-firewall', label: 'Firewall' },
+      { type: 'azure-privatelink', label: 'Private Link' },
+      { type: 'azure-subnet', label: 'Subnet' },
     ],
   },
   {
@@ -98,6 +101,7 @@ const AZURE_CATEGORIES: PaletteCategory[] = [
       { type: 'azure-functions', label: 'Functions' },
       { type: 'azure-aks', label: 'AKS' },
       { type: 'azure-container', label: 'Container Instances' },
+      { type: 'azure-appservices', label: 'App Services' },
     ],
   },
   {
@@ -114,6 +118,8 @@ const AZURE_CATEGORIES: PaletteCategory[] = [
       { type: 'azure-blob', label: 'Blob Storage' },
       { type: 'azure-waf', label: 'WAF' },
       { type: 'azure-nsg', label: 'NSG' },
+      { type: 'azure-files', label: 'Azure Files' },
+      { type: 'azure-recoveryservicesvaults', label: 'Recovery Services Vault' },
     ],
   },
 ]

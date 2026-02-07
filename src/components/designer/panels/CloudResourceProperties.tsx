@@ -46,6 +46,12 @@ const RESOURCE_TYPE_LABELS: Record<string, string> = {
   'azure-waf': 'WAF',
   'azure-vpngw': 'VPN Gateway',
   'azure-expressroute': 'ExpressRoute',
+  'azure-appservices': 'App Services',
+  'azure-files': 'Azure Files',
+  'azure-firewall': 'Firewall',
+  'azure-privatelink': 'Private Link',
+  'azure-recoveryservicesvaults': 'Recovery Services Vault',
+  'azure-subnet': 'Subnet',
   // GCP
   'gcp-vpc': 'VPC Network',
   'gcp-compute': 'Compute Engine',
