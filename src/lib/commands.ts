@@ -6,7 +6,7 @@ export interface Command {
   description: string
   category: 'Navigate' | 'Tools' | 'Export' | 'Actions'
   keywords: string[]
-  icon: 'globe' | 'book' | 'merge' | 'moon' | 'file' | 'code' | 'terminal' | 'link' | 'x' | 'reset' | 'toggle' | 'search' | 'terraform' | 'aws' | 'azure' | 'gcp'
+  icon: 'globe' | 'book' | 'merge' | 'moon' | 'file' | 'code' | 'terminal' | 'link' | 'x' | 'reset' | 'toggle' | 'search' | 'terraform' | 'aws' | 'azure' | 'gcp' | 'diagram'
   requiresResult?: boolean
   action: string
 }
@@ -86,6 +86,15 @@ export const commands: Command[] = [
     keywords: ['supernet', 'aggregate', 'route', 'merge'],
     icon: 'merge',
     action: 'open-supernet',
+  },
+  {
+    id: 'open-designer',
+    label: 'Open Designer',
+    description: 'Network diagram designer',
+    category: 'Tools',
+    keywords: ['designer', 'diagram', 'topology', 'visual', 'network', 'draw'],
+    icon: 'diagram',
+    action: 'open-designer',
   },
   {
     id: 'toggle-theme',

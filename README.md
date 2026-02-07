@@ -15,6 +15,7 @@
 - **Supernet Calculator** — Aggregate multiple CIDRs into the smallest containing supernet
 - **Reference Table** — Collapsible lookup table for all prefix lengths (/0–/32) with masks, wildcards, and host counts
 - **RDAP / WHOIS Lookup** — Query `rdap.org` for public IP registration data including RIR, country, organization, and allocated range (with in-memory + localStorage caching)
+- **Network Designer** — Visual drag-and-drop network topology diagram at `/designer`, with auto-layout from splitter data, custom subnet and resource nodes (routers, switches, firewalls, servers, databases, load balancers, cloud resources), powered by React Flow
 - **Cloud Provider Context** — See AWS, Azure, and GCP reserved addresses, prefix limits, and usable host calculations for any subnet
 - **Export** — Data (JSON, CSV), CLI commands (AWS, Azure, GCP), Terraform HCL (AWS, Azure, GCP), and enhanced Share URL with QR code
 - **Keyboard Shortcuts** — `/` to focus input, `↑↓` to adjust prefix length, `Escape` to blur
@@ -28,6 +29,7 @@
 | Framework | React 19 |
 | Language | TypeScript (strict mode) |
 | Styling | Tailwind CSS v4 |
+| Diagrams | React Flow (@xyflow/react) |
 | State | Zustand 5 |
 | Animation | Motion (Framer Motion) |
 | Build | Vite 7 |
@@ -57,11 +59,12 @@ pnpm preview      # Preview production build
 src/
 ├── lib/            Pure calculation functions (zero React)
 │   └── config.ts     Centralised app defaults (CIDR, theme, input mode)
-├── store/          Zustand stores (calculator + theme)
-├── hooks/          Side-effect hooks (URL sync, keyboard, clipboard)
+├── store/          Zustand stores (calculator, designer, theme)
+├── hooks/          Side-effect hooks (URL sync, keyboard, clipboard, designer URL)
 ├── components/     UI organized by feature domain
 │   ├── calculator/   CIDR input, results, binary breakdown, reference
 │   ├── splitter/     Subnet splitting with integrated visualization
+│   ├── designer/     Network diagram designer (React Flow canvas, nodes, palette)
 │   ├── visual-map/   Address space visualization (calculator mode)
 │   ├── cloud/        Cloud provider context cards
 │   ├── whois/        RDAP / WHOIS lookup section

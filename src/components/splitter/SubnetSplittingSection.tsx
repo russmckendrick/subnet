@@ -137,6 +137,17 @@ export function SubnetSplittingSection() {
             </select>
           )}
           {splits.length > 0 && (
+            <a
+              href={`/designer?from=${encodeURIComponent(rawInput)}&split=${splits.map((s) => `${s.prefixLength}~${encodeURIComponent(s.label)}`).join(',')}`}
+              className="flex items-center gap-1 text-xs text-[#2aa198] hover:text-[#2aa198]/80 transition-colors px-2 py-1"
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 3.75H6A2.25 2.25 0 003.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0120.25 6v1.5m0 9V18A2.25 2.25 0 0118 20.25h-1.5m-9 0H6A2.25 2.25 0 013.75 18v-1.5M12 8.25v7.5m3.75-3.75H8.25" />
+              </svg>
+              Designer
+            </a>
+          )}
+          {splits.length > 0 && (
             <button
               onClick={resetSplits}
               className="text-xs text-[#dc322f] hover:text-[#dc322f]/80 transition-colors px-2 py-1"

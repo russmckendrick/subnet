@@ -101,6 +101,7 @@ export function CommandPalette() {
 
     if (action === 'open-reference') { setActiveDrawer('reference'); return }
     if (action === 'open-supernet') { setActiveDrawer('supernet'); return }
+    if (action === 'open-designer') { window.location.href = '/designer'; return }
     if (action === 'toggle-theme') { toggleTheme(); return }
     if (action === 'clear-input') { setRawInput(''); return }
     if (action === 'reset-splits') { resetSplits(); return }

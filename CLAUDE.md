@@ -20,9 +20,9 @@ subnet.fit is a client-side-only CIDR/subnet calculator. All computation happens
 ### Layers
 
 - **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, RDAP response parsing (`rdap.ts`) and caching (`rdap-cache.ts`), IaC export formatters, URL path codec, and centralised app configuration (`config.ts`). All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
-- **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs, input mode, command palette open state). `theme-store.ts` persists dark/light mode to localStorage. Both stores read defaults from `config.ts`.
-- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-keyboard-shortcuts.ts` handles `/` to open command palette, arrows to adjust prefix when input focused. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching.
-- **`src/components/`** — UI organized by feature domain: `calculator/`, `splitter/`, `visual-map/`, `cloud/`, `whois/`, `tools/`, `export/`, `command-palette/`, `shared/`, `layout/`.
+- **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs, input mode, command palette open state). `designer-store.ts` holds diagram state (nodes, edges, palette, selection). `theme-store.ts` persists dark/light mode to localStorage. Calculator and theme stores read defaults from `config.ts`.
+- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-designer-url-sync.ts` reads `?from=` and `&split=` params on `/designer` route and initializes the diagram canvas. `use-keyboard-shortcuts.ts` handles `/` to open command palette, arrows to adjust prefix when input focused. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching.
+- **`src/components/`** — UI organized by feature domain: `calculator/`, `splitter/`, `designer/`, `visual-map/`, `cloud/`, `whois/`, `tools/`, `export/`, `command-palette/`, `shared/`, `layout/`.
 
 ### Routing
 
@@ -30,12 +30,13 @@ No router library. The app uses **path-based URL encoding** for state and sharea
 - Calculator: `/10.0.0.0/16`
 - Splitter: `/10.0.0.0/16?split=24~Web,25~API`
 - Supernet: `/super?nets=10.0.0.0/24,10.0.1.0/24`
+- Designer: `/designer` or `/designer?from=10.0.0.0/16&split=24~Web,25~API`
 
-Encoding/decoding is in `src/lib/url-codec.ts`. The `useUrlSync` hook migrates legacy hash URLs on mount, reads the path, and writes it on state changes via `history.replaceState()`.
+Encoding/decoding is in `src/lib/url-codec.ts`. The `useUrlSync` hook migrates legacy hash URLs on mount, reads the path, and writes it on state changes via `history.replaceState()`. The designer route is detected in `App.tsx` via `pathname.startsWith('/designer')` and renders `<DesignerPage>` instead of the calculator layout.
 
 ### State Flow
 
-`App.tsx` → `useUrlSync()` migrates legacy hash URLs then initializes store from path → Zustand store drives all components → store changes trigger URL path updates.
+`App.tsx` checks pathname — if `/designer`, renders `<DesignerPage>` (separate React Flow canvas); otherwise renders the calculator `<Layout>`. Calculator: `useUrlSync()` migrates legacy hash URLs then initializes store from path → Zustand store drives all components → store changes trigger URL path updates. Designer: `useDesignerUrlSync()` reads `?from=` and `&split=` params → `generateInitialLayout()` creates nodes/edges → `designer-store` drives React Flow canvas.
 
 ### Tailwind CSS v4
 

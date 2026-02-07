@@ -1,0 +1,72 @@
+/* React Flow Solarized theme overrides */
+
+/* Import React Flow base styles */
+@import '@xyflow/react/dist/style.css';
+
+/* Light mode — React Flow default (no .dark class on container) */
+.react-flow {
+  --xy-background-color: #fdf6e3;
+  --xy-edge-stroke: #93a1a1;
+  --xy-edge-stroke-selected: #2aa198;
+  --xy-node-border-radius: 8px;
+  --xy-minimap-background: #eee8d5;
+  --xy-minimap-mask-background: rgba(253, 246, 227, 0.7);
+  --xy-controls-button-background: #eee8d5;
+  --xy-controls-button-color: #586e75;
+  --xy-controls-button-border-color: #93a1a1;
+  --xy-attribution-background: transparent;
+}
+
+/* Dark mode — React Flow adds .dark to its own container via colorMode prop */
+.react-flow.dark {
+  --xy-background-color: #002b36;
+  --xy-edge-stroke: #586e75;
+  --xy-edge-stroke-selected: #2aa198;
+  --xy-node-border-radius: 8px;
+  --xy-minimap-background: #073642;
+  --xy-minimap-mask-background: rgba(0, 43, 54, 0.7);
+  --xy-controls-button-background: #073642;
+  --xy-controls-button-color: #93a1a1;
+  --xy-controls-button-border-color: #586e75;
+  --xy-attribution-background: transparent;
+}
+
+/* Controls styling */
+.react-flow .react-flow__controls {
+  box-shadow: none;
+  border: 1px solid rgba(88, 110, 117, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.react-flow .react-flow__controls button {
+  width: 28px;
+  height: 28px;
+}
+
+.react-flow .react-flow__controls button:hover {
+  background-color: rgba(42, 161, 152, 0.1);
+}
+
+/* MiniMap styling */
+.react-flow .react-flow__minimap {
+  border: 1px solid rgba(88, 110, 117, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Edge styling */
+.react-flow .react-flow__edge-path {
+  stroke-width: 2;
+}
+
+/* Selection box */
+.react-flow .react-flow__selection {
+  border: 1px solid #2aa198;
+  background: rgba(42, 161, 152, 0.08);
+}
+
+/* Hide default attribution */
+.react-flow .react-flow__attribution {
+  display: none;
+}

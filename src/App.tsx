@@ -10,8 +10,9 @@ import { Drawer } from '@/components/shared/Drawer'
 import { CommandPalette } from '@/components/command-palette/CommandPalette'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { useUrlSync } from '@/hooks/use-url-sync'
+import { DesignerPage } from '@/components/designer/DesignerPage'
 
-function App() {
+function Calculator() {
   const { result, activeDrawer, setActiveDrawer } = useCalculatorStore()
   useUrlSync()
 
@@ -44,6 +45,16 @@ function App() {
       <CommandPalette />
     </Layout>
   )
+}
+
+function App() {
+  const isDesigner = window.location.pathname.startsWith('/designer')
+
+  if (isDesigner) {
+    return <DesignerPage />
+  }
+
+  return <Calculator />
 }
 
 export default App
