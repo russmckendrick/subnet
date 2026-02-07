@@ -37,6 +37,18 @@ export function CidrInput() {
   const [splitIp, setSplitIp] = useState(() => extractIp(rawInput))
   const [splitIpSource, setSplitIpSource] = useState<'local' | 'store'>('store')
 
+  // Track mobile breakpoint for responsive prefix dropdown text
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 639px)').matches : false
+  )
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 639px)')
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
+  }, [])
+
   // Derive prefix from store
   const currentPrefix = extractPrefix(rawInput)
 
@@ -82,31 +94,35 @@ export function CidrInput() {
     ? 'border-[#dc322f]/40'
     : 'border-[#93a1a1]/20 dark:border-[#586e75]/30'
 
-  const modeToggle = (
+  const modeToggleButtons = (
+    <div className="flex gap-0.5 shrink-0">
+      <button
+        onClick={() => setAdvancedMode(false)}
+        className={`text-[11px] px-2 py-0.5 rounded-md font-medium transition-colors ${
+          !advancedMode
+            ? 'bg-[#2aa198]/10 text-[#2aa198] border border-[#2aa198]/20'
+            : 'text-[#93a1a1] dark:text-[#586e75] hover:text-[#586e75] dark:hover:text-[#93a1a1] border border-transparent'
+        }`}
+      >
+        Guided
+      </button>
+      <button
+        onClick={() => setAdvancedMode(true)}
+        className={`text-[11px] px-2 py-0.5 rounded-md font-medium transition-colors ${
+          advancedMode
+            ? 'bg-[#2aa198]/10 text-[#2aa198] border border-[#2aa198]/20'
+            : 'text-[#93a1a1] dark:text-[#586e75] hover:text-[#586e75] dark:hover:text-[#93a1a1] border border-transparent'
+        }`}
+      >
+        CIDR
+      </button>
+    </div>
+  )
+
+  const modeToggleDesktop = (
     <>
       <div className="w-px h-5 bg-[#93a1a1]/20 dark:bg-[#586e75]/20 mx-1.5" />
-      <div className="flex gap-0.5 shrink-0">
-        <button
-          onClick={() => setAdvancedMode(false)}
-          className={`text-[11px] px-2 py-0.5 rounded-md font-medium transition-colors ${
-            !advancedMode
-              ? 'bg-[#2aa198]/10 text-[#2aa198] border border-[#2aa198]/20'
-              : 'text-[#93a1a1] dark:text-[#586e75] hover:text-[#586e75] dark:hover:text-[#93a1a1] border border-transparent'
-          }`}
-        >
-          Guided
-        </button>
-        <button
-          onClick={() => setAdvancedMode(true)}
-          className={`text-[11px] px-2 py-0.5 rounded-md font-medium transition-colors ${
-            advancedMode
-              ? 'bg-[#2aa198]/10 text-[#2aa198] border border-[#2aa198]/20'
-              : 'text-[#93a1a1] dark:text-[#586e75] hover:text-[#586e75] dark:hover:text-[#93a1a1] border border-transparent'
-          }`}
-        >
-          CIDR
-        </button>
-      </div>
+      {modeToggleButtons}
     </>
   )
 
@@ -142,51 +158,61 @@ export function CidrInput() {
         className={`relative rounded-lg border transition-colors duration-300 bg-transparent ${borderClass}`}
       >
         {advancedMode ? (
-          <div className="flex items-center px-4 py-3">
-            {globeIcon}
-            <input
-              ref={inputRef}
-              type="text"
-              value={rawInput}
-              onChange={(e) => setRawInput(e.target.value)}
-              placeholder="Enter CIDR notation... (e.g. 10.0.0.0/16)"
-              className="flex-1 bg-transparent text-xl font-mono font-medium text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40 focus:outline-none"
-              spellCheck={false}
-              autoComplete="off"
-            />
-            {clearButton}
-            {modeToggle}
+          <div className="px-4 py-3">
+            <div className="flex items-center">
+              {globeIcon}
+              <input
+                ref={inputRef}
+                type="text"
+                value={rawInput}
+                onChange={(e) => setRawInput(e.target.value)}
+                placeholder="Enter CIDR notation... (e.g. 10.0.0.0/16)"
+                className="flex-1 bg-transparent text-xl font-mono font-medium text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40 focus:outline-none"
+                spellCheck={false}
+                autoComplete="off"
+              />
+              {clearButton}
+              <div className="hidden sm:flex items-center">{modeToggleDesktop}</div>
+            </div>
+            <div className="flex sm:hidden justify-end mt-2">
+              {modeToggleButtons}
+            </div>
           </div>
         ) : (
-          <div className="flex items-center gap-2 px-4 py-3">
-            {globeIcon}
-            <input
-              ref={inputRef}
-              type="text"
-              value={splitIp}
-              onChange={(e) => handleIpChange(e.target.value)}
-              placeholder="IP address (e.g. 10.0.0.0)"
-              className="flex-1 min-w-0 bg-transparent text-xl font-mono font-medium text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40 focus:outline-none"
-              spellCheck={false}
-              autoComplete="off"
-            />
-            <div className="shrink-0 flex items-center">
-              <span className="text-[#93a1a1] dark:text-[#586e75] text-xl font-mono mr-1">/</span>
-              <select
-                value={currentPrefix}
-                onChange={(e) => handlePrefixChange(Number(e.target.value))}
-                className="bg-[#fdf6e3] dark:bg-[#002b36] text-[#586e75] dark:text-[#93a1a1] text-sm font-mono font-medium rounded-lg px-2 py-1.5 border border-[#93a1a1]/20 dark:border-[#586e75]/30 focus:outline-none focus:ring-2 focus:ring-[#2aa198]/30 cursor-pointer appearance-none pr-7"
-                style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23586e75' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.3rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.2em 1.2em' }}
-              >
-                {PREFIX_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    /{opt.value} — {opt.netmask}
-                  </option>
-                ))}
-              </select>
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-2">
+              {globeIcon}
+              <input
+                ref={inputRef}
+                type="text"
+                value={splitIp}
+                onChange={(e) => handleIpChange(e.target.value)}
+                placeholder="IP address (e.g. 10.0.0.0)"
+                className="flex-1 min-w-0 bg-transparent text-xl font-mono font-medium text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40 focus:outline-none"
+                spellCheck={false}
+                autoComplete="off"
+              />
+              <div className="shrink-0 flex items-center">
+                <span className="text-[#93a1a1] dark:text-[#586e75] text-xl font-mono mr-1">/</span>
+                <select
+                  value={currentPrefix}
+                  onChange={(e) => handlePrefixChange(Number(e.target.value))}
+                  className="bg-[#fdf6e3] dark:bg-[#002b36] text-[#586e75] dark:text-[#93a1a1] text-sm font-mono font-medium rounded-lg px-2 py-1.5 border border-[#93a1a1]/20 dark:border-[#586e75]/30 focus:outline-none focus:ring-2 focus:ring-[#2aa198]/30 cursor-pointer appearance-none pr-7"
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23586e75' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.3rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.2em 1.2em' }}
+                >
+                  {PREFIX_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {isMobile ? `/${opt.value}` : `/${opt.value} — ${opt.netmask}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {clearButton}
+              <div className="hidden sm:flex items-center">{modeToggleDesktop}</div>
             </div>
-            {clearButton}
-            {modeToggle}
+            <div className="flex sm:hidden justify-end mt-2">
+              {modeToggleButtons}
+            </div>
           </div>
         )}
 
