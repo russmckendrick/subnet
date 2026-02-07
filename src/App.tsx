@@ -1,6 +1,7 @@
 import { Layout } from '@/components/layout/Layout'
 import { CidrInput } from '@/components/calculator/CidrInput'
 import { ResultsPanel } from '@/components/calculator/ResultsPanel'
+import { AddressSpaceSection } from '@/components/calculator/DetailsSection'
 import { DetailsSection } from '@/components/calculator/DetailsSection'
 import { SubnetSplittingSection } from '@/components/splitter/SubnetSplittingSection'
 import { QuickReference } from '@/components/calculator/QuickReference'
@@ -18,6 +19,7 @@ function App() {
       <div className="py-4">
         <CidrInput />
         {result && <ResultsPanel />}
+        {result && <AddressSpaceSection />}
         {result && <SubnetSplittingSection />}
         {result && <DetailsSection />}
       </div>

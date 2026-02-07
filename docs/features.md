@@ -44,6 +44,22 @@ Visual representation of the IP address in binary, with each bit color-coded:
 
 Bits are grouped into four octets separated by dots, matching dotted-decimal notation.
 
+### RDAP / WHOIS Lookup
+
+For public IP addresses, an expandable RDAP section queries the `rdap.org` bootstrap server to display registration data:
+
+- **RIR** — Which Regional Internet Registry manages the allocation (ARIN, RIPE NCC, APNIC, LACNIC, AFRINIC)
+- **Country** — Country code of the allocation
+- **Network Name** — The registered network name (e.g. `GOOGLE`)
+- **Organization** — Registrant organization name and handle
+- **Allocated Range** — The CIDR block allocated by the RIR
+- **Start/End Address** — Boundaries of the allocated range
+- **Registration & Last Updated** — Dates from the RDAP record
+
+For reserved/private addresses (RFC 1918, loopback, link-local, CGNAT, multicast, etc.) the section shows a muted message instead of making an API call.
+
+Results are cached in-memory and localStorage (24h TTL, max 100 entries) for instant repeat lookups. A 500ms debounce prevents excessive requests during typing.
+
 ### Cloud Provider Context
 
 Shows how the current subnet would behave on each major cloud provider:

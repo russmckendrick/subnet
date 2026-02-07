@@ -1,6 +1,6 @@
 import { motion } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
-import { AnimatedCard } from '@/components/shared/AnimatedCard'
+import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { CopyButton } from '@/components/shared/CopyButton'
 
 const QUICK_PREFIXES = [24, 25, 26, 27, 28]
@@ -23,9 +23,15 @@ export function SubnetSplittingSection() {
   const usedSize = splits.reduce((sum, s) => sum + s.size, 0)
   const totalSize = result.totalAddresses
   const allocatedPercent = totalSize > 0 ? ((usedSize / totalSize) * 100).toFixed(1) : '0'
+  const isReserved = result.rfcType !== null
 
   return (
-    <AnimatedCard delay={0.1} className="mt-2 p-5">
+    <CollapsibleSection
+      key={`splitter-${isReserved}`}
+      title="Subnet Splitting"
+      defaultOpen={isReserved}
+      delay={0.1}
+    >
       {/* Inline summary bar */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#586e75] mb-4 font-mono">
         <span className="font-semibold text-[#586e75] dark:text-[#93a1a1]">{rawInput}</span>
@@ -276,6 +282,6 @@ export function SubnetSplittingSection() {
           </div>
         </div>
       )}
-    </AnimatedCard>
+    </CollapsibleSection>
   )
 }

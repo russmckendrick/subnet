@@ -14,6 +14,7 @@
 - **Subnet Splitter** — Divide a parent network into multiple subnets with custom prefix lengths and labels, with integrated proportional visualization bar and detail cards
 - **Supernet Calculator** — Aggregate multiple CIDRs into the smallest containing supernet
 - **Reference Table** — Collapsible lookup table for all prefix lengths (/0–/32) with masks, wildcards, and host counts
+- **RDAP / WHOIS Lookup** — Query `rdap.org` for public IP registration data including RIR, country, organization, and allocated range (with in-memory + localStorage caching)
 - **Cloud Provider Context** — See AWS, Azure, and GCP reserved addresses, prefix limits, and usable host calculations for any subnet
 - **IaC Export** — Generate Terraform HCL, Pulumi TypeScript, CloudFormation JSON, plus JSON and CSV from calculator results
 - **Keyboard Shortcuts** — `/` to focus input, `↑↓` to adjust prefix length, `Escape` to blur
@@ -63,6 +64,7 @@ src/
 │   ├── splitter/     Subnet splitting with integrated visualization
 │   ├── visual-map/   Address space visualization (calculator mode)
 │   ├── cloud/        Cloud provider context cards
+│   ├── whois/        RDAP / WHOIS lookup section
 │   ├── tools/        Supernet calculator
 │   ├── export/       IaC and data export menu
 │   ├── shared/       Reusable components (tabs, cards, badges)

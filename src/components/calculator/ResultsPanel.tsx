@@ -3,6 +3,7 @@ import { useCalculatorStore } from '@/store/calculator-store'
 import { AnimatedCard } from '@/components/shared/AnimatedCard'
 import { Badge } from '@/components/shared/Badge'
 import { CopyButton } from '@/components/shared/CopyButton'
+import { RdapSectionContent } from '@/components/whois/RdapSection'
 
 function formatNumber(n: number): string {
   return n.toLocaleString()
@@ -95,6 +96,14 @@ export function ResultsPanel() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* RDAP / WHOIS */}
+        <div className="pt-3 mt-3 border-t border-[#586e75]/20">
+          <h4 className="text-[10px] text-[#586e75] dark:text-[#586e75] uppercase tracking-wider font-medium mb-3">
+            RDAP / WHOIS Lookup
+          </h4>
+          <RdapSectionContent />
         </div>
       </AnimatedCard>
     </motion.div>

@@ -1,6 +1,6 @@
 # Architecture
 
-subnet.fit is a client-side-only application. All computation happens in the browser — there is no backend, no API calls, and no server-side rendering.
+subnet.fit is a client-side-only application. All computation happens in the browser — there is no backend and no server-side rendering. The only external API call is the optional RDAP lookup against `rdap.org` for public IP registration data.
 
 ## Layer Diagram
 
@@ -13,6 +13,8 @@ flowchart TD
         binary["binary.ts"]
         cloud["cloud-providers.ts"]
         rfc["rfc-ranges.ts"]
+        rdap["rdap.ts"]
+        rdapcache["rdap-cache.ts"]
         constants["constants.ts"]
         exportmod["export.ts"]
         urlcodec["url-codec.ts"]
@@ -28,6 +30,7 @@ flowchart TD
         urlsync["use-url-sync.ts"]
         keyboard["use-keyboard-shortcuts.ts"]
         clipboard["use-clipboard.ts"]
+        rdaplookup["use-rdap-lookup.ts"]
     end
 
     subgraph components["components/ — UI"]
@@ -35,6 +38,7 @@ flowchart TD
         splitter["splitter/"]
         visualmap["visual-map/"]
         cloudcomp["cloud/"]
+        whois["whois/"]
         tools["tools/"]
         exportcomp["export/"]
         shared["shared/"]
@@ -52,9 +56,9 @@ Each layer has a strict dependency direction:
 
 | Layer | Responsibility | Dependencies |
 |-------|---------------|--------------|
-| `lib/` | Pure functions. IPv4 parsing, CIDR math, subnet allocation, binary formatting, cloud provider logic, RFC detection, export formatting, URL encoding, and centralised app configuration (`config.ts`). Zero React imports. | None |
+| `lib/` | Pure functions. IPv4 parsing, CIDR math, subnet allocation, binary formatting, cloud provider logic, RFC detection, RDAP response parsing and caching, export formatting, URL encoding, and centralised app configuration (`config.ts`). Zero React imports. | None |
 | `store/` | Zustand stores. Holds all application state and actions. Calls `lib/` functions to compute derived values. | `lib/` |
-| `hooks/` | React hooks for side effects. URL hash synchronization, keyboard shortcut handling, clipboard operations. | `store/`, `lib/` |
+| `hooks/` | React hooks for side effects. URL hash synchronization, keyboard shortcut handling, clipboard operations, RDAP lookups. | `store/`, `lib/` |
 | `components/` | React components organized by feature domain. Read from stores, call actions, render UI. | `store/`, `hooks/`, `lib/` |
 
 ## Data Flow
@@ -120,6 +124,7 @@ flowchart TD
     subgraph DetailsSub["DetailsSection children"]
         SubnetMap["SubnetMap<br/>(hidden when splits exist)"]
         CloudContext["CloudContext"]
+        RdapSection["RdapSection"]
         BinaryBreakdown["BinaryBreakdown"]
         ExportMenu["ExportMenu"]
     end

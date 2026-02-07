@@ -15,14 +15,14 @@ No test framework is currently configured.
 
 ## Architecture
 
-subnet.fit is a client-side-only CIDR/subnet calculator. All computation happens in the browser — there is no backend.
+subnet.fit is a client-side-only CIDR/subnet calculator. All computation happens in the browser — there is no backend. The only external API call is the optional RDAP lookup against `rdap.org` for public IP registration data.
 
 ### Layers
 
-- **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, IaC export formatters, URL path codec, and centralised app configuration (`config.ts`). All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
+- **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, RDAP response parsing (`rdap.ts`) and caching (`rdap-cache.ts`), IaC export formatters, URL path codec, and centralised app configuration (`config.ts`). All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
 - **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs). `theme-store.ts` persists dark/light mode to localStorage. Both stores read defaults from `config.ts`.
-- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-keyboard-shortcuts.ts` handles `/` to focus, arrows to adjust prefix. `use-clipboard.ts` wraps clipboard API with feedback state.
-- **`src/components/`** — UI organized by feature domain: `calculator/`, `splitter/`, `visual-map/`, `cloud/`, `tools/`, `export/`, `shared/`, `layout/`.
+- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-keyboard-shortcuts.ts` handles `/` to focus, arrows to adjust prefix. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching.
+- **`src/components/`** — UI organized by feature domain: `calculator/`, `splitter/`, `visual-map/`, `cloud/`, `whois/`, `tools/`, `export/`, `shared/`, `layout/`.
 
 ### Routing
 
@@ -86,6 +86,8 @@ The `dark` class is toggled on `<html>` by the theme store. The visual design us
 - `CidrResult` (in `src/lib/cidr.ts`) — Full parsed CIDR with network/broadcast addresses, masks, host counts, IP class, RFC type, cloud context.
 - `SubnetSplit` (in `src/lib/subnet-math.ts`) — A single allocated subnet within a splitter session, with CIDR, label, color, and host info.
 - `UrlState` (in `src/lib/url-codec.ts`) — Serializable state for path-based URL encoding (mode, cidr, splits, labels).
+- `RdapResult` (in `src/lib/rdap.ts`) — Parsed RDAP registration data: network name, RIR, country, organization, allocated range, dates.
+- `RdapLookupState` (in `src/lib/rdap.ts`) — Discriminated union: `idle | loading | success | error | private`.
 
 ### Export Formats
 
