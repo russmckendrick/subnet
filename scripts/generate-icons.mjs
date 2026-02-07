@@ -133,16 +133,60 @@ function convertAttributes(svgContent) {
 }
 
 /**
- * Strip <title> elements from SVG content.
+ * Strip elements and content that are invalid or unnecessary in JSX.
  */
-function stripTitles(content) {
-  return content.replace(/<title>[^<]*<\/title>/g, '')
+function stripNonJsxContent(content) {
+  let result = content
+  // Remove HTML comments (invalid in JSX)
+  result = result.replace(/<!--[\s\S]*?-->/g, '')
+  // Remove <title> elements
+  result = result.replace(/<title>[^<]*<\/title>/g, '')
+  // Remove <desc> elements
+  result = result.replace(/<desc>[^<]*<\/desc>/g, '')
+  // Remove decorative id attributes (on g, rect, path, circle, ellipse, line, polyline, polygon)
+  // but keep functional ids (on linearGradient, radialGradient, clipPath, mask, filter, pattern, symbol, marker)
+  result = result.replace(/<(g|rect|path|circle|ellipse|line|polyline|polygon)(\s)/g, (match, tag, space) => {
+    return `<${tag}${space}`
+  })
+  // Remove id from decorative elements only
+  result = result.replace(/(<(?:g|rect|path|circle|ellipse|line|polyline|polygon)\b[^>]*?)\s+id="[^"]*"/g, '$1')
+  return result
+}
+
+/**
+ * Namespace all id definitions and url(#...) references with a component-specific prefix
+ * to avoid conflicts when multiple icons render on the same page.
+ */
+function namespaceIds(content, componentName) {
+  // Collect all id values from functional elements (defs children)
+  const idMatches = [...content.matchAll(/id="([^"]*)"/g)]
+  const ids = [...new Set(idMatches.map((m) => m[1]))]
+
+  if (ids.length === 0) return content
+
+  // Create a short prefix from the component name (e.g., "AwsVpcIcon" → "awsvpc")
+  const prefix = componentName.replace(/Icon$/, '').replace(/([A-Z])/g, (c) => c.toLowerCase())
+
+  let result = content
+  for (const id of ids) {
+    const namespacedId = `${prefix}_${id}`
+    const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    // Replace id definition
+    result = result.replace(new RegExp(`id="${escapedId}"`, 'g'), `id="${namespacedId}"`)
+    // Replace url(#...) references
+    result = result.replace(new RegExp(`url\\(#${escapedId}\\)`, 'g'), `url(#${namespacedId})`)
+    // Replace xlinkHref="#..." references
+    result = result.replace(new RegExp(`xlinkHref="#${escapedId}"`, 'g'), `xlinkHref="#${namespacedId}"`)
+    result = result.replace(new RegExp(`href="#${escapedId}"`, 'g'), `href="#${namespacedId}"`)
+  }
+
+  return result
 }
 
 /**
  * Extract viewBox and inner content from SVG string.
  */
-function parseSvg(svgString) {
+function parseSvg(svgString, componentName) {
   // Extract viewBox
   const viewBoxMatch = svgString.match(/viewBox="([^"]*)"/)
   const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 18 18'
@@ -155,11 +199,14 @@ function parseSvg(svgString) {
 
   let inner = innerMatch[1]
 
-  // Strip <title> elements
-  inner = stripTitles(inner)
+  // Strip comments, <title>, <desc>, decorative ids
+  inner = stripNonJsxContent(inner)
 
   // Convert attributes
   inner = convertAttributes(inner)
+
+  // Namespace remaining ids (gradients, clipPaths, etc.) to avoid cross-icon conflicts
+  inner = namespaceIds(inner, componentName)
 
   return { viewBox, inner: inner.trim() }
 }
@@ -254,7 +301,7 @@ function processProvider(provider) {
     const svgRaw = readFileSync(svgPath, 'utf-8')
 
     const { componentName, resourceKey } = deriveNames(file, provider)
-    const { viewBox, inner } = parseSvg(svgRaw)
+    const { viewBox, inner } = parseSvg(svgRaw, componentName)
 
     const tsx = generateTsx(componentName, viewBox, inner)
     const tsxPath = join(dstDir, `${componentName}.tsx`)
