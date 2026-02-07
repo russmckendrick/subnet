@@ -2,29 +2,23 @@ import { motion } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { ipv4ToString } from '@/lib/ipv4'
-import { parseCidr } from '@/lib/cidr'
 
 function SubnetMapInner() {
-  const { result, splits, remainingSpace, parentCidr, activeTab } = useCalculatorStore()
+  const { result, splits, remainingSpace } = useCalculatorStore()
 
-  const isSplitterMode = activeTab === 'splitter'
   const showingSplits = splits.length > 0
+  const totalSize = result?.totalAddresses ?? 0
 
-  // Use parentCidr when in splitter mode, otherwise use calculator result
-  const parentResult = isSplitterMode ? parseCidr(parentCidr) : null
-  const displayResult = isSplitterMode ? parentResult : result
-  const totalSize = displayResult?.totalAddresses ?? 0
-
-  if (!displayResult) return null
+  if (!result) return null
 
   // For the calculator view, break the address space into logical blocks
-  const prefixBlocks = displayResult && !showingSplits ? (() => {
-    const prefix = displayResult.prefixLength
+  const prefixBlocks = !showingSplits ? (() => {
+    const prefix = result.prefixLength
     const subPrefix = Math.min(prefix + 4, 32)
     const blockCount = Math.pow(2, subPrefix - prefix)
     const blockSize = Math.pow(2, 32 - subPrefix)
     return Array.from({ length: Math.min(blockCount, 64) }, (_, i) => {
-      const startAddr = (displayResult.networkNum + i * blockSize) >>> 0
+      const startAddr = (result.networkNum + i * blockSize) >>> 0
       return {
         index: i,
         startAddr: ipv4ToString(startAddr),
@@ -141,7 +135,7 @@ function SubnetMapInner() {
             )}
           </div>
         </div>
-      ) : displayResult ? (
+      ) : (
         <div className="space-y-3">
           {/* Compact proportional bar showing the address range */}
           <div className="relative h-10 rounded-lg overflow-hidden border border-[#586e75]/20">
@@ -155,13 +149,13 @@ function SubnetMapInner() {
             <div className="absolute right-0 top-0 bottom-0 w-1 bg-[#d33682] z-10" />
             <div className="absolute inset-0 flex items-center justify-between px-3">
               <span className="text-[10px] font-mono text-[#268bd2] font-semibold">
-                {displayResult.networkAddress}
+                {result.networkAddress}
               </span>
               <span className="text-xs font-mono text-[#586e75] dark:text-[#93a1a1] font-bold">
-                /{displayResult.prefixLength}
+                /{result.prefixLength}
               </span>
               <span className="text-[10px] font-mono text-[#d33682] font-semibold">
-                {displayResult.broadcastAddress}
+                {result.broadcastAddress}
               </span>
             </div>
           </div>
@@ -209,7 +203,7 @@ function SubnetMapInner() {
               </span>
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-[#268bd2]/20 border border-[#268bd2]/30" />
-                {displayResult.usableHosts.toLocaleString()} usable hosts
+                {result.usableHosts.toLocaleString()} usable hosts
               </span>
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-[#d33682]" />
@@ -217,11 +211,11 @@ function SubnetMapInner() {
               </span>
             </div>
             <span className="font-mono text-[#93a1a1] dark:text-[#586e75]">
-              {displayResult.totalAddresses.toLocaleString()} total
+              {result.totalAddresses.toLocaleString()} total
             </span>
           </div>
         </div>
-      ) : null}
+      )}
     </>
   )
 }
@@ -232,15 +226,13 @@ export function SubnetMapContent() {
 }
 
 export function SubnetMap() {
-  const { splits, result, activeTab, parentCidr } = useCalculatorStore()
+  const { splits, result } = useCalculatorStore()
   const showingSplits = splits.length > 0
-  const isSplitterMode = activeTab === 'splitter'
-  const displayResult = isSplitterMode ? parseCidr(parentCidr) : result
 
-  if (!displayResult) return null
+  if (!result) return null
 
   const usedSize = splits.reduce((sum, s) => sum + s.size, 0)
-  const totalSize = displayResult.totalAddresses
+  const totalSize = result.totalAddresses
   const usagePercent = totalSize > 0 ? Math.round((usedSize / totalSize) * 100) : 0
 
   return (

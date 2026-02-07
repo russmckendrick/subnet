@@ -1,8 +1,10 @@
 import { motion } from 'motion/react'
 import { useThemeStore } from '@/store/theme-store'
+import { useCalculatorStore } from '@/store/calculator-store'
 
 export function Header() {
   const { theme, toggleTheme } = useThemeStore()
+  const { setActiveDrawer } = useCalculatorStore()
 
   return (
     <header className="relative z-10 flex items-center justify-between px-6 py-4 max-w-7xl mx-auto w-full">
@@ -27,8 +29,31 @@ export function Header() {
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="flex items-center gap-3"
+        className="flex items-center gap-2"
       >
+        {/* Reference drawer button */}
+        <button
+          onClick={() => setActiveDrawer('reference')}
+          className="flex items-center gap-1.5 text-xs text-[#586e75] bg-[#eee8d5] dark:bg-[#073642] px-2.5 py-1.5 rounded-lg hover:bg-[#eee8d5]/80 dark:hover:bg-[#073642]/80 transition-colors"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+          </svg>
+          <span className="hidden sm:inline">Reference</span>
+        </button>
+
+        {/* Supernet drawer button */}
+        <button
+          onClick={() => setActiveDrawer('supernet')}
+          className="flex items-center gap-1.5 text-xs text-[#586e75] bg-[#eee8d5] dark:bg-[#073642] px-2.5 py-1.5 rounded-lg hover:bg-[#eee8d5]/80 dark:hover:bg-[#073642]/80 transition-colors"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+          </svg>
+          <span className="hidden sm:inline">Supernet</span>
+        </button>
+
+        {/* Keyboard hints */}
         <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#586e75] bg-[#eee8d5] dark:bg-[#073642] px-2.5 py-1.5 rounded-lg">
           <kbd className="font-mono text-[10px] bg-[#fdf6e3] dark:bg-[#002b36] px-1.5 py-0.5 rounded border border-[#93a1a1]/20 dark:border-[#586e75]/30">/</kbd>
           <span>to focus</span>

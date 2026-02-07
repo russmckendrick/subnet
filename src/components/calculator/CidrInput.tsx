@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { ipv4ToString } from '@/lib/ipv4'
-import { parseCidr } from '@/lib/cidr'
+import { config } from '@/lib/config'
 
 const PREFIX_OPTIONS = Array.from({ length: 33 }, (_, i) => {
   const mask = i === 0 ? 0 : (~0 << (32 - i)) >>> 0
@@ -26,149 +26,140 @@ function extractIp(raw: string): string {
   return slashIdx === -1 ? raw.trim() : raw.slice(0, slashIdx)
 }
 
-interface CidrInputProps {
-  target?: 'calculator' | 'splitter'
-  autoFocus?: boolean
-}
-
-export function CidrInput({ target = 'calculator', autoFocus = true }: CidrInputProps) {
+export function CidrInput() {
   const inputRef = useRef<HTMLInputElement>(null)
-  const { rawInput, setRawInput, parentCidr, setParentCidr, result } = useCalculatorStore()
+  const { rawInput, setRawInput, result } = useCalculatorStore()
   useKeyboardShortcuts(inputRef)
 
-  // Determine which store value to use based on target
-  const storeValue = target === 'splitter' ? parentCidr : rawInput
-  const setStoreValue = target === 'splitter' ? setParentCidr : setRawInput
-
-  const [advancedMode, setAdvancedMode] = useState(false)
+  const [advancedMode, setAdvancedMode] = useState(config.defaultInputMode === 'cidr')
 
   // For the split mode, we keep a local IP string so user can type partial IPs.
-  const [splitIp, setSplitIp] = useState(() => extractIp(storeValue))
+  const [splitIp, setSplitIp] = useState(() => extractIp(rawInput))
   const [splitIpSource, setSplitIpSource] = useState<'local' | 'store'>('store')
 
   // Derive prefix from store
-  const currentPrefix = extractPrefix(storeValue)
+  const currentPrefix = extractPrefix(rawInput)
 
   // When store value changes from store (URL hash etc) and we didn't cause it, sync splitIp
-  const storeIp = extractIp(storeValue)
+  const storeIp = extractIp(rawInput)
   if (splitIpSource === 'store' && splitIp !== storeIp) {
     setSplitIp(storeIp)
   }
 
-  // For calculator target, use the parsed result; for splitter, parse parentCidr
-  const isValid = target === 'splitter'
-    ? (storeValue.trim().length > 0 ? parseCidr(storeValue) !== null : false)
-    : result !== null
-  const hasInput = storeValue.trim().length > 0
+  const isValid = result !== null
+  const hasInput = rawInput.trim().length > 0
 
   useEffect(() => {
-    if (autoFocus) inputRef.current?.focus()
-  }, [autoFocus])
+    inputRef.current?.focus()
+  }, [])
 
   const handleIpChange = useCallback((newIp: string) => {
     setSplitIp(newIp)
     setSplitIpSource('local')
     if (newIp.trim()) {
-      setStoreValue(`${newIp}/${currentPrefix}`)
+      setRawInput(`${newIp}/${currentPrefix}`)
     } else {
-      setStoreValue('')
+      setRawInput('')
     }
     queueMicrotask(() => setSplitIpSource('store'))
-  }, [currentPrefix, setStoreValue])
+  }, [currentPrefix, setRawInput])
 
   const handlePrefixChange = useCallback((newPrefix: number) => {
     if (splitIp.trim()) {
-      setStoreValue(`${splitIp}/${newPrefix}`)
+      setRawInput(`${splitIp}/${newPrefix}`)
     }
-  }, [splitIp, setStoreValue])
+  }, [splitIp, setRawInput])
 
   const handleClear = useCallback(() => {
     setSplitIp('')
     setSplitIpSource('store')
-    setStoreValue('')
-  }, [setStoreValue])
+    setRawInput('')
+  }, [setRawInput])
 
   const borderClass = hasInput && isValid
-    ? 'border-[#859900]/40 shadow-[#859900]/10'
+    ? 'border-[#859900]/40'
     : hasInput && !isValid
-    ? 'border-[#dc322f]/40 shadow-[#dc322f]/10'
+    ? 'border-[#dc322f]/40'
     : 'border-[#93a1a1]/20 dark:border-[#586e75]/30'
+
+  const modeToggle = (
+    <>
+      <div className="w-px h-5 bg-[#93a1a1]/20 dark:bg-[#586e75]/20 mx-1.5" />
+      <div className="flex gap-0.5 shrink-0">
+        <button
+          onClick={() => setAdvancedMode(false)}
+          className={`text-[11px] px-2 py-0.5 rounded-md font-medium transition-colors ${
+            !advancedMode
+              ? 'bg-[#2aa198]/10 text-[#2aa198] border border-[#2aa198]/20'
+              : 'text-[#93a1a1] dark:text-[#586e75] hover:text-[#586e75] dark:hover:text-[#93a1a1] border border-transparent'
+          }`}
+        >
+          Guided
+        </button>
+        <button
+          onClick={() => setAdvancedMode(true)}
+          className={`text-[11px] px-2 py-0.5 rounded-md font-medium transition-colors ${
+            advancedMode
+              ? 'bg-[#2aa198]/10 text-[#2aa198] border border-[#2aa198]/20'
+              : 'text-[#93a1a1] dark:text-[#586e75] hover:text-[#586e75] dark:hover:text-[#93a1a1] border border-transparent'
+          }`}
+        >
+          CIDR
+        </button>
+      </div>
+    </>
+  )
+
+  const globeIcon = (
+    <div className="flex items-center gap-3 text-[#93a1a1] dark:text-[#586e75] mr-3">
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+      </svg>
+    </div>
+  )
+
+  const clearButton = hasInput && (
+    <motion.button
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      onClick={handleClear}
+      className="p-1.5 rounded-lg hover:bg-[#fdf6e3] dark:hover:bg-[#002b36] text-[#93a1a1] transition-colors shrink-0"
+    >
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </motion.button>
+  )
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="w-full max-w-2xl mx-auto mb-6"
+      transition={{ duration: 0.3 }}
+      className="w-full mb-4"
     >
       <div
-        className={`relative rounded-lg border-2 transition-colors duration-300 shadow-xl
-          ${borderClass}
-          bg-[#eee8d5] dark:bg-[#073642]`}
+        className={`relative rounded-lg border transition-colors duration-300 bg-transparent ${borderClass}`}
       >
-        {/* Mode toggle */}
-        <div className="flex items-center justify-end px-5 pt-3 pb-0">
-          <div className="flex gap-0.5 p-0.5 rounded-md bg-[#fdf6e3] dark:bg-[#002b36]">
-            <button
-              onClick={() => setAdvancedMode(false)}
-              className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
-                !advancedMode
-                  ? 'bg-[#2aa198]/10 text-[#2aa198] border border-[#2aa198]/20'
-                  : 'text-[#93a1a1] dark:text-[#586e75] hover:text-[#586e75] dark:hover:text-[#93a1a1] border border-transparent'
-              }`}
-            >
-              Guided
-            </button>
-            <button
-              onClick={() => setAdvancedMode(true)}
-              className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
-                advancedMode
-                  ? 'bg-[#2aa198]/10 text-[#2aa198] border border-[#2aa198]/20'
-                  : 'text-[#93a1a1] dark:text-[#586e75] hover:text-[#586e75] dark:hover:text-[#93a1a1] border border-transparent'
-              }`}
-            >
-              CIDR
-            </button>
-          </div>
-        </div>
-
         {advancedMode ? (
-          <div className="flex items-center px-5 py-4">
-            <div className="flex items-center gap-3 text-[#93a1a1] dark:text-[#586e75] mr-3">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
-              </svg>
-            </div>
+          <div className="flex items-center px-4 py-3">
+            {globeIcon}
             <input
               ref={inputRef}
               type="text"
-              value={storeValue}
-              onChange={(e) => setStoreValue(e.target.value)}
+              value={rawInput}
+              onChange={(e) => setRawInput(e.target.value)}
               placeholder="Enter CIDR notation... (e.g. 10.0.0.0/16)"
               className="flex-1 bg-transparent text-xl font-mono font-medium text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40 focus:outline-none"
               spellCheck={false}
               autoComplete="off"
             />
-            {hasInput && (
-              <motion.button
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                onClick={handleClear}
-                className="p-1.5 rounded-lg hover:bg-[#fdf6e3] dark:hover:bg-[#002b36] text-[#93a1a1] transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </motion.button>
-            )}
+            {clearButton}
+            {modeToggle}
           </div>
         ) : (
-          <div className="flex items-center gap-2 px-5 py-4">
-            <div className="flex items-center gap-3 text-[#93a1a1] dark:text-[#586e75] mr-1">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
-              </svg>
-            </div>
+          <div className="flex items-center gap-2 px-4 py-3">
+            {globeIcon}
             <input
               ref={inputRef}
               type="text"
@@ -194,18 +185,8 @@ export function CidrInput({ target = 'calculator', autoFocus = true }: CidrInput
                 ))}
               </select>
             </div>
-            {hasInput && (
-              <motion.button
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                onClick={handleClear}
-                className="p-1.5 rounded-lg hover:bg-[#fdf6e3] dark:hover:bg-[#002b36] text-[#93a1a1] transition-colors shrink-0"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </motion.button>
-            )}
+            {clearButton}
+            {modeToggle}
           </div>
         )}
 
@@ -213,7 +194,7 @@ export function CidrInput({ target = 'calculator', autoFocus = true }: CidrInput
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
-            className="px-5 pb-3 overflow-hidden"
+            className="px-4 pb-2.5 overflow-hidden"
           >
             <p className="text-sm text-[#dc322f]">
               Invalid {advancedMode ? 'CIDR notation. Use format: 192.168.1.0/24' : 'IP address. Use format: 192.168.1.0'}

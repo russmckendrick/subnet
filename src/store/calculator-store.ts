@@ -2,19 +2,14 @@ import { create } from 'zustand'
 import { parseCidr, type CidrResult } from '@/lib/cidr'
 import { allocateSubnets, getRemainingSpace, getAvailablePrefixes, type SubnetSplit } from '@/lib/subnet-math'
 import { findSmallestContainingCidr } from '@/lib/subnet-math'
-
-export type AppTab = 'calculator' | 'splitter' | 'supernet' | 'reference'
+import { config } from '@/lib/config'
 
 interface CalculatorState {
-  // Active tab
-  activeTab: AppTab
-
-  // Calculator
+  // Unified input
   rawInput: string
   result: CidrResult | null
 
-  // Splitter
-  parentCidr: string
+  // Splitter (uses rawInput as parent CIDR)
   splitPrefixes: number[]
   splitLabels: string[]
   splits: SubnetSplit[]
@@ -25,16 +20,18 @@ interface CalculatorState {
   supernetInputs: string
   supernetResult: string | null
 
+  // Drawer state
+  activeDrawer: 'none' | 'supernet' | 'reference'
+
   // Actions
-  setActiveTab: (tab: AppTab) => void
   setRawInput: (input: string) => void
-  setParentCidr: (cidr: string) => void
   addSplit: (prefix: number) => void
   removeSplit: (index: number) => void
   updateSplitLabel: (index: number, label: string) => void
   resetSplits: () => void
   setSupernetInputs: (inputs: string) => void
-  initFromHash: (cidr: string, tab?: AppTab, splits?: number[], labels?: string[]) => void
+  setActiveDrawer: (drawer: 'none' | 'supernet' | 'reference') => void
+  initFromHash: (cidr: string, splits?: number[], labels?: string[]) => void
 }
 
 function recalcSplits(parentCidr: string, prefixes: number[], labels: string[]) {
@@ -44,13 +41,11 @@ function recalcSplits(parentCidr: string, prefixes: number[], labels: string[]) 
   return { splits: splits ?? [], remainingSpace: remaining, availablePrefixes: available }
 }
 
-const initialSplitCalc = recalcSplits('10.0.0.0/16', [], [])
+const initialSplitCalc = recalcSplits(config.defaultCidr, [], [])
 
 export const useCalculatorStore = create<CalculatorState>((set, get) => ({
-  activeTab: 'calculator',
-  rawInput: '10.0.0.0/16',
-  result: parseCidr('10.0.0.0/16'),
-  parentCidr: '10.0.0.0/16',
+  rawInput: config.defaultCidr,
+  result: parseCidr(config.defaultCidr),
   splitPrefixes: [],
   splitLabels: [],
   splits: initialSplitCalc.splits,
@@ -58,53 +53,48 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   availablePrefixes: initialSplitCalc.availablePrefixes,
   supernetInputs: '',
   supernetResult: null,
-
-  setActiveTab: (tab) => {
-    const { rawInput, splitPrefixes } = get()
-    const update: Partial<CalculatorState> = { activeTab: tab }
-    // Auto-sync Calculator CIDR into Splitter when switching to splitter with no allocations
-    if (tab === 'splitter' && splitPrefixes.length === 0 && rawInput.trim()) {
-      const result = parseCidr(rawInput)
-      if (result) {
-        const calc = recalcSplits(rawInput, [], [])
-        Object.assign(update, { parentCidr: rawInput, splitPrefixes: [], splitLabels: [], ...calc })
-      }
-    }
-    set(update)
-  },
+  activeDrawer: 'none',
 
   setRawInput: (input) => {
     const result = parseCidr(input)
-    set({ rawInput: input, result })
-  },
+    const { splitPrefixes, splitLabels } = get()
 
-  setParentCidr: (cidr) => {
-    const result = parseCidr(cidr)
-    if (result) {
-      const calc = recalcSplits(cidr, [], [])
-      set({
-        parentCidr: cidr,
-        splitPrefixes: [],
-        splitLabels: [],
-        ...calc,
-      })
+    // If there are existing splits and the CIDR changed, try to recalculate
+    if (splitPrefixes.length > 0 && result) {
+      const calc = recalcSplits(input, splitPrefixes, splitLabels)
+      // If splits are compatible with new CIDR, keep them
+      if (calc.splits.length === splitPrefixes.length) {
+        set({ rawInput: input, result, ...calc })
+        return
+      }
+      // Incompatible — clear splits
+      const freshCalc = recalcSplits(input, [], [])
+      set({ rawInput: input, result, splitPrefixes: [], splitLabels: [], ...freshCalc })
+      return
     }
-    set({ parentCidr: cidr })
+
+    // No splits or invalid input — just update rawInput + result + available prefixes
+    if (result) {
+      const calc = recalcSplits(input, [], [])
+      set({ rawInput: input, result, ...calc })
+    } else {
+      set({ rawInput: input, result })
+    }
   },
 
   addSplit: (prefix) => {
-    const { parentCidr, splitPrefixes, splitLabels } = get()
+    const { rawInput, splitPrefixes, splitLabels } = get()
     const newPrefixes = [...splitPrefixes, prefix]
     const newLabels = [...splitLabels, `Subnet ${newPrefixes.length}`]
-    const calc = recalcSplits(parentCidr, newPrefixes, newLabels)
+    const calc = recalcSplits(rawInput, newPrefixes, newLabels)
     set({ splitPrefixes: newPrefixes, splitLabels: newLabels, ...calc })
   },
 
   removeSplit: (index) => {
-    const { parentCidr, splitPrefixes, splitLabels } = get()
+    const { rawInput, splitPrefixes, splitLabels } = get()
     const newPrefixes = splitPrefixes.filter((_, i) => i !== index)
     const newLabels = splitLabels.filter((_, i) => i !== index)
-    const calc = recalcSplits(parentCidr, newPrefixes, newLabels)
+    const calc = recalcSplits(rawInput, newPrefixes, newLabels)
     set({ splitPrefixes: newPrefixes, splitLabels: newLabels, ...calc })
   },
 
@@ -117,8 +107,8 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   },
 
   resetSplits: () => {
-    const { parentCidr } = get()
-    const calc = recalcSplits(parentCidr, [], [])
+    const { rawInput } = get()
+    const calc = recalcSplits(rawInput, [], [])
     set({ splitPrefixes: [], splitLabels: [], ...calc })
   },
 
@@ -131,18 +121,21 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
     set({ supernetInputs: inputs, supernetResult })
   },
 
-  initFromHash: (cidr, tab, splits, labels) => {
+  setActiveDrawer: (drawer) => set({ activeDrawer: drawer }),
+
+  initFromHash: (cidr, splits, labels) => {
     const result = parseCidr(cidr)
     const state: Partial<CalculatorState> = {
       rawInput: cidr,
       result,
-      activeTab: tab ?? 'calculator',
     }
-    if (tab === 'splitter' && splits) {
-      state.parentCidr = cidr
+    if (splits && splits.length > 0) {
       state.splitPrefixes = splits
       state.splitLabels = labels ?? splits.map((_, i) => `Subnet ${i + 1}`)
-      const calc = recalcSplits(cidr, splits, state.splitLabels)
+      const calc = recalcSplits(cidr, splits, state.splitLabels!)
+      Object.assign(state, calc)
+    } else if (result) {
+      const calc = recalcSplits(cidr, [], [])
       Object.assign(state, calc)
     }
     set(state)

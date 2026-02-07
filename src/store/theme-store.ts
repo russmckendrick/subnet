@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { config } from '@/lib/config'
 
 type Theme = 'light' | 'dark'
 
@@ -8,11 +9,18 @@ interface ThemeState {
   setTheme: (theme: Theme) => void
 }
 
+function resolveTheme(preference: 'light' | 'dark' | 'system'): Theme {
+  if (preference === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return preference
+}
+
 function getInitialTheme(): Theme {
-  if (typeof window === 'undefined') return 'dark'
-  const stored = localStorage.getItem('subnet-fit-theme')
+  if (typeof window === 'undefined') return resolveTheme(config.defaultTheme === 'system' ? 'dark' : config.defaultTheme)
+  const stored = localStorage.getItem(config.themeStorageKey)
   if (stored === 'light' || stored === 'dark') return stored
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  return resolveTheme(config.defaultTheme)
 }
 
 function applyTheme(theme: Theme) {
@@ -22,7 +30,7 @@ function applyTheme(theme: Theme) {
   } else {
     html.classList.remove('dark')
   }
-  localStorage.setItem('subnet-fit-theme', theme)
+  localStorage.setItem(config.themeStorageKey, theme)
 }
 
 // Apply initial theme immediately

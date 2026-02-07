@@ -1,4 +1,4 @@
-import { useCalculatorStore, type AppTab } from '@/store/calculator-store'
+import { useCalculatorStore } from '@/store/calculator-store'
 import { AnimatedCard } from '@/components/shared/AnimatedCard'
 import { CopyButton } from '@/components/shared/CopyButton'
 import { parseCidr } from '@/lib/cidr'
@@ -6,7 +6,7 @@ import { parseCidr } from '@/lib/cidr'
 const EXAMPLE_CIDRS = '10.0.0.0/24\n10.0.1.0/24\n10.0.2.0/24'
 
 export function SupernetTool() {
-  const { supernetInputs, setSupernetInputs, supernetResult, setRawInput, setActiveTab } = useCalculatorStore()
+  const { supernetInputs, setSupernetInputs, supernetResult, setRawInput, setActiveDrawer } = useCalculatorStore()
 
   const lines = supernetInputs.split('\n').map((l) => l.trim()).filter(Boolean)
   const parsedLines = lines.map((l) => ({ input: l, valid: parseCidr(l) !== null }))
@@ -115,19 +115,19 @@ export function SupernetTool() {
               </div>
             )
           })()}
-          {/* Cross-tab: View in Calculator */}
+          {/* View details: closes drawer and updates input */}
           <div className="mt-3 pt-3 border-t border-[#586e75]/20 flex justify-end">
             <button
               onClick={() => {
                 setRawInput(supernetResult)
-                setActiveTab('calculator' as AppTab)
+                setActiveDrawer('none')
               }}
               className="text-xs font-medium text-[#2aa198] hover:text-[#2aa198]/80 transition-colors flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-[#2aa198]/5"
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
-              View in Calculator
+              View details
             </button>
           </div>
         </AnimatedCard>

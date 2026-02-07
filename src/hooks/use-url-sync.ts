@@ -3,7 +3,7 @@ import { useCalculatorStore } from '@/store/calculator-store'
 import { readHash, updateHash } from '@/lib/url-codec'
 
 export function useUrlSync() {
-  const { rawInput, activeTab, splitPrefixes, splitLabels, supernetInputs, parentCidr, initFromHash } =
+  const { rawInput, splitPrefixes, splitLabels, supernetInputs, activeDrawer, initFromHash, setSupernetInputs } =
     useCalculatorStore()
   const initializedRef = useRef(false)
 
@@ -11,10 +11,10 @@ export function useUrlSync() {
   useEffect(() => {
     const state = readHash()
     if (state) {
-      if (state.mode === 'calculator' && state.cidr) {
-        initFromHash(state.cidr, 'calculator')
-      } else if (state.mode === 'splitter' && state.cidr) {
-        initFromHash(state.cidr, 'splitter', state.splits, state.splitLabels)
+      if (state.mode === 'network' && state.cidr) {
+        initFromHash(state.cidr, state.splits, state.splitLabels)
+      } else if (state.mode === 'supernet' && state.supernetInputs) {
+        setSupernetInputs(state.supernetInputs.join('\n'))
       }
     }
     initializedRef.current = true
@@ -25,18 +25,23 @@ export function useUrlSync() {
   useEffect(() => {
     if (!initializedRef.current) return
 
-    if (activeTab === 'calculator' && rawInput) {
-      updateHash({ mode: 'calculator', cidr: rawInput })
-    } else if (activeTab === 'splitter' && parentCidr) {
-      updateHash({ mode: 'splitter', cidr: parentCidr, splits: splitPrefixes, splitLabels })
-    } else if (activeTab === 'supernet') {
+    if (activeDrawer === 'supernet') {
       const inputs = supernetInputs
         .split('\n')
         .map((l) => l.trim())
         .filter(Boolean)
       if (inputs.length > 0) {
         updateHash({ mode: 'supernet', cidr: '', supernetInputs: inputs })
+        return
       }
     }
-  }, [rawInput, activeTab, splitPrefixes, splitLabels, supernetInputs, parentCidr])
+
+    if (rawInput) {
+      if (splitPrefixes.length > 0) {
+        updateHash({ mode: 'network', cidr: rawInput, splits: splitPrefixes, splitLabels })
+      } else {
+        updateHash({ mode: 'network', cidr: rawInput })
+      }
+    }
+  }, [rawInput, splitPrefixes, splitLabels, supernetInputs, activeDrawer])
 }

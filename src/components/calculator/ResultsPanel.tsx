@@ -1,5 +1,5 @@
 import { motion } from 'motion/react'
-import { useCalculatorStore, type AppTab } from '@/store/calculator-store'
+import { useCalculatorStore } from '@/store/calculator-store'
 import { AnimatedCard } from '@/components/shared/AnimatedCard'
 import { Badge } from '@/components/shared/Badge'
 import { CopyButton } from '@/components/shared/CopyButton'
@@ -9,7 +9,7 @@ function formatNumber(n: number): string {
 }
 
 export function ResultsPanel() {
-  const { result, setParentCidr, setActiveTab, rawInput } = useCalculatorStore()
+  const { result } = useCalculatorStore()
   if (!result) return null
 
   const rfcColor = result.isPrivate ? 'emerald' : result.rfcType?.includes('CGNAT') ? 'violet' : result.rfcType?.includes('Multicast') ? 'red' : result.rfcType?.includes('Loopback') ? 'amber' : 'cyan'
@@ -95,22 +95,6 @@ export function ResultsPanel() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Split action button */}
-        <div className="mt-4 pt-3 border-t border-[#586e75]/20 flex justify-end">
-          <button
-            onClick={() => {
-              setParentCidr(rawInput)
-              setActiveTab('splitter' as AppTab)
-            }}
-            className="text-xs font-medium text-[#2aa198] hover:text-[#2aa198]/80 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-[#2aa198]/5"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6z" />
-            </svg>
-            Split this network
-          </button>
         </div>
       </AnimatedCard>
     </motion.div>

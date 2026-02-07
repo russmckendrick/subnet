@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { SUBNET_REFERENCE_TABLE } from '@/lib/constants'
 import { AnimatedCard } from '@/components/shared/AnimatedCard'
-import { useCalculatorStore, type AppTab } from '@/store/calculator-store'
+import { useCalculatorStore } from '@/store/calculator-store'
 
 export function QuickReference() {
   const [isOpen, setIsOpen] = useState(true)
   const [filter, setFilter] = useState('')
-  const { result, setRawInput, setActiveTab } = useCalculatorStore()
+  const { result, setRawInput, setActiveDrawer } = useCalculatorStore()
 
   const currentPrefix = result?.prefixLength ?? null
 
@@ -26,7 +26,7 @@ export function QuickReference() {
 
   const handleRowClick = (prefix: number) => {
     setRawInput(`10.0.0.0/${prefix}`)
-    setActiveTab('calculator' as AppTab)
+    setActiveDrawer('none')
   }
 
   return (
