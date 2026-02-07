@@ -2,15 +2,14 @@ import { useEffect, useCallback, type RefObject } from 'react'
 import { useCalculatorStore } from '@/store/calculator-store'
 
 export function useKeyboardShortcuts(inputRef: RefObject<HTMLInputElement | null>) {
-  const { rawInput, setRawInput } = useCalculatorStore()
+  const { rawInput, setRawInput, setCommandPaletteOpen } = useCalculatorStore()
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      // "/" focuses the input (unless already typing in an input)
+      // "/" opens command palette (unless already typing in an input)
       if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
         e.preventDefault()
-        inputRef.current?.focus()
-        inputRef.current?.select()
+        setCommandPaletteOpen(true)
         return
       }
 
@@ -39,7 +38,7 @@ export function useKeyboardShortcuts(inputRef: RefObject<HTMLInputElement | null
         inputRef.current?.blur()
       }
     },
-    [rawInput, setRawInput, inputRef],
+    [rawInput, setRawInput, inputRef, setCommandPaletteOpen],
   )
 
   useEffect(() => {

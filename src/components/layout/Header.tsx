@@ -4,7 +4,7 @@ import { useCalculatorStore } from '@/store/calculator-store'
 
 export function Header() {
   const { theme, toggleTheme } = useThemeStore()
-  const { setActiveDrawer } = useCalculatorStore()
+  const { setActiveDrawer, setCommandPaletteOpen } = useCalculatorStore()
 
   return (
     <header className="relative z-10 flex items-center justify-between px-6 py-4 max-w-7xl mx-auto w-full">
@@ -55,10 +55,24 @@ export function Header() {
           <span className="hidden sm:inline">Supernet</span>
         </button>
 
+        {/* Command palette trigger (mobile) */}
+        <button
+          onClick={() => setCommandPaletteOpen(true)}
+          className="sm:hidden flex items-center gap-1.5 text-xs text-[#586e75] bg-[#eee8d5] dark:bg-[#073642] px-2.5 py-1.5 rounded-lg hover:bg-[#eee8d5]/80 dark:hover:bg-[#073642]/80 transition-colors"
+          aria-label="Open command palette"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </button>
+
         {/* Keyboard hints */}
-        <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#586e75] bg-[#eee8d5] dark:bg-[#073642] px-2.5 py-1.5 rounded-lg">
+        <div
+          className="hidden sm:flex items-center gap-1.5 text-xs text-[#586e75] bg-[#eee8d5] dark:bg-[#073642] px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-[#eee8d5]/80 dark:hover:bg-[#073642]/80 transition-colors"
+          onClick={() => setCommandPaletteOpen(true)}
+        >
           <kbd className="font-mono text-[10px] bg-[#fdf6e3] dark:bg-[#002b36] px-1.5 py-0.5 rounded border border-[#93a1a1]/20 dark:border-[#586e75]/30">/</kbd>
-          <span>to focus</span>
+          <span>commands</span>
           <kbd className="font-mono text-[10px] bg-[#fdf6e3] dark:bg-[#002b36] px-1.5 py-0.5 rounded border border-[#93a1a1]/20 dark:border-[#586e75]/30 ml-1">&#8593;&#8595;</kbd>
           <span>prefix</span>
         </div>

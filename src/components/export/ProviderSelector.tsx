@@ -1,15 +1,20 @@
+import type { ReactNode } from 'react'
+import { SiAmazonwebservices, SiGooglecloud } from 'react-icons/si'
+import { VscAzure } from 'react-icons/vsc'
+
 export type CloudProvider = 'aws' | 'azure' | 'gcp'
 
 interface ProviderOption {
   id: CloudProvider
   label: string
   color: string
+  icon: ReactNode
 }
 
 const PROVIDERS: ProviderOption[] = [
-  { id: 'aws', label: 'AWS', color: '#cb4b16' },
-  { id: 'azure', label: 'Azure', color: '#268bd2' },
-  { id: 'gcp', label: 'GCP', color: '#6c71c4' },
+  { id: 'aws', label: 'AWS', color: '#cb4b16', icon: <SiAmazonwebservices className="w-3.5 h-3.5" /> },
+  { id: 'azure', label: 'Azure', color: '#268bd2', icon: <VscAzure className="w-3.5 h-3.5" /> },
+  { id: 'gcp', label: 'GCP', color: '#6c71c4', icon: <SiGooglecloud className="w-3.5 h-3.5" /> },
 ]
 
 interface ProviderSelectorProps {
@@ -31,10 +36,7 @@ export function ProviderSelector({ selected, onChange }: ProviderSelectorProps) 
           }`}
           style={selected === p.id ? { color: p.color, backgroundColor: `${p.color}10`, borderColor: `${p.color}33` } : undefined}
         >
-          <span
-            className="w-2 h-2 rounded-full"
-            style={{ backgroundColor: p.color }}
-          />
+          <span style={{ color: p.color }}>{p.icon}</span>
           {p.label}
         </button>
       ))}

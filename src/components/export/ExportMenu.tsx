@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { SiTerraform } from 'react-icons/si'
+import { HiOutlineCodeBracketSquare, HiOutlineCommandLine, HiOutlineShare } from 'react-icons/hi2'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { toJSON, toCSV, toTerraformAws, toTerraformAzure, toTerraformGcp } from '@/lib/export'
 import { toAwsCli, toAzureCli, toGcloudCli } from '@/lib/export-cli'
@@ -15,14 +17,14 @@ type DataFormat = 'json' | 'csv'
 interface CategoryOption {
   id: Category
   label: string
-  icon: string
+  icon: ReactNode
 }
 
 const CATEGORIES: CategoryOption[] = [
-  { id: 'data', label: 'Data', icon: '{ }' },
-  { id: 'cli', label: 'CLI', icon: '>' },
-  { id: 'terraform', label: 'Terraform', icon: 'TF' },
-  { id: 'share', label: 'Share', icon: '#' },
+  { id: 'data', label: 'Data', icon: <HiOutlineCodeBracketSquare className="w-3.5 h-3.5" /> },
+  { id: 'cli', label: 'CLI', icon: <HiOutlineCommandLine className="w-3.5 h-3.5" /> },
+  { id: 'terraform', label: 'Terraform', icon: <SiTerraform className="w-3 h-3" style={{ color: '#7B42BC' }} /> },
+  { id: 'share', label: 'Share', icon: <HiOutlineShare className="w-3.5 h-3.5" /> },
 ]
 
 const PROVIDER_LABELS: Record<CloudProvider, { name: string; color: string }> = {
@@ -94,13 +96,13 @@ function ExportMenuInner() {
           <button
             key={cat.id}
             onClick={() => setCategory(cat.id)}
-            className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors border ${
+            className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors border inline-flex items-center gap-1.5 ${
               category === cat.id
                 ? 'bg-[#2aa198]/10 text-[#2aa198] border-[#2aa198]/20'
                 : 'bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 text-[#586e75] border-transparent hover:bg-[#fdf6e3] dark:hover:bg-[#002b36]/50'
             }`}
           >
-            <span className="font-mono mr-1 opacity-50">{cat.icon}</span>
+            <span className="opacity-50 flex items-center">{cat.icon}</span>
             {cat.label}
           </button>
         ))}

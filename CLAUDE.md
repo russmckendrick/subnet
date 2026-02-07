@@ -20,9 +20,9 @@ subnet.fit is a client-side-only CIDR/subnet calculator. All computation happens
 ### Layers
 
 - **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, RDAP response parsing (`rdap.ts`) and caching (`rdap-cache.ts`), IaC export formatters, URL path codec, and centralised app configuration (`config.ts`). All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
-- **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs). `theme-store.ts` persists dark/light mode to localStorage. Both stores read defaults from `config.ts`.
-- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-keyboard-shortcuts.ts` handles `/` to focus, arrows to adjust prefix. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching.
-- **`src/components/`** — UI organized by feature domain: `calculator/`, `splitter/`, `visual-map/`, `cloud/`, `whois/`, `tools/`, `export/`, `shared/`, `layout/`.
+- **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs, input mode, command palette open state). `theme-store.ts` persists dark/light mode to localStorage. Both stores read defaults from `config.ts`.
+- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-keyboard-shortcuts.ts` handles `/` to open command palette, arrows to adjust prefix when input focused. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching.
+- **`src/components/`** — UI organized by feature domain: `calculator/`, `splitter/`, `visual-map/`, `cloud/`, `whois/`, `tools/`, `export/`, `command-palette/`, `shared/`, `layout/`.
 
 ### Routing
 
@@ -88,6 +88,11 @@ The `dark` class is toggled on `<html>` by the theme store. The visual design us
 - `UrlState` (in `src/lib/url-codec.ts`) — Serializable state for path-based URL encoding (mode, cidr, splits, labels).
 - `RdapResult` (in `src/lib/rdap.ts`) — Parsed RDAP registration data: network name, RIR, country, organization, allocated range, dates.
 - `RdapLookupState` (in `src/lib/rdap.ts`) — Discriminated union: `idle | loading | success | error | private`.
+- `Command` (in `src/lib/commands.ts`) — Command palette entry with id, label, description, category, keywords, icon, optional `requiresResult`, and action string.
+
+### Command Palette
+
+`src/lib/commands.ts` defines the `Command` interface and a static list of ~22 commands across 4 categories (Navigate, Tools, Export, Actions). `filterCommands()` filters by label/description/keywords. `detectCidrInput()` detects CIDR input in the search query and returns a normalised CIDR string. The `CommandPalette` component (`src/components/command-palette/`) is a modal overlay triggered by pressing `/` (outside inputs) or clicking the header button. It supports keyboard navigation (arrows, Enter, Escape), CIDR auto-detection, and grouped results. Export commands with `requiresResult: true` are hidden when no CIDR is loaded. The `inputMode` state (`'guided' | 'cidr'`) lives in the calculator store and is shared between `CidrInput` and the command palette's mode-switching commands.
 
 ### Export Formats
 

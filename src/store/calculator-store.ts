@@ -9,6 +9,9 @@ interface CalculatorState {
   rawInput: string
   result: CidrResult | null
 
+  // Input mode
+  inputMode: 'guided' | 'cidr'
+
   // Splitter (uses rawInput as parent CIDR)
   splitPrefixes: number[]
   splitLabels: string[]
@@ -23,14 +26,19 @@ interface CalculatorState {
   // Drawer state
   activeDrawer: 'none' | 'supernet' | 'reference'
 
+  // Command palette
+  commandPaletteOpen: boolean
+
   // Actions
   setRawInput: (input: string) => void
+  setInputMode: (mode: 'guided' | 'cidr') => void
   addSplit: (prefix: number) => void
   removeSplit: (index: number) => void
   updateSplitLabel: (index: number, label: string) => void
   resetSplits: () => void
   setSupernetInputs: (inputs: string) => void
   setActiveDrawer: (drawer: 'none' | 'supernet' | 'reference') => void
+  setCommandPaletteOpen: (open: boolean) => void
   initFromUrl: (cidr: string, splits?: number[], labels?: string[]) => void
 }
 
@@ -46,6 +54,7 @@ const initialSplitCalc = recalcSplits(config.defaultCidr, [], [])
 export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   rawInput: config.defaultCidr,
   result: parseCidr(config.defaultCidr),
+  inputMode: config.defaultInputMode,
   splitPrefixes: [],
   splitLabels: [],
   splits: initialSplitCalc.splits,
@@ -54,6 +63,7 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   supernetInputs: '',
   supernetResult: null,
   activeDrawer: 'none',
+  commandPaletteOpen: false,
 
   setRawInput: (input) => {
     const result = parseCidr(input)
@@ -81,6 +91,8 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
       set({ rawInput: input, result })
     }
   },
+
+  setInputMode: (mode) => set({ inputMode: mode }),
 
   addSplit: (prefix) => {
     const { rawInput, splitPrefixes, splitLabels } = get()
@@ -122,6 +134,7 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   },
 
   setActiveDrawer: (drawer) => set({ activeDrawer: drawer }),
+  setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
 
   initFromUrl: (cidr, splits, labels) => {
     const result = parseCidr(cidr)

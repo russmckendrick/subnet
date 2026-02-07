@@ -7,6 +7,7 @@ import { SubnetSplittingSection } from '@/components/splitter/SubnetSplittingSec
 import { QuickReference } from '@/components/calculator/QuickReference'
 import { SupernetTool } from '@/components/tools/SupernetTool'
 import { Drawer } from '@/components/shared/Drawer'
+import { CommandPalette } from '@/components/command-palette/CommandPalette'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { useUrlSync } from '@/hooks/use-url-sync'
 
@@ -39,6 +40,8 @@ function App() {
       >
         <SupernetTool />
       </Drawer>
+
+      <CommandPalette />
     </Layout>
   )
 }

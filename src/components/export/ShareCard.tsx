@@ -106,27 +106,29 @@ export function ShareCard() {
         )}
       </div>
 
-      {/* Actions row */}
-      <div className="flex items-start gap-4">
-        {/* Copy button */}
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => copy(url, 'share-url')}
-          className={`flex-1 text-sm px-4 py-2.5 rounded-lg font-medium transition-colors ${
-            isCopied('share-url')
-              ? 'bg-[#859900]/20 text-[#859900]'
-              : 'bg-[#2aa198]/10 text-[#2aa198] hover:bg-[#2aa198]/20'
-          }`}
-        >
-          {isCopied('share-url') ? 'Copied to clipboard!' : 'Copy share URL'}
-        </motion.button>
+      {/* Copy button */}
+      <motion.button
+        whileTap={{ scale: 0.95 }}
+        onClick={() => copy(url, 'share-url')}
+        className={`w-full text-sm px-4 py-2.5 rounded-lg font-medium transition-colors ${
+          isCopied('share-url')
+            ? 'bg-[#859900]/20 text-[#859900]'
+            : 'bg-[#2aa198]/10 text-[#2aa198] hover:bg-[#2aa198]/20'
+        }`}
+      >
+        {isCopied('share-url') ? 'Copied to clipboard!' : 'Copy share URL'}
+      </motion.button>
 
-        {/* QR code */}
+      {/* QR code */}
+      <div className="flex flex-col items-center gap-2 pt-1">
         <div
-          className="flex-shrink-0 rounded-lg overflow-hidden border border-[#eee8d5] dark:border-[#073642] bg-[#fdf6e3] dark:bg-[#002b36] p-1.5 [&>svg]:block [&>svg]:w-full [&>svg]:h-full"
+          className="rounded-lg overflow-hidden border border-[#93a1a1]/15 dark:border-[#586e75]/20 bg-[#fdf6e3] dark:bg-[#002b36] p-2 [&>svg]:block [&>svg]:w-full [&>svg]:h-full"
           dangerouslySetInnerHTML={{ __html: qrSvg }}
-          style={{ width: 108, height: 108 }}
+          style={{ width: 120, height: 120 }}
         />
+        <span className="text-[10px] text-[#93a1a1] dark:text-[#586e75] uppercase tracking-wider">
+          Scan to open
+        </span>
       </div>
     </motion.div>
   )

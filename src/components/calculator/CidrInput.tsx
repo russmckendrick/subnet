@@ -3,7 +3,6 @@ import { motion } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { ipv4ToString, parseIPv4, inferDefaultPrefix } from '@/lib/ipv4'
-import { config } from '@/lib/config'
 
 const PREFIX_OPTIONS = Array.from({ length: 33 }, (_, i) => {
   const mask = i === 0 ? 0 : (~0 << (32 - i)) >>> 0
@@ -28,10 +27,10 @@ function extractIp(raw: string): string {
 
 export function CidrInput() {
   const inputRef = useRef<HTMLInputElement>(null)
-  const { rawInput, setRawInput, result } = useCalculatorStore()
+  const { rawInput, setRawInput, result, inputMode, setInputMode } = useCalculatorStore()
   useKeyboardShortcuts(inputRef)
 
-  const [advancedMode, setAdvancedMode] = useState(config.defaultInputMode === 'cidr')
+  const advancedMode = inputMode === 'cidr'
 
   // For the split mode, we keep a local IP string so user can type partial IPs.
   const [splitIp, setSplitIp] = useState(() => extractIp(rawInput))
@@ -99,7 +98,7 @@ export function CidrInput() {
   const modeToggleButtons = (
     <div className="flex gap-0.5 shrink-0">
       <button
-        onClick={() => setAdvancedMode(false)}
+        onClick={() => setInputMode('guided')}
         className={`text-[11px] px-2 py-0.5 rounded-md font-medium transition-colors ${
           !advancedMode
             ? 'bg-[#2aa198]/10 text-[#2aa198] border border-[#2aa198]/20'
@@ -109,7 +108,7 @@ export function CidrInput() {
         Guided
       </button>
       <button
-        onClick={() => setAdvancedMode(true)}
+        onClick={() => setInputMode('cidr')}
         className={`text-[11px] px-2 py-0.5 rounded-md font-medium transition-colors ${
           advancedMode
             ? 'bg-[#2aa198]/10 text-[#2aa198] border border-[#2aa198]/20'
@@ -172,6 +171,7 @@ export function CidrInput() {
                 className="flex-1 bg-transparent text-xl font-mono font-medium text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40 focus:outline-none"
                 spellCheck={false}
                 autoComplete="off"
+                data-cidr-input
               />
               {clearButton}
               <div className="hidden sm:flex items-center">{modeToggleDesktop}</div>
@@ -193,6 +193,7 @@ export function CidrInput() {
                 className="flex-1 min-w-0 bg-transparent text-xl font-mono font-medium text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40 focus:outline-none"
                 spellCheck={false}
                 autoComplete="off"
+                data-cidr-input
               />
               <div className="shrink-0 flex items-center">
                 <span className="text-[#93a1a1] dark:text-[#586e75] text-xl font-mono mr-1">/</span>
