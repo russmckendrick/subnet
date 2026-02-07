@@ -13,9 +13,11 @@ export function Header() {
         animate={{ opacity: 1, x: 0 }}
         className="flex items-center gap-3"
       >
-        <div className="w-9 h-9 rounded-lg bg-[#2aa198] flex items-center justify-center shadow-lg shadow-[#2aa198]/20">
-          <span className="text-white font-bold text-lg">S</span>
-        </div>
+        <img
+          src={theme === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'}
+          alt="subnet.fit logo"
+          className="h-9 w-auto"
+        />
         <div>
           <h1 className="text-lg font-bold text-[#586e75] dark:text-[#93a1a1] tracking-tight">
             subnet<span className="text-[#2aa198]">.fit</span>
