@@ -66,6 +66,21 @@
   background: rgba(42, 161, 152, 0.08);
 }
 
+/* Container z-ordering: parents behind children */
+.react-flow .react-flow__node[data-type="vpcContainerNode"] {
+  z-index: 0 !important;
+}
+
+.react-flow .react-flow__node[data-type="subnetContainerNode"] {
+  z-index: 1 !important;
+}
+
+.react-flow .react-flow__node[data-type="cloudResourceNode"],
+.react-flow .react-flow__node[data-type="resourceNode"],
+.react-flow .react-flow__node[data-type="subnetNode"] {
+  z-index: 2 !important;
+}
+
 /* Hide default attribution */
 .react-flow .react-flow__attribution {
   display: none;

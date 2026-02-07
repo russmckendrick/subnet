@@ -20,8 +20,8 @@ subnet.fit is a client-side-only CIDR/subnet calculator. All computation happens
 ### Layers
 
 - **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, RDAP response parsing (`rdap.ts`) and caching (`rdap-cache.ts`), IaC export formatters, URL path codec, and centralised app configuration (`config.ts`). All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
-- **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs, input mode, command palette open state). `designer-store.ts` holds diagram state (nodes, edges, palette, selection, multi-selection, export modal, node color updates, localStorage persistence). `theme-store.ts` persists dark/light mode to localStorage. Calculator and theme stores read defaults from `config.ts`.
-- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-designer-url-sync.ts` reads `?from=` and `&split=` params on `/designer` route and initializes the diagram canvas. `use-keyboard-shortcuts.ts` handles `/` to open command palette, arrows to adjust prefix when input focused. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching. `use-diagram-persistence.ts` auto-saves/loads designer state to/from localStorage with 1s debounce. `use-designer-shortcuts.ts` handles Escape (deselect/close), Cmd+E (export modal), Cmd+S (manual save) in designer.
+- **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs, input mode, command palette open state). `designer-store.ts` holds diagram state (nodes, edges, palette, selection, multi-selection, export modal, node color updates, localStorage persistence, cloud provider). Node data types: `SubnetNodeData`, `ResourceNodeData` (legacy flat), `VpcContainerNodeData`, `SubnetContainerNodeData`, `CloudResourceNodeData` (cloud containment). `theme-store.ts` persists dark/light mode to localStorage. Calculator and theme stores read defaults from `config.ts`.
+- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-designer-url-sync.ts` reads `?from=`, `&split=`, and `&provider=` params on `/designer` route and initializes the diagram canvas. `use-keyboard-shortcuts.ts` handles `/` to open command palette, arrows to adjust prefix when input focused. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching. `use-diagram-persistence.ts` auto-saves/loads designer state to/from localStorage with 1s debounce, runs migration from v1→v2 on load. `use-designer-shortcuts.ts` handles Escape (deselect/close), Cmd+E (export modal), Cmd+S (manual save) in designer.
 - **`src/components/`** — UI organized by feature domain: `calculator/`, `splitter/`, `designer/`, `visual-map/`, `cloud/`, `whois/`, `tools/`, `export/`, `command-palette/`, `shared/`, `layout/`.
 
 ### Routing
@@ -30,7 +30,7 @@ No router library. The app uses **path-based URL encoding** for state and sharea
 - Calculator: `/10.0.0.0/16`
 - Splitter: `/10.0.0.0/16?split=24~Web,25~API`
 - Supernet: `/super?nets=10.0.0.0/24,10.0.1.0/24`
-- Designer: `/designer` or `/designer?from=10.0.0.0/16&split=24~Web,25~API`
+- Designer: `/designer` or `/designer?from=10.0.0.0/16&split=24~Web,25~API&provider=aws`
 
 Encoding/decoding is in `src/lib/url-codec.ts`. The `useUrlSync` hook migrates legacy hash URLs on mount, reads the path, and writes it on state changes via `history.replaceState()`. The designer route is detected in `App.tsx` via `pathname.startsWith('/designer')` and renders `<DesignerPage>` instead of the calculator layout.
 
@@ -74,7 +74,7 @@ The `dark` class is toggled on `<html>` by the theme store. The visual design us
 - Secondary: Violet `#6c71c4`
 - Tertiary: Orange `#cb4b16`
 
-**Cloud provider colors** map to Solarized: AWS → Orange `#cb4b16`, Azure → Blue `#268bd2`, GCP → Violet `#6c71c4`.
+**Cloud provider colors** (used in designer container borders): AWS → Orange `#FF9900`, Azure → Blue `#0078D4`, GCP → Blue `#4285F4`, Generic → Cyan `#2aa198`. Export/calculator clouds map to Solarized: AWS → Orange `#cb4b16`, Azure → Blue `#268bd2`, GCP → Violet `#6c71c4`.
 
 **Visual treatment:** No glassmorphism or gradient orbs. Solid Solarized backgrounds with subtle CSS dot grid pattern. `rounded-lg` (8px) corners. Minimal shadows (near-zero in dark, subtle in light). Body backgrounds use `radial-gradient(circle, ... 1px, transparent 1px)` at 24px spacing.
 
@@ -90,6 +90,11 @@ The `dark` class is toggled on `<html>` by the theme store. The visual design us
 - `RdapResult` (in `src/lib/rdap.ts`) — Parsed RDAP registration data: network name, RIR, country, organization, allocated range, dates.
 - `RdapLookupState` (in `src/lib/rdap.ts`) — Discriminated union: `idle | loading | success | error | private`.
 - `Command` (in `src/lib/commands.ts`) — Command palette entry with id, label, description, category, keywords, icon, optional `requiresResult`, and action string.
+- `CloudProvider` (in `src/lib/cloud-theme.ts`) — `'aws' | 'azure' | 'gcp' | 'generic'`.
+- `VpcContainerNodeData` (in `src/store/designer-store.ts`) — Container node for VPC/VNet with CIDR, label, cloudProvider.
+- `SubnetContainerNodeData` (in `src/store/designer-store.ts`) — Dotted container for subnet with CIDR, label, color, hosts, cloudProvider.
+- `CloudResourceNodeData` (in `src/store/designer-store.ts`) — Provider-aware resource icon node with resourceType, label, cloudProvider.
+- `DesignerNodeData` (in `src/store/designer-store.ts`) — Union of all 5 node data types.
 
 ### Command Palette
 
@@ -99,16 +104,24 @@ The `dark` class is toggled on `<html>` by the theme store. The visual design us
 
 `src/lib/export.ts` generates JSON, CSV, and Terraform HCL (AWS, Azure, GCP). `src/lib/export-cli.ts` generates CLI commands (AWS CLI, Azure CLI, gcloud). `src/lib/export-diagram.ts` generates PNG, SVG, JSON, and draw.io XML from designer diagrams. `src/lib/syntax-highlight.ts` provides regex-based tokenization for `hcl`, `json`, `shell`, `csv`, and `xml` with Solarized colors. The export UI uses two-tier tabs (Data, CLI, Terraform, Share) with provider selector for CLI/Terraform categories.
 
-### Network Designer (v2)
+### Network Designer (v3 — Cloud-First)
 
-The designer at `/designer` includes:
-- **Properties Panel** — Right-side `<Drawer>` for editing selected node (label, color for subnets, label for resources). Opens on node selection, closes on Escape/deselect.
+The designer at `/designer` uses **nested containment** to produce cloud-native architecture diagrams:
+
+- **Cloud Provider System** — `CloudProvider` type (`'aws' | 'azure' | 'gcp' | 'generic'`). Theme system in `src/lib/cloud-theme.ts` maps each provider to border colors, styles, backgrounds. `CloudProviderSelector` segmented control switches providers, re-skinning all container nodes. Icon registry (`src/components/designer/icons/cloud-icon-registry.ts`) provides two-level lookup: provider-specific → generic fallback.
+- **Container Nodes** — `VpcContainerNode` (large dashed/solid box), `SubnetContainerNode` (dotted box nested inside VPC), `CloudResourceNode` (icon+label inside subnet). All use React Flow `parentId` and `extent: 'parent'` for visual nesting. Container dimensions set via `style.width/height`.
+- **Cloud Icons** — ~18 per provider in `src/components/designer/icons/{aws,azure,gcp}/`. Each is a stroke-based SVG component accepting `{ className, color }` props. Provider barrel exports in `index.ts` feed `ICON_MAP` records.
+- **Layout** — `generateCloudLayout()` in `src/lib/diagram-layout.ts` creates IGW → VPC container → subnet containers. `generateLegacyFlatLayout()` preserved for v1 backwards compat. `autoLayoutNested()` in `diagram-arrange.ts` handles BFS on top-level nodes + grid layout within containers.
+- **Container-Aware Drop** — `DesignerCanvas.onDrop` checks `findContainerAtPoint()` from `src/lib/diagram-container.ts`, sets `parentId` and converts to parent-relative coordinates.
+- **Provider-Specific Palette** — `ResourcePalette` shows ~18 categorized resources per provider (Networking, Compute, Database, Storage & Security). Generic mode shows traditional network resources.
+- **Properties Panels** — `VpcProperties`, `SubnetContainerProperties`, `CloudResourceProperties` panels with provider badges, in addition to legacy `SubnetProperties` and `ResourceProperties`.
+- **Persistence** — Storage version 2 includes `cloudProvider`. Migration in `src/lib/diagram-migration.ts` converts v1 → v2 (adds `cloudProvider: 'generic'`). Old flat diagrams load intact.
+- **Export** — draw.io XML uses `container=1` style for VPC/subnet containers, children use `parent="{containerId}"`. JSON version bumped to 2.
 - **Custom Edges** — `NetworkEdge` component using `getSmoothStepPath` with Solarized cyan stroke, width changes on selection.
-- **Arrange Tools** — `ArrangeToolbar` dropdown with auto-layout (hierarchical BFS), align (6 directions for 2+ selected nodes), and distribute (horizontal/vertical for 3+ selected). Pure layout functions in `src/lib/diagram-arrange.ts`.
-- **Export** — `DiagramExportModal` with Image (PNG/SVG via `html-to-image`), JSON, and draw.io XML tabs. XML syntax highlighting support.
-- **Persistence** — Auto-saves to `localStorage` key `subnet-designer-state` with 1s debounce. Loads on mount if no URL params. `clearDiagram` also clears storage.
+- **Arrange Tools** — `ArrangeToolbar` dropdown with auto-layout (hierarchical BFS + nested), align (6 directions for 2+ selected nodes), and distribute (horizontal/vertical for 3+ selected).
 - **Keyboard Shortcuts** — `Escape` (deselect/close modal), `Cmd/Ctrl+E` (toggle export), `Cmd/Ctrl+S` (save to localStorage).
 - **Floating Toolbar** — Bottom-center bar with Fit View, Export, Save, and Clear buttons.
+- **URL Params** — `?provider=aws|azure|gcp` sets cloud provider: `/designer?from=10.0.0.0/16&split=24~Web,25~API&provider=aws`
 
 ### Deployment
 

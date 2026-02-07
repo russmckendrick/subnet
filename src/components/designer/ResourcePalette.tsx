@@ -1,13 +1,14 @@
 import { useDesignerStore } from '@/store/designer-store'
 import { PaletteItem } from './PaletteItem'
-import type { ResourceType } from '@/store/designer-store'
+import { CloudProviderSelector } from './CloudProviderSelector'
+import type { CloudProvider } from '@/lib/cloud-theme'
 
 interface PaletteCategory {
   name: string
-  items: { type: ResourceType; label: string }[]
+  items: { type: string; label: string }[]
 }
 
-const CATEGORIES: PaletteCategory[] = [
+const GENERIC_CATEGORIES: PaletteCategory[] = [
   {
     name: 'Network',
     items: [
@@ -16,6 +17,9 @@ const CATEGORIES: PaletteCategory[] = [
       { type: 'firewall', label: 'Firewall' },
       { type: 'load-balancer', label: 'Load Balancer' },
       { type: 'internet-gateway', label: 'Internet Gateway' },
+      { type: 'nat-gateway', label: 'NAT Gateway' },
+      { type: 'dns', label: 'DNS' },
+      { type: 'cdn', label: 'CDN' },
     ],
   },
   {
@@ -34,8 +38,138 @@ const CATEGORIES: PaletteCategory[] = [
   },
 ]
 
+const AWS_CATEGORIES: PaletteCategory[] = [
+  {
+    name: 'Networking',
+    items: [
+      { type: 'aws-igw', label: 'Internet Gateway' },
+      { type: 'aws-nat', label: 'NAT Gateway' },
+      { type: 'aws-elb', label: 'ELB / ALB' },
+      { type: 'aws-route53', label: 'Route 53' },
+      { type: 'aws-cloudfront', label: 'CloudFront' },
+      { type: 'aws-tgw', label: 'Transit Gateway' },
+      { type: 'aws-vpngw', label: 'VPN Gateway' },
+    ],
+  },
+  {
+    name: 'Compute',
+    items: [
+      { type: 'aws-ec2', label: 'EC2 Instance' },
+      { type: 'aws-lambda', label: 'Lambda' },
+      { type: 'aws-ecs', label: 'ECS / Fargate' },
+      { type: 'aws-eks', label: 'EKS' },
+    ],
+  },
+  {
+    name: 'Database',
+    items: [
+      { type: 'aws-rds', label: 'RDS' },
+      { type: 'aws-dynamodb', label: 'DynamoDB' },
+      { type: 'aws-elasticache', label: 'ElastiCache' },
+    ],
+  },
+  {
+    name: 'Storage & Security',
+    items: [
+      { type: 'aws-s3', label: 'S3' },
+      { type: 'aws-waf', label: 'WAF' },
+      { type: 'aws-sg', label: 'Security Group' },
+    ],
+  },
+]
+
+const AZURE_CATEGORIES: PaletteCategory[] = [
+  {
+    name: 'Networking',
+    items: [
+      { type: 'azure-appgw', label: 'App Gateway' },
+      { type: 'azure-nat', label: 'NAT Gateway' },
+      { type: 'azure-lb', label: 'Load Balancer' },
+      { type: 'azure-frontdoor', label: 'Front Door' },
+      { type: 'azure-dns', label: 'DNS Zone' },
+      { type: 'azure-vpngw', label: 'VPN Gateway' },
+      { type: 'azure-expressroute', label: 'ExpressRoute' },
+    ],
+  },
+  {
+    name: 'Compute',
+    items: [
+      { type: 'azure-vm', label: 'Virtual Machine' },
+      { type: 'azure-functions', label: 'Functions' },
+      { type: 'azure-aks', label: 'AKS' },
+      { type: 'azure-container', label: 'Container Instances' },
+    ],
+  },
+  {
+    name: 'Database',
+    items: [
+      { type: 'azure-sql', label: 'SQL Database' },
+      { type: 'azure-cosmos', label: 'Cosmos DB' },
+      { type: 'azure-redis', label: 'Cache for Redis' },
+    ],
+  },
+  {
+    name: 'Storage & Security',
+    items: [
+      { type: 'azure-blob', label: 'Blob Storage' },
+      { type: 'azure-waf', label: 'WAF' },
+      { type: 'azure-nsg', label: 'NSG' },
+    ],
+  },
+]
+
+const GCP_CATEGORIES: PaletteCategory[] = [
+  {
+    name: 'Networking',
+    items: [
+      { type: 'gcp-lb', label: 'Load Balancer' },
+      { type: 'gcp-nat', label: 'Cloud NAT' },
+      { type: 'gcp-cdn', label: 'Cloud CDN' },
+      { type: 'gcp-dns', label: 'Cloud DNS' },
+      { type: 'gcp-interconnect', label: 'Interconnect' },
+      { type: 'gcp-vpn', label: 'Cloud VPN' },
+    ],
+  },
+  {
+    name: 'Compute',
+    items: [
+      { type: 'gcp-compute', label: 'Compute Engine' },
+      { type: 'gcp-functions', label: 'Cloud Functions' },
+      { type: 'gcp-gke', label: 'GKE' },
+      { type: 'gcp-run', label: 'Cloud Run' },
+    ],
+  },
+  {
+    name: 'Database',
+    items: [
+      { type: 'gcp-sql', label: 'Cloud SQL' },
+      { type: 'gcp-firestore', label: 'Firestore' },
+      { type: 'gcp-memorystore', label: 'Memorystore' },
+    ],
+  },
+  {
+    name: 'Storage & Security',
+    items: [
+      { type: 'gcp-storage', label: 'Cloud Storage' },
+      { type: 'gcp-armor', label: 'Cloud Armor' },
+      { type: 'gcp-firewall', label: 'Firewall Rules' },
+    ],
+  },
+]
+
+const PROVIDER_CATEGORIES: Record<CloudProvider, PaletteCategory[]> = {
+  generic: GENERIC_CATEGORIES,
+  aws: AWS_CATEGORIES,
+  azure: AZURE_CATEGORIES,
+  gcp: GCP_CATEGORIES,
+}
+
 export function ResourcePalette() {
-  const { isPaletteOpen, setIsPaletteOpen } = useDesignerStore()
+  const { isPaletteOpen, setIsPaletteOpen, cloudProvider } = useDesignerStore()
+  const categories = PROVIDER_CATEGORIES[cloudProvider]
+
+  // Determine if items should use cloud resource node type
+  const isCloudProvider = cloudProvider !== 'generic'
 
   // Collapsed: icon-only strip
   if (!isPaletteOpen) {
@@ -54,13 +188,14 @@ export function ResourcePalette() {
 
         {/* Icon-only items */}
         <div className="flex-1 overflow-y-auto py-2 space-y-1">
-          {CATEGORIES.map((category) =>
+          {categories.map((category) =>
             category.items.map((item) => (
               <PaletteItem
                 key={item.type}
                 resourceType={item.type}
                 label={item.label}
                 compact
+                useCloudNode={isCloudProvider}
               />
             )),
           )}
@@ -88,9 +223,14 @@ export function ResourcePalette() {
         </button>
       </div>
 
+      {/* Cloud Provider Selector */}
+      <div className="px-3 py-2 border-b border-[#93a1a1]/15 dark:border-[#586e75]/20">
+        <CloudProviderSelector />
+      </div>
+
       {/* Categories */}
       <div className="flex-1 overflow-y-auto p-3 space-y-4">
-        {CATEGORIES.map((category) => (
+        {categories.map((category) => (
           <div key={category.name}>
             <h4 className="text-[10px] font-semibold text-[#93a1a1] dark:text-[#586e75] uppercase tracking-wider mb-2">
               {category.name}
@@ -101,6 +241,7 @@ export function ResourcePalette() {
                   key={item.type}
                   resourceType={item.type}
                   label={item.label}
+                  useCloudNode={isCloudProvider}
                 />
               ))}
             </div>

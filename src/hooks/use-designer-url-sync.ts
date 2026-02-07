@@ -3,13 +3,16 @@ import { parseCidr } from '@/lib/cidr'
 import { allocateSubnets } from '@/lib/subnet-math'
 import { generateInitialLayout } from '@/lib/diagram-layout'
 import { useDesignerStore } from '@/store/designer-store'
+import type { CloudProvider } from '@/lib/cloud-theme'
+
+const VALID_PROVIDERS = new Set<CloudProvider>(['aws', 'azure', 'gcp', 'generic'])
 
 /**
- * Parse ?from= and &split= URL params on mount, then initialize the designer
- * canvas with an auto-generated layout from splitter data.
+ * Parse ?from=, &split=, and &provider= URL params on mount,
+ * then initialize the designer canvas with an auto-generated layout.
  */
 export function useDesignerUrlSync() {
-  const { initFromLayout } = useDesignerStore()
+  const { initFromLayout, setCloudProvider } = useDesignerStore()
   const initializedRef = useRef(false)
 
   useEffect(() => {
@@ -19,6 +22,15 @@ export function useDesignerUrlSync() {
     const params = new URLSearchParams(window.location.search)
     const fromCidr = params.get('from')
     const splitParam = params.get('split')
+    const providerParam = params.get('provider') as CloudProvider | null
+
+    // Set cloud provider if specified
+    const provider: CloudProvider =
+      providerParam && VALID_PROVIDERS.has(providerParam) ? providerParam : 'generic'
+
+    if (provider !== 'generic') {
+      setCloudProvider(provider)
+    }
 
     if (!fromCidr) return
 
@@ -45,7 +57,7 @@ export function useDesignerUrlSync() {
     const splits = allocateSubnets(fromCidr, prefixes, labels)
     if (!splits || splits.length === 0) return
 
-    const { nodes, edges } = generateInitialLayout(parentResult, splits)
+    const { nodes, edges } = generateInitialLayout(parentResult, splits, provider)
     initFromLayout(nodes, edges)
-  }, [initFromLayout])
+  }, [initFromLayout, setCloudProvider])
 }

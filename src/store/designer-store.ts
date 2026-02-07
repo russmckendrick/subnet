@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Node, Edge, OnNodesChange, OnEdgesChange, Connection } from '@xyflow/react'
 import { applyNodeChanges, applyEdgeChanges, addEdge } from '@xyflow/react'
+import type { CloudProvider } from '@/lib/cloud-theme'
 
 export interface SubnetNodeData {
   type: 'subnet'
@@ -20,6 +21,34 @@ export interface ResourceNodeData {
   [key: string]: unknown
 }
 
+export interface VpcContainerNodeData {
+  type: 'vpc-container'
+  cidr: string
+  label: string
+  cloudProvider: CloudProvider
+  [key: string]: unknown
+}
+
+export interface SubnetContainerNodeData {
+  type: 'subnet-container'
+  cidr: string
+  label: string
+  color: string
+  hosts: number
+  networkAddress: string
+  broadcastAddress: string
+  cloudProvider: CloudProvider
+  [key: string]: unknown
+}
+
+export interface CloudResourceNodeData {
+  type: 'cloud-resource'
+  resourceType: string
+  label: string
+  cloudProvider: CloudProvider
+  [key: string]: unknown
+}
+
 export type ResourceType =
   | 'router'
   | 'switch'
@@ -30,8 +59,16 @@ export type ResourceType =
   | 'internet-gateway'
   | 'cloud'
   | 'vpc'
+  | 'nat-gateway'
+  | 'dns'
+  | 'cdn'
 
-type DesignerNodeData = SubnetNodeData | ResourceNodeData
+export type DesignerNodeData =
+  | SubnetNodeData
+  | ResourceNodeData
+  | VpcContainerNodeData
+  | SubnetContainerNodeData
+  | CloudResourceNodeData
 
 const STORAGE_KEY = 'subnet-designer-state'
 
@@ -43,6 +80,7 @@ interface DesignerState {
   isPaletteOpen: boolean
   isDirty: boolean
   isExportOpen: boolean
+  cloudProvider: CloudProvider
 
   setNodes: (nodes: Node<DesignerNodeData>[]) => void
   setEdges: (edges: Edge[]) => void
@@ -53,13 +91,15 @@ interface DesignerState {
   removeNode: (id: string) => void
   updateNodeLabel: (id: string, label: string) => void
   updateNodeColor: (id: string, color: string) => void
+  updateNodeData: (id: string, data: Partial<DesignerNodeData>) => void
   clearDiagram: () => void
   initFromLayout: (nodes: Node<DesignerNodeData>[], edges: Edge[]) => void
   setSelectedNodeId: (id: string | null) => void
   setSelectedNodeIds: (ids: string[]) => void
   setIsPaletteOpen: (open: boolean) => void
   setExportOpen: (open: boolean) => void
-  loadFromStorage: (state: { nodes: Node<DesignerNodeData>[]; edges: Edge[] }) => void
+  setCloudProvider: (provider: CloudProvider) => void
+  loadFromStorage: (state: { nodes: Node<DesignerNodeData>[]; edges: Edge[]; cloudProvider?: CloudProvider }) => void
 }
 
 export const useDesignerStore = create<DesignerState>((set, get) => ({
@@ -70,6 +110,7 @@ export const useDesignerStore = create<DesignerState>((set, get) => ({
   isPaletteOpen: true,
   isDirty: false,
   isExportOpen: false,
+  cloudProvider: 'generic',
 
   setNodes: (nodes) => set({ nodes, isDirty: true }),
   setEdges: (edges) => set({ edges, isDirty: true }),
@@ -91,9 +132,17 @@ export const useDesignerStore = create<DesignerState>((set, get) => ({
   },
 
   removeNode: (id) => {
+    // Also remove children whose parentId matches
+    const childIds = new Set(
+      get().nodes.filter((n) => n.parentId === id).map((n) => n.id),
+    )
+    const idsToRemove = new Set([id, ...childIds])
+
     set({
-      nodes: get().nodes.filter((n) => n.id !== id),
-      edges: get().edges.filter((e) => e.source !== id && e.target !== id),
+      nodes: get().nodes.filter((n) => !idsToRemove.has(n.id)),
+      edges: get().edges.filter(
+        (e) => !idsToRemove.has(e.source) && !idsToRemove.has(e.target),
+      ),
       isDirty: true,
     })
   },
@@ -110,9 +159,18 @@ export const useDesignerStore = create<DesignerState>((set, get) => ({
   updateNodeColor: (id, color) => {
     set({
       nodes: get().nodes.map((n) =>
-        n.id === id && n.data.type === 'subnet'
+        n.id === id && (n.data.type === 'subnet' || n.data.type === 'subnet-container')
           ? { ...n, data: { ...n.data, color } }
           : n,
+      ),
+      isDirty: true,
+    })
+  },
+
+  updateNodeData: (id, data) => {
+    set({
+      nodes: get().nodes.map((n) =>
+        n.id === id ? { ...n, data: { ...n.data, ...data } as DesignerNodeData } : n,
       ),
       isDirty: true,
     })
@@ -130,5 +188,23 @@ export const useDesignerStore = create<DesignerState>((set, get) => ({
   setIsPaletteOpen: (open) => set({ isPaletteOpen: open }),
   setExportOpen: (open) => set({ isExportOpen: open }),
 
-  loadFromStorage: (state) => set({ nodes: state.nodes, edges: state.edges, isDirty: false, selectedNodeId: null, selectedNodeIds: [] }),
+  setCloudProvider: (provider) => {
+    // Update provider and re-skin all container nodes
+    const nodes = get().nodes.map((n) => {
+      if (n.data.type === 'vpc-container' || n.data.type === 'subnet-container' || n.data.type === 'cloud-resource') {
+        return { ...n, data: { ...n.data, cloudProvider: provider } }
+      }
+      return n
+    })
+    set({ cloudProvider: provider, nodes, isDirty: true })
+  },
+
+  loadFromStorage: (state) => set({
+    nodes: state.nodes,
+    edges: state.edges,
+    cloudProvider: state.cloudProvider ?? 'generic',
+    isDirty: false,
+    selectedNodeId: null,
+    selectedNodeIds: [],
+  }),
 }))

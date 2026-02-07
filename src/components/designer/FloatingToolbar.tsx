@@ -1,15 +1,16 @@
 import { useReactFlow } from '@xyflow/react'
 import { useDesignerStore } from '@/store/designer-store'
+import { CURRENT_STORAGE_VERSION } from '@/lib/diagram-migration'
 
 const STORAGE_KEY = 'subnet-designer-state'
 
 export function FloatingToolbar() {
   const { fitView } = useReactFlow()
-  const { nodes, edges, setExportOpen, clearDiagram } = useDesignerStore()
+  const { nodes, edges, cloudProvider, setExportOpen, clearDiagram } = useDesignerStore()
 
   const handleSave = () => {
     try {
-      const state = { nodes, edges, version: 1 }
+      const state = { nodes, edges, cloudProvider, version: CURRENT_STORAGE_VERSION }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
     } catch { /* noop */ }
   }

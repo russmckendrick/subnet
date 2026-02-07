@@ -10,15 +10,22 @@ import {
 } from '@xyflow/react'
 import { useDesignerStore } from '@/store/designer-store'
 import { useThemeStore } from '@/store/theme-store'
-import type { ResourceNodeData } from '@/store/designer-store'
+import type { ResourceNodeData, CloudResourceNodeData } from '@/store/designer-store'
 import { SubnetNode } from './nodes/SubnetNode'
 import { ResourceNode } from './nodes/ResourceNode'
+import { VpcContainerNode } from './nodes/VpcContainerNode'
+import { SubnetContainerNode } from './nodes/SubnetContainerNode'
+import { CloudResourceNode } from './nodes/CloudResourceNode'
 import { NetworkEdge } from './edges/NetworkEdge'
 import { FloatingToolbar } from './FloatingToolbar'
+import { findContainerAtPoint, toRelativePosition } from '@/lib/diagram-container'
 
 const nodeTypes = {
   subnetNode: SubnetNode,
   resourceNode: ResourceNode,
+  vpcContainerNode: VpcContainerNode,
+  subnetContainerNode: SubnetContainerNode,
+  cloudResourceNode: CloudResourceNode,
 }
 
 const edgeTypes = {
@@ -31,6 +38,7 @@ export function DesignerCanvas() {
   const {
     nodes,
     edges,
+    cloudProvider,
     onNodesChange,
     onEdgesChange,
     onConnect,
@@ -62,25 +70,59 @@ export function DesignerCanvas() {
       const wrapperBounds = reactFlowWrapper.current?.getBoundingClientRect()
       if (!wrapperBounds) return
 
-      const position = {
-        x: event.clientX - wrapperBounds.left - 60,
-        y: event.clientY - wrapperBounds.top - 30,
-      }
+      const dropX = event.clientX - wrapperBounds.left - 60
+      const dropY = event.clientY - wrapperBounds.top - 30
 
-      const newNode: Node<ResourceNodeData> = {
-        id: `resource-${++nodeIdCounter}`,
-        type: nodeType,
-        position,
-        data: {
-          type: 'resource',
-          resourceType: resourceType as ResourceNodeData['resourceType'],
-          label: label || resourceType,
-        },
-      }
+      // Check if drop position falls inside a container
+      const containerId = findContainerAtPoint(nodes, dropX, dropY)
 
-      addNode(newNode)
+      if (containerId && nodeType === 'cloudResourceNode') {
+        // Drop inside container — use parent-relative coordinates
+        const relPos = toRelativePosition(nodes, containerId, dropX, dropY)
+        const newNode: Node<CloudResourceNodeData> = {
+          id: `resource-${++nodeIdCounter}`,
+          type: 'cloudResourceNode',
+          position: relPos,
+          parentId: containerId,
+          extent: 'parent',
+          data: {
+            type: 'cloud-resource',
+            resourceType,
+            label: label || resourceType,
+            cloudProvider,
+          },
+        }
+        addNode(newNode)
+      } else if (nodeType === 'cloudResourceNode') {
+        // Cloud resource dropped outside container
+        const newNode: Node<CloudResourceNodeData> = {
+          id: `resource-${++nodeIdCounter}`,
+          type: 'cloudResourceNode',
+          position: { x: dropX, y: dropY },
+          data: {
+            type: 'cloud-resource',
+            resourceType,
+            label: label || resourceType,
+            cloudProvider,
+          },
+        }
+        addNode(newNode)
+      } else {
+        // Generic resource node (from legacy palette items)
+        const newNode: Node<ResourceNodeData> = {
+          id: `resource-${++nodeIdCounter}`,
+          type: nodeType,
+          position: { x: dropX, y: dropY },
+          data: {
+            type: 'resource',
+            resourceType: resourceType as ResourceNodeData['resourceType'],
+            label: label || resourceType,
+          },
+        }
+        addNode(newNode)
+      }
     },
-    [addNode],
+    [addNode, nodes, cloudProvider],
   )
 
   const onSelectionChange = useCallback(

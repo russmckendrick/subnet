@@ -2,6 +2,9 @@ import { useDesignerStore } from '@/store/designer-store'
 import { Drawer } from '@/components/shared/Drawer'
 import { SubnetProperties } from './panels/SubnetProperties'
 import { ResourceProperties } from './panels/ResourceProperties'
+import { VpcProperties } from './panels/VpcProperties'
+import { SubnetContainerProperties } from './panels/SubnetContainerProperties'
+import { CloudResourceProperties } from './panels/CloudResourceProperties'
 
 export function PropertiesPanel() {
   const { nodes, selectedNodeId, setSelectedNodeId } = useDesignerStore()
@@ -23,6 +26,15 @@ export function PropertiesPanel() {
       )}
       {selectedNode?.data.type === 'resource' && (
         <ResourceProperties nodeId={selectedNode.id} data={selectedNode.data} />
+      )}
+      {selectedNode?.data.type === 'vpc-container' && (
+        <VpcProperties nodeId={selectedNode.id} data={selectedNode.data} />
+      )}
+      {selectedNode?.data.type === 'subnet-container' && (
+        <SubnetContainerProperties nodeId={selectedNode.id} data={selectedNode.data} />
+      )}
+      {selectedNode?.data.type === 'cloud-resource' && (
+        <CloudResourceProperties nodeId={selectedNode.id} data={selectedNode.data} />
       )}
     </Drawer>
   )

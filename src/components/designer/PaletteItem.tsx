@@ -1,17 +1,26 @@
-import type { ResourceType } from '@/store/designer-store'
+import { useDesignerStore } from '@/store/designer-store'
 import { RESOURCE_ICONS } from './icons/NetworkIcons'
+import { CLOUD_ICON_MAPS } from './icons/cloud-icon-registry'
 
 interface PaletteItemProps {
-  resourceType: ResourceType
+  resourceType: string
   label: string
   compact?: boolean
+  useCloudNode?: boolean
 }
 
-export function PaletteItem({ resourceType, label, compact }: PaletteItemProps) {
-  const IconComponent = RESOURCE_ICONS[resourceType]
+export function PaletteItem({ resourceType, label, compact, useCloudNode }: PaletteItemProps) {
+  const cloudProvider = useDesignerStore((s) => s.cloudProvider)
+
+  // Direct record lookup — no function call during render
+  const IconComponent = useCloudNode
+    ? CLOUD_ICON_MAPS[cloudProvider][resourceType]
+    : RESOURCE_ICONS[resourceType]
+
+  const nodeType = useCloudNode ? 'cloudResourceNode' : 'resourceNode'
 
   const onDragStart = (e: React.DragEvent) => {
-    e.dataTransfer.setData('application/reactflow-type', 'resourceNode')
+    e.dataTransfer.setData('application/reactflow-type', nodeType)
     e.dataTransfer.setData('application/reactflow-resource', resourceType)
     e.dataTransfer.setData('application/reactflow-label', label)
     e.dataTransfer.effectAllowed = 'move'

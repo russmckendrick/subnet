@@ -119,6 +119,36 @@ export function SubnetIcon({ className, color = '#2aa198' }: IconProps) {
   )
 }
 
+export function NatGatewayIcon({ className, color = '#859900' }: IconProps) {
+  return (
+    <svg {...defaultProps} className={className} stroke={color}>
+      <rect x="4" y="6" width="16" height="12" rx="2" />
+      <path d="M9 12h6M12 9l3 3-3 3" />
+      <path d="M4 12H2M22 12h-2" />
+    </svg>
+  )
+}
+
+export function DnsIcon({ className, color = '#268bd2' }: IconProps) {
+  return (
+    <svg {...defaultProps} className={className} stroke={color}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8 8h8v3H8zM8 13h8v3H8z" />
+    </svg>
+  )
+}
+
+export function CdnIcon({ className, color = '#6c71c4' }: IconProps) {
+  return (
+    <svg {...defaultProps} className={className} stroke={color}>
+      <circle cx="12" cy="12" r="9" />
+      <ellipse cx="12" cy="12" rx="4" ry="9" />
+      <path d="M3 12h18" />
+      <path d="M5 7h14M5 17h14" />
+    </svg>
+  )
+}
+
 export const RESOURCE_ICONS: Record<string, React.ComponentType<IconProps>> = {
   router: RouterIcon,
   switch: SwitchIcon,
@@ -127,6 +157,9 @@ export const RESOURCE_ICONS: Record<string, React.ComponentType<IconProps>> = {
   database: DatabaseIcon,
   'load-balancer': LoadBalancerIcon,
   'internet-gateway': InternetGatewayIcon,
+  'nat-gateway': NatGatewayIcon,
+  dns: DnsIcon,
+  cdn: CdnIcon,
   cloud: CloudIcon,
   vpc: VpcIcon,
   subnet: SubnetIcon,

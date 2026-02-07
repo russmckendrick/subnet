@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react'
-import { useDesignerStore } from '@/store/designer-store'
+import { useDesignerStore, type DesignerNodeData } from '@/store/designer-store'
+import { migrateDiagramState, CURRENT_STORAGE_VERSION } from '@/lib/diagram-migration'
+import type { Node } from '@xyflow/react'
 
 const STORAGE_KEY = 'subnet-designer-state'
 const DEBOUNCE_MS = 1000
 
 export function useDiagramPersistence() {
-  const { nodes, edges, isDirty, loadFromStorage } = useDesignerStore()
+  const { nodes, edges, cloudProvider, isDirty, loadFromStorage } = useDesignerStore()
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasLoadedRef = useRef(false)
 
@@ -25,7 +27,12 @@ export function useDiagramPersistence() {
 
         const parsed = JSON.parse(raw)
         if (parsed && Array.isArray(parsed.nodes) && Array.isArray(parsed.edges) && parsed.nodes.length > 0) {
-          loadFromStorage({ nodes: parsed.nodes, edges: parsed.edges })
+          const migrated = migrateDiagramState(parsed)
+          loadFromStorage({
+            nodes: migrated.nodes as Node<DesignerNodeData>[],
+            edges: migrated.edges,
+            cloudProvider: migrated.cloudProvider as 'aws' | 'azure' | 'gcp' | 'generic',
+          })
         }
       } catch { /* noop */ }
     }, 100)
@@ -43,7 +50,7 @@ export function useDiagramPersistence() {
 
     timerRef.current = setTimeout(() => {
       try {
-        const state = { nodes, edges, version: 1 }
+        const state = { nodes, edges, cloudProvider, version: CURRENT_STORAGE_VERSION }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
       } catch { /* noop */ }
     }, DEBOUNCE_MS)
@@ -53,5 +60,5 @@ export function useDiagramPersistence() {
         clearTimeout(timerRef.current)
       }
     }
-  }, [nodes, edges, isDirty])
+  }, [nodes, edges, cloudProvider, isDirty])
 }
