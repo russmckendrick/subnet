@@ -119,24 +119,44 @@ subnet/
 │   │   ├── constants.ts     Pre-computed reference table
 │   │   ├── export.ts        JSON/CSV/Terraform (AWS/Azure/GCP) generators
 │   │   ├── export-cli.ts    CLI command generators (AWS/Azure/GCP)
-│   │   ├── syntax-highlight.ts  Regex-based syntax tokenizer
-│   │   └── url-codec.ts     URL path encoding/decoding
+│   │   ├── export-diagram.ts  Diagram export (PNG/SVG/JSON/draw.io XML)
+│   │   ├── syntax-highlight.ts  Regex-based syntax tokenizer (HCL/JSON/Shell/CSV/XML)
+│   │   ├── url-codec.ts     URL path encoding/decoding
+│   │   ├── diagram-layout.ts   Initial diagram layout from splitter data
+│   │   └── diagram-arrange.ts  Auto-layout, align, distribute algorithms
 │   ├── store/             Zustand state management
 │   │   ├── calculator-store.ts  Main app state and actions
+│   │   ├── designer-store.ts   Network diagram state and actions
 │   │   └── theme-store.ts      Dark/light theme
 │   ├── hooks/             React hooks for side effects
 │   │   ├── use-url-sync.ts      Bidirectional URL path ↔ store sync (with legacy hash migration)
+│   │   ├── use-designer-url-sync.ts  Designer URL param initialization
+│   │   ├── use-diagram-persistence.ts  Auto-save/load to localStorage
+│   │   ├── use-designer-shortcuts.ts  Designer keyboard shortcuts
 │   │   ├── use-keyboard-shortcuts.ts  / focus, ↑↓ prefix, Escape blur
-│   │   └── use-clipboard.ts    Clipboard API with feedback state
+│   │   ├── use-clipboard.ts    Clipboard API with feedback state
+│   │   └── use-rdap-lookup.ts  RDAP data fetch with debounce and caching
 │   ├── components/        UI components by feature domain
 │   │   ├── calculator/      CidrInput, ResultsPanel, BinaryBreakdown,
 │   │   │                    SubnetInfoCard, QuickReference
 │   │   ├── splitter/        SubnetSplittingSection (with integrated visualization)
+│   │   ├── designer/        Network diagram editor (see below)
+│   │   │   ├── nodes/         SubnetNode, ResourceNode, NodeLabel
+│   │   │   ├── edges/         NetworkEdge (custom Solarized edge)
+│   │   │   ├── panels/        SubnetProperties, ResourceProperties
+│   │   │   ├── icons/         NetworkIcons (SVG icon components)
+│   │   │   ├── DesignerPage, DesignerCanvas, DesignerHeader
+│   │   │   ├── ResourcePalette, PaletteItem
+│   │   │   ├── PropertiesPanel, ArrangeToolbar
+│   │   │   ├── DiagramExportModal, FloatingToolbar
+│   │   │   └── designer-theme.css
 │   │   ├── visual-map/      SubnetMap (shown only when no splits exist)
 │   │   ├── cloud/           CloudContext, ProviderCard
+│   │   ├── whois/           RdapSection
 │   │   ├── tools/           SupernetTool
-│   │   ├── export/          ExportMenu
-│   │   ├── shared/          AnimatedCard, Badge, CollapsibleSection, CopyButton, Tabs
+│   │   ├── export/          ExportMenu, CodeBlock, TerminalFrame
+│   │   ├── command-palette/  CommandPalette
+│   │   ├── shared/          AnimatedCard, Badge, CollapsibleSection, CopyButton, Drawer, Tabs
 │   │   └── layout/          Layout, Header, Footer
 │   ├── App.tsx            Root component with tab routing
 │   ├── main.tsx           Entry point (ReactDOM.createRoot)

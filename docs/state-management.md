@@ -1,6 +1,6 @@
 # State Management
 
-subnet.fit uses two Zustand stores with no middleware. All state is held client-side.
+subnet.fit uses three Zustand stores with no middleware. All state is held client-side.
 
 ## calculator-store.ts
 
@@ -66,6 +66,62 @@ Called by `addSplit`, `removeSplit`, `resetSplits`, `setParentCidr`, and `initFr
 
 The store initializes with the default CIDR from `config.defaultCidr` (default: `'10.0.0.0/16'`) for both calculator and splitter. The result is computed at module load time via `parseCidr(config.defaultCidr)`. To change the default, edit `src/lib/config.ts`.
 
+## designer-store.ts
+
+Manages the Network Designer diagram state. See the [Network Designer documentation](network-designer.md) for the full component architecture.
+
+### State Shape
+
+```typescript
+interface DesignerState {
+  nodes: Node<DesignerNodeData>[]     // All diagram nodes (subnet + resource)
+  edges: Edge[]                        // All diagram edges
+  selectedNodeId: string | null        // First selected node (drives properties panel)
+  selectedNodeIds: string[]            // All selected nodes (drives arrange tools)
+  isPaletteOpen: boolean               // Resource palette expanded/collapsed
+  isDirty: boolean                     // Unsaved changes since last save/init
+  isExportOpen: boolean                // Export modal visibility
+}
+```
+
+`DesignerNodeData` is a discriminated union of `SubnetNodeData` (type `'subnet'`) and `ResourceNodeData` (type `'resource'`).
+
+### Actions
+
+| Action | Signature | Behavior |
+|--------|-----------|----------|
+| `setNodes` | `(nodes) => void` | Replace all nodes, mark dirty. Used by arrange tools. |
+| `setEdges` | `(edges) => void` | Replace all edges, mark dirty. |
+| `onNodesChange` | `(changes) => void` | Apply React Flow change events (drag, select, remove). |
+| `onEdgesChange` | `(changes) => void` | Apply React Flow edge change events. |
+| `onConnect` | `(connection) => void` | Create a new `networkEdge` between two nodes. |
+| `addNode` | `(node) => void` | Append a node (from resource palette drag-and-drop). |
+| `removeNode` | `(id) => void` | Remove a node and all edges where it is source or target. |
+| `updateNodeLabel` | `(id, label) => void` | Update the `data.label` of any node type. |
+| `updateNodeColor` | `(id, color) => void` | Update the `data.color` of a subnet node. No-op for resource nodes. |
+| `clearDiagram` | `() => void` | Reset to empty state, clear localStorage key `subnet-designer-state`, reset selection. |
+| `initFromLayout` | `(nodes, edges) => void` | Initialize from auto-generated layout (URL params), mark clean. |
+| `setSelectedNodeId` | `(id) => void` | Set the primary selected node (opens properties panel). |
+| `setSelectedNodeIds` | `(ids) => void` | Set all selected nodes (enables arrange tools). |
+| `setIsPaletteOpen` | `(open) => void` | Toggle the resource palette sidebar. |
+| `setExportOpen` | `(open) => void` | Toggle the export modal. |
+| `loadFromStorage` | `(state) => void` | Restore nodes/edges from localStorage, mark clean. |
+
+### Persistence
+
+The designer store works with the `useDiagramPersistence` hook for auto-save:
+- **Save**: Any state change that sets `isDirty: true` triggers a debounced (1s) write to `localStorage` key `subnet-designer-state`
+- **Load**: On mount, if no URL params produced nodes, the hook loads from localStorage
+- **Clear**: `clearDiagram()` also calls `localStorage.removeItem()`
+
+### Selection Model
+
+Two selection fields serve different purposes:
+- `selectedNodeId` — The first selected node, drives the Properties Panel (Drawer opens/closes based on this)
+- `selectedNodeIds` — All selected nodes, drives the Arrange Toolbar (align requires 2+, distribute requires 3+)
+
+Both are set by the `onSelectionChange` callback from React Flow.
+
 ## theme-store.ts
 
 Manages the dark/light theme.
@@ -97,7 +153,9 @@ The `applyTheme()` function:
 
 This runs immediately at module load (before any React render) and on every `toggleTheme`/`setTheme` call.
 
-## State Flow Diagram
+## State Flow Diagrams
+
+### Calculator Flow
 
 ```mermaid
 flowchart TD
@@ -116,6 +174,30 @@ flowchart TD
 
     Url2["URL Path on Mount"] --> InitAction["initFromUrl"]
     InitAction --> Lib
+```
+
+### Designer Flow
+
+```mermaid
+flowchart TD
+    UrlParams["URL ?from= &split="]
+    UrlSync["useDesignerUrlSync"]
+    LayoutLib["diagram-layout.ts<br/>(generateInitialLayout)"]
+    Store["designer-store"]
+    Canvas["DesignerCanvas<br/>(React Flow)"]
+    Persist["useDiagramPersistence"]
+    Storage["localStorage"]
+
+    UrlParams --> UrlSync
+    UrlSync --> LayoutLib
+    LayoutLib --> Store
+    Store --> Canvas
+
+    Canvas -->|"onNodesChange<br/>onEdgesChange<br/>onConnect"| Store
+    Store -->|"isDirty (1s debounce)"| Persist
+    Persist --> Storage
+    Storage -->|"mount (if no URL nodes)"| Persist
+    Persist -->|"loadFromStorage"| Store
 ```
 
 ### How URL Sync Works

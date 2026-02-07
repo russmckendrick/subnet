@@ -1,10 +1,11 @@
 import { motion } from 'motion/react'
 import { useThemeStore } from '@/store/theme-store'
 import { useDesignerStore } from '@/store/designer-store'
+import { ArrangeToolbar } from './ArrangeToolbar'
 
 export function DesignerHeader() {
   const { theme, toggleTheme } = useThemeStore()
-  const { nodes, selectedNodeId, removeNode, clearDiagram } = useDesignerStore()
+  const { nodes, selectedNodeId, removeNode, clearDiagram, setExportOpen } = useDesignerStore()
 
   return (
     <header className="flex items-center justify-between px-4 py-2.5 border-b border-[#93a1a1]/15 dark:border-[#586e75]/20 bg-[#fdf6e3] dark:bg-[#002b36]">
@@ -35,6 +36,22 @@ export function DesignerHeader() {
       </div>
 
       <div className="flex items-center gap-2">
+        {/* Arrange tools */}
+        {nodes.length > 0 && <ArrangeToolbar />}
+
+        {/* Export */}
+        {nodes.length > 0 && (
+          <button
+            onClick={() => setExportOpen(true)}
+            className="flex items-center gap-1.5 text-xs text-[#586e75] bg-[#eee8d5] dark:bg-[#073642] px-2.5 py-1.5 rounded-lg hover:bg-[#eee8d5]/80 dark:hover:bg-[#073642]/80 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            <span className="hidden sm:inline">Export</span>
+          </button>
+        )}
+
         {/* Delete selected node */}
         {selectedNodeId && (
           <button

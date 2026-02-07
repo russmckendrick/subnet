@@ -33,12 +33,16 @@ export type ResourceType =
 
 type DesignerNodeData = SubnetNodeData | ResourceNodeData
 
+const STORAGE_KEY = 'subnet-designer-state'
+
 interface DesignerState {
   nodes: Node<DesignerNodeData>[]
   edges: Edge[]
   selectedNodeId: string | null
+  selectedNodeIds: string[]
   isPaletteOpen: boolean
   isDirty: boolean
+  isExportOpen: boolean
 
   setNodes: (nodes: Node<DesignerNodeData>[]) => void
   setEdges: (edges: Edge[]) => void
@@ -48,18 +52,24 @@ interface DesignerState {
   addNode: (node: Node<DesignerNodeData>) => void
   removeNode: (id: string) => void
   updateNodeLabel: (id: string, label: string) => void
+  updateNodeColor: (id: string, color: string) => void
   clearDiagram: () => void
   initFromLayout: (nodes: Node<DesignerNodeData>[], edges: Edge[]) => void
   setSelectedNodeId: (id: string | null) => void
+  setSelectedNodeIds: (ids: string[]) => void
   setIsPaletteOpen: (open: boolean) => void
+  setExportOpen: (open: boolean) => void
+  loadFromStorage: (state: { nodes: Node<DesignerNodeData>[]; edges: Edge[] }) => void
 }
 
 export const useDesignerStore = create<DesignerState>((set, get) => ({
   nodes: [],
   edges: [],
   selectedNodeId: null,
+  selectedNodeIds: [],
   isPaletteOpen: true,
   isDirty: false,
+  isExportOpen: false,
 
   setNodes: (nodes) => set({ nodes, isDirty: true }),
   setEdges: (edges) => set({ edges, isDirty: true }),
@@ -73,7 +83,7 @@ export const useDesignerStore = create<DesignerState>((set, get) => ({
   },
 
   onConnect: (connection) => {
-    set({ edges: addEdge({ ...connection, type: 'smoothstep' }, get().edges), isDirty: true })
+    set({ edges: addEdge({ ...connection, type: 'networkEdge' }, get().edges), isDirty: true })
   },
 
   addNode: (node) => {
@@ -97,10 +107,28 @@ export const useDesignerStore = create<DesignerState>((set, get) => ({
     })
   },
 
-  clearDiagram: () => set({ nodes: [], edges: [], isDirty: false, selectedNodeId: null }),
+  updateNodeColor: (id, color) => {
+    set({
+      nodes: get().nodes.map((n) =>
+        n.id === id && n.data.type === 'subnet'
+          ? { ...n, data: { ...n.data, color } }
+          : n,
+      ),
+      isDirty: true,
+    })
+  },
 
-  initFromLayout: (nodes, edges) => set({ nodes, edges, isDirty: false, selectedNodeId: null }),
+  clearDiagram: () => {
+    try { localStorage.removeItem(STORAGE_KEY) } catch { /* noop */ }
+    set({ nodes: [], edges: [], isDirty: false, selectedNodeId: null, selectedNodeIds: [] })
+  },
+
+  initFromLayout: (nodes, edges) => set({ nodes, edges, isDirty: false, selectedNodeId: null, selectedNodeIds: [] }),
 
   setSelectedNodeId: (id) => set({ selectedNodeId: id }),
+  setSelectedNodeIds: (ids) => set({ selectedNodeIds: ids }),
   setIsPaletteOpen: (open) => set({ isPaletteOpen: open }),
+  setExportOpen: (open) => set({ isExportOpen: open }),
+
+  loadFromStorage: (state) => set({ nodes: state.nodes, edges: state.edges, isDirty: false, selectedNodeId: null, selectedNodeIds: [] }),
 }))

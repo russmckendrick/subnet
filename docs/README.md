@@ -7,6 +7,7 @@ Detailed documentation for the subnet.fit CIDR calculator and network planner.
 | Document | Description |
 |----------|-------------|
 | [Features Guide](features.md) | Walkthrough of every user-facing feature: calculator, splitter, supernet, reference table, cloud context, export, keyboard shortcuts, theming, and shareable URLs |
+| [Network Designer](network-designer.md) | Deep dive into the visual network topology editor: node types, custom edges, properties panel, arrange tools, export (PNG/SVG/JSON/draw.io), persistence, keyboard shortcuts, and floating toolbar |
 | [Architecture](architecture.md) | High-level layer diagram, data flow, component hierarchy, state management approach, and URL routing strategy |
 | [Calculation Engine](calculation-engine.md) | Deep dive into the `lib/` modules: IPv4 parsing, CIDR math, subnet allocation, binary representations, cloud provider constraints, and RFC range detection |
 | [State Management](state-management.md) | Zustand store shapes, actions, the `recalcSplits` helper, theme detection cascade, and bidirectional URL sync |

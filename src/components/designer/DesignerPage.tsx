@@ -1,13 +1,19 @@
 import { useState, useEffect } from 'react'
 import { ReactFlowProvider } from '@xyflow/react'
 import { useDesignerUrlSync } from '@/hooks/use-designer-url-sync'
+import { useDiagramPersistence } from '@/hooks/use-diagram-persistence'
+import { useDesignerShortcuts } from '@/hooks/use-designer-shortcuts'
 import { DesignerHeader } from './DesignerHeader'
 import { DesignerCanvas } from './DesignerCanvas'
 import { ResourcePalette } from './ResourcePalette'
+import { PropertiesPanel } from './PropertiesPanel'
+import { DiagramExportModal } from './DiagramExportModal'
 import './designer-theme.css'
 
 function DesignerContent() {
   useDesignerUrlSync()
+  useDiagramPersistence()
+  useDesignerShortcuts()
 
   const [isMobile, setIsMobile] = useState(false)
 
@@ -52,6 +58,8 @@ function DesignerContent() {
         <ResourcePalette />
         <DesignerCanvas />
       </div>
+      <PropertiesPanel />
+      <DiagramExportModal />
     </div>
   )
 }

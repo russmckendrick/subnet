@@ -17,17 +17,24 @@ flowchart TD
         rdapcache["rdap-cache.ts"]
         constants["constants.ts"]
         exportmod["export.ts"]
+        exportdiag["export-diagram.ts"]
         urlcodec["url-codec.ts"]
         configmod["config.ts"]
+        diaglayout["diagram-layout.ts"]
+        diagarrange["diagram-arrange.ts"]
     end
 
     subgraph store["store/ — State Management"]
         calcstore["calculator-store.ts"]
+        designerstore["designer-store.ts"]
         themestore["theme-store.ts"]
     end
 
     subgraph hooks["hooks/ — Side Effects"]
         urlsync["use-url-sync.ts"]
+        designerurlsync["use-designer-url-sync.ts"]
+        diagrampersist["use-diagram-persistence.ts"]
+        designershortcuts["use-designer-shortcuts.ts"]
         keyboard["use-keyboard-shortcuts.ts"]
         clipboard["use-clipboard.ts"]
         rdaplookup["use-rdap-lookup.ts"]
@@ -36,6 +43,7 @@ flowchart TD
     subgraph components["components/ — UI"]
         calculator["calculator/"]
         splitter["splitter/"]
+        designer["designer/"]
         visualmap["visual-map/"]
         cloudcomp["cloud/"]
         whois["whois/"]
@@ -58,9 +66,9 @@ Each layer has a strict dependency direction:
 
 | Layer | Responsibility | Dependencies |
 |-------|---------------|--------------|
-| `lib/` | Pure functions. IPv4 parsing, CIDR math, subnet allocation, binary formatting, cloud provider logic, RFC detection, RDAP response parsing and caching, export formatting, URL encoding, and centralised app configuration (`config.ts`). Zero React imports. | None |
-| `store/` | Zustand stores. Holds all application state and actions. Calls `lib/` functions to compute derived values. | `lib/` |
-| `hooks/` | React hooks for side effects. URL synchronization (with bare IP normalization), keyboard shortcut handling, clipboard operations, RDAP lookups. | `store/`, `lib/` |
+| `lib/` | Pure functions. IPv4 parsing, CIDR math, subnet allocation, binary formatting, cloud provider logic, RFC detection, RDAP response parsing and caching, export formatting (data, IaC, diagram), URL encoding, diagram layout/arrange algorithms, and centralised app configuration (`config.ts`). Zero React imports. | None |
+| `store/` | Zustand stores. Holds all application state and actions. `calculator-store` for the main app, `designer-store` for the network diagram, `theme-store` for dark/light mode. Calls `lib/` functions to compute derived values. | `lib/` |
+| `hooks/` | React hooks for side effects. URL synchronization (with bare IP normalization), designer URL sync, diagram persistence (localStorage), keyboard shortcuts (calculator and designer), clipboard operations, RDAP lookups. | `store/`, `lib/` |
 | `components/` | React components organized by feature domain. Read from stores, call actions, render UI. | `store/`, `hooks/`, `lib/` |
 
 ## Data Flow
@@ -105,6 +113,8 @@ sequenceDiagram
 
 ## Component Hierarchy
 
+### Calculator Layout
+
 ```mermaid
 flowchart TD
     App["App.tsx"]
@@ -144,11 +154,45 @@ flowchart TD
     ResultsPanel --> SubnetInfoCard["SubnetInfoCard (x8)"]
 ```
 
+### Designer Layout
+
+When the pathname starts with `/designer`, `App.tsx` renders `<DesignerPage>` instead of the calculator layout.
+
+```mermaid
+flowchart TD
+    App["App.tsx"]
+    DesignerPage["DesignerPage<br/>(ReactFlowProvider)"]
+
+    App --> DesignerPage
+
+    subgraph DesignerContent["DesignerContent"]
+        DesignerHeader["DesignerHeader"]
+        ResourcePalette["ResourcePalette"]
+        DesignerCanvas["DesignerCanvas"]
+        PropertiesPanel["PropertiesPanel<br/>(Drawer)"]
+        ExportModal["DiagramExportModal"]
+    end
+
+    DesignerPage --> DesignerContent
+
+    DesignerHeader --> ArrangeToolbar["ArrangeToolbar"]
+    DesignerCanvas --> SubnetNode["SubnetNode"]
+    DesignerCanvas --> ResourceNode["ResourceNode"]
+    DesignerCanvas --> NetworkEdge["NetworkEdge"]
+    DesignerCanvas --> FloatingToolbar["FloatingToolbar"]
+
+    PropertiesPanel --> SubnetProps["SubnetProperties"]
+    PropertiesPanel --> ResourceProps["ResourceProperties"]
+```
+
+See the [Network Designer documentation](network-designer.md) for full details.
+
 ## State Management
 
-Two Zustand stores with no middleware:
+Three Zustand stores with no middleware:
 
-- **`calculator-store`** — All app state: active tab, CIDR input/result, splitter allocations (parent CIDR, prefix list, labels, computed splits, remaining space, available prefixes), and supernet inputs/result. Reads default CIDR from `config.ts`.
+- **`calculator-store`** — All calculator/splitter/supernet state: active tab, CIDR input/result, splitter allocations (parent CIDR, prefix list, labels, computed splits, remaining space, available prefixes), supernet inputs/result, command palette, and input mode. Reads default CIDR from `config.ts`.
+- **`designer-store`** — Network diagram state: nodes, edges, selection (single and multi), palette visibility, dirty flag, export modal visibility. Actions for node CRUD, color updates, layout initialization, and localStorage persistence.
 - **`theme-store`** — Dark/light theme with localStorage persistence. Reads default theme preference and storage key from `config.ts`, with support for `'system'` as the default (resolves via `prefers-color-scheme` media query).
 
 See [State Management](state-management.md) for the full state shape and action descriptions.

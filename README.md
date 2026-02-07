@@ -15,7 +15,7 @@
 - **Supernet Calculator** — Aggregate multiple CIDRs into the smallest containing supernet
 - **Reference Table** — Collapsible lookup table for all prefix lengths (/0–/32) with masks, wildcards, and host counts
 - **RDAP / WHOIS Lookup** — Query `rdap.org` for public IP registration data including RIR, country, organization, and allocated range (with in-memory + localStorage caching)
-- **Network Designer** — Visual drag-and-drop network topology diagram at `/designer`, with auto-layout from splitter data, custom subnet and resource nodes (routers, switches, firewalls, servers, databases, load balancers, cloud resources), powered by React Flow
+- **Network Designer** — Visual drag-and-drop network topology diagram at `/designer`, with auto-layout from splitter data, custom subnet and resource nodes (routers, switches, firewalls, servers, databases, load balancers, cloud resources), properties panel for editing nodes, arrange tools (auto-layout, align, distribute), export to PNG/SVG/JSON/draw.io, localStorage persistence, keyboard shortcuts (Escape, Cmd+E, Cmd+S), and floating toolbar — powered by React Flow
 - **Cloud Provider Context** — See AWS, Azure, and GCP reserved addresses, prefix limits, and usable host calculations for any subnet
 - **Export** — Data (JSON, CSV), CLI commands (AWS, Azure, GCP), Terraform HCL (AWS, Azure, GCP), and enhanced Share URL with QR code
 - **Keyboard Shortcuts** — `/` to focus input, `↑↓` to adjust prefix length, `Escape` to blur

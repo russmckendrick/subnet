@@ -20,8 +20,8 @@ subnet.fit is a client-side-only CIDR/subnet calculator. All computation happens
 ### Layers
 
 - **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, RDAP response parsing (`rdap.ts`) and caching (`rdap-cache.ts`), IaC export formatters, URL path codec, and centralised app configuration (`config.ts`). All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
-- **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs, input mode, command palette open state). `designer-store.ts` holds diagram state (nodes, edges, palette, selection). `theme-store.ts` persists dark/light mode to localStorage. Calculator and theme stores read defaults from `config.ts`.
-- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-designer-url-sync.ts` reads `?from=` and `&split=` params on `/designer` route and initializes the diagram canvas. `use-keyboard-shortcuts.ts` handles `/` to open command palette, arrows to adjust prefix when input focused. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching.
+- **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs, input mode, command palette open state). `designer-store.ts` holds diagram state (nodes, edges, palette, selection, multi-selection, export modal, node color updates, localStorage persistence). `theme-store.ts` persists dark/light mode to localStorage. Calculator and theme stores read defaults from `config.ts`.
+- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-designer-url-sync.ts` reads `?from=` and `&split=` params on `/designer` route and initializes the diagram canvas. `use-keyboard-shortcuts.ts` handles `/` to open command palette, arrows to adjust prefix when input focused. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching. `use-diagram-persistence.ts` auto-saves/loads designer state to/from localStorage with 1s debounce. `use-designer-shortcuts.ts` handles Escape (deselect/close), Cmd+E (export modal), Cmd+S (manual save) in designer.
 - **`src/components/`** — UI organized by feature domain: `calculator/`, `splitter/`, `designer/`, `visual-map/`, `cloud/`, `whois/`, `tools/`, `export/`, `command-palette/`, `shared/`, `layout/`.
 
 ### Routing
@@ -97,7 +97,18 @@ The `dark` class is toggled on `<html>` by the theme store. The visual design us
 
 ### Export Formats
 
-`src/lib/export.ts` generates JSON, CSV, and Terraform HCL (AWS, Azure, GCP). `src/lib/export-cli.ts` generates CLI commands (AWS CLI, Azure CLI, gcloud). `src/lib/syntax-highlight.ts` provides regex-based tokenization for `hcl`, `json`, `shell`, and `csv` with Solarized colors. The export UI uses two-tier tabs (Data, CLI, Terraform, Share) with provider selector for CLI/Terraform categories.
+`src/lib/export.ts` generates JSON, CSV, and Terraform HCL (AWS, Azure, GCP). `src/lib/export-cli.ts` generates CLI commands (AWS CLI, Azure CLI, gcloud). `src/lib/export-diagram.ts` generates PNG, SVG, JSON, and draw.io XML from designer diagrams. `src/lib/syntax-highlight.ts` provides regex-based tokenization for `hcl`, `json`, `shell`, `csv`, and `xml` with Solarized colors. The export UI uses two-tier tabs (Data, CLI, Terraform, Share) with provider selector for CLI/Terraform categories.
+
+### Network Designer (v2)
+
+The designer at `/designer` includes:
+- **Properties Panel** — Right-side `<Drawer>` for editing selected node (label, color for subnets, label for resources). Opens on node selection, closes on Escape/deselect.
+- **Custom Edges** — `NetworkEdge` component using `getSmoothStepPath` with Solarized cyan stroke, width changes on selection.
+- **Arrange Tools** — `ArrangeToolbar` dropdown with auto-layout (hierarchical BFS), align (6 directions for 2+ selected nodes), and distribute (horizontal/vertical for 3+ selected). Pure layout functions in `src/lib/diagram-arrange.ts`.
+- **Export** — `DiagramExportModal` with Image (PNG/SVG via `html-to-image`), JSON, and draw.io XML tabs. XML syntax highlighting support.
+- **Persistence** — Auto-saves to `localStorage` key `subnet-designer-state` with 1s debounce. Loads on mount if no URL params. `clearDiagram` also clears storage.
+- **Keyboard Shortcuts** — `Escape` (deselect/close modal), `Cmd/Ctrl+E` (toggle export), `Cmd/Ctrl+S` (save to localStorage).
+- **Floating Toolbar** — Bottom-center bar with Fit View, Export, Save, and Clear buttons.
 
 ### Deployment
 

@@ -64,7 +64,7 @@ export function generateInitialLayout(
     id: `e-${igwId}-${vpcId}`,
     source: igwId,
     target: vpcId,
-    type: 'smoothstep',
+    type: 'networkEdge',
   })
 
   // Subnet nodes in a grid
@@ -98,7 +98,7 @@ export function generateInitialLayout(
       id: `e-${vpcId}-${subnetId}`,
       source: vpcId,
       target: subnetId,
-      type: 'smoothstep',
+      type: 'networkEdge',
     })
   })
 

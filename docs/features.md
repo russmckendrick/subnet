@@ -160,7 +160,72 @@ Each row shows:
 - Total addresses
 - Usable hosts
 
+## Network Designer
+
+A visual drag-and-drop network topology editor at `/designer`. See the [full Network Designer documentation](network-designer.md) for architectural details.
+
+### Canvas
+
+The React Flow canvas supports:
+- Panning and zooming with mouse/trackpad
+- Multi-node selection with Shift+click or drag selection
+- Node deletion with Delete/Backspace keys
+- Node-to-node connections by dragging between handles
+- Drag-and-drop from the resource palette to add new nodes
+- MiniMap for navigation and zoom controls
+
+### Node Types
+
+Two node types are available:
+
+- **Subnet Nodes** — Represent network subnets with CIDR notation, label, color bar, host count, and network address
+- **Resource Nodes** — Represent network infrastructure (routers, switches, firewalls, servers, databases, load balancers, internet gateways, VPCs, cloud resources) with icons and labels
+
+### Properties Panel
+
+Click any node to open a right-side drawer panel for editing:
+- **Subnet nodes** — View CIDR (read-only), edit label, change color via an 8-swatch Solarized accent picker, view host count and network/broadcast addresses
+- **Resource nodes** — View icon and type (read-only), edit label
+
+### Arrange Tools
+
+The "Arrange" dropdown in the header provides:
+- **Auto Layout** — Rearranges all nodes into a hierarchical layout using BFS from root nodes, placed in a 3-column grid
+- **Align** (2+ nodes selected) — Snap selected nodes to left, right, top, bottom, center-horizontal, or center-vertical
+- **Distribute** (3+ nodes selected) — Space selected nodes evenly along horizontal or vertical axis
+
+### Export
+
+Export the diagram in four formats via the export modal (header button, floating toolbar, or `Cmd/Ctrl+E`):
+- **PNG** — High-resolution (2x pixel ratio) raster image with theme-appropriate background
+- **SVG** — Vector image
+- **JSON** — Structured data with all node positions, data, and edge connections
+- **draw.io** — XML file compatible with draw.io / diagrams.net, preserving shapes, colors, labels, and connections
+
+### Persistence
+
+Diagrams are auto-saved to localStorage with a 1-second debounce. On return to `/designer` (without URL parameters), the last saved diagram is restored automatically. Manual save is available via `Cmd/Ctrl+S` or the floating toolbar save button.
+
+### Auto-Generation from Splitter
+
+Navigate to `/designer?from=10.0.0.0/16&split=24~Web,25~API` to auto-generate a diagram with:
+- Internet Gateway node at the top
+- VPC node with the parent CIDR
+- Subnet nodes in a 3-column grid, connected to the VPC
+
+URL parameters take precedence over localStorage.
+
+### Floating Toolbar
+
+A compact bar at the bottom-center of the canvas with:
+- **Fit View** — Centers and scales to fit all nodes
+- **Export** — Opens the export modal
+- **Save** — Manual save to localStorage
+- **Clear** — Removes all nodes, edges, and saved data
+
 ## Keyboard Shortcuts
+
+### Calculator Shortcuts
 
 | Key | Context | Action |
 |-----|---------|--------|
@@ -168,6 +233,15 @@ Each row shows:
 | `↑` | CIDR input focused | Increment prefix length by 1 (max 32) |
 | `↓` | CIDR input focused | Decrement prefix length by 1 (min 0) |
 | `Escape` | CIDR input focused | Blur the input |
+
+### Designer Shortcuts
+
+| Key | Context | Action |
+|-----|---------|--------|
+| `Escape` | Designer | Close export modal (if open), otherwise deselect all nodes |
+| `Cmd/Ctrl+E` | Designer | Toggle the export modal |
+| `Cmd/Ctrl+S` | Designer | Save diagram to localStorage |
+| `Delete` / `Backspace` | Designer, node selected | Delete the selected node(s) |
 
 ## Dark/Light Mode
 

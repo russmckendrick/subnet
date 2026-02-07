@@ -13,10 +13,16 @@ import { useThemeStore } from '@/store/theme-store'
 import type { ResourceNodeData } from '@/store/designer-store'
 import { SubnetNode } from './nodes/SubnetNode'
 import { ResourceNode } from './nodes/ResourceNode'
+import { NetworkEdge } from './edges/NetworkEdge'
+import { FloatingToolbar } from './FloatingToolbar'
 
 const nodeTypes = {
   subnetNode: SubnetNode,
   resourceNode: ResourceNode,
+}
+
+const edgeTypes = {
+  networkEdge: NetworkEdge,
 }
 
 let nodeIdCounter = 100
@@ -30,6 +36,7 @@ export function DesignerCanvas() {
     onConnect,
     addNode,
     setSelectedNodeId,
+    setSelectedNodeIds,
   } = useDesignerStore()
 
   const theme = useThemeStore((s) => s.theme)
@@ -55,8 +62,6 @@ export function DesignerCanvas() {
       const wrapperBounds = reactFlowWrapper.current?.getBoundingClientRect()
       if (!wrapperBounds) return
 
-      // Calculate position relative to the flow canvas
-      // Use the wrapper bounds to estimate position (without requiring reactFlowInstance)
       const position = {
         x: event.clientX - wrapperBounds.left - 60,
         y: event.clientY - wrapperBounds.top - 30,
@@ -80,13 +85,14 @@ export function DesignerCanvas() {
 
   const onSelectionChange = useCallback(
     ({ nodes: selectedNodes }: { nodes: Node[] }) => {
-      setSelectedNodeId(selectedNodes.length === 1 ? selectedNodes[0].id : null)
+      setSelectedNodeId(selectedNodes.length >= 1 ? selectedNodes[0].id : null)
+      setSelectedNodeIds(selectedNodes.map((n) => n.id))
     },
-    [setSelectedNodeId],
+    [setSelectedNodeId, setSelectedNodeIds],
   )
 
   return (
-    <div ref={reactFlowWrapper} className="flex-1 h-full">
+    <div ref={reactFlowWrapper} className="relative flex-1 h-full">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -97,10 +103,11 @@ export function DesignerCanvas() {
         onDrop={onDrop}
         onSelectionChange={onSelectionChange}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         colorMode={colorMode}
         fitView
         fitViewOptions={{ padding: 0.2, maxZoom: 1.5 }}
-        defaultEdgeOptions={{ type: 'smoothstep', animated: false }}
+        defaultEdgeOptions={{ type: 'networkEdge', animated: false }}
         deleteKeyCode={['Delete', 'Backspace']}
         multiSelectionKeyCode="Shift"
         proOptions={{ hideAttribution: true }}
@@ -119,6 +126,7 @@ export function DesignerCanvas() {
           maskColor={theme === 'dark' ? 'rgba(0, 43, 54, 0.7)' : 'rgba(253, 246, 227, 0.7)'}
         />
       </ReactFlow>
+      <FloatingToolbar />
     </div>
   )
 }

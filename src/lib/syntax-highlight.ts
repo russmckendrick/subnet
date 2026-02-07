@@ -1,4 +1,4 @@
-export type Language = 'hcl' | 'json' | 'shell' | 'csv'
+export type Language = 'hcl' | 'json' | 'shell' | 'csv' | 'xml'
 
 export type TokenType =
   | 'keyword'
@@ -93,12 +93,23 @@ const CSV_RULES: TokenRule[] = [
   [/^(true|false)\b/i, 'keyword'],
 ]
 
+const XML_RULES: TokenRule[] = [
+  [/^<!--[\s\S]*?-->/, 'comment'],
+  [/^<\/?[a-zA-Z][a-zA-Z0-9:.-]*/, 'keyword'],
+  [/^[a-zA-Z][a-zA-Z0-9:.-]*(?=\s*=)/, 'property'],
+  [/^"(?:[^"\\]|\\.)*"/, 'string'],
+  [/^'(?:[^'\\]|\\.)*'/, 'string'],
+  [/^-?\d+(\.\d+)?/, 'number'],
+  [/^[<>\/=]/, 'punctuation'],
+]
+
 function getRules(language: Language): TokenRule[] {
   switch (language) {
     case 'hcl': return HCL_RULES
     case 'json': return JSON_RULES
     case 'shell': return SHELL_RULES
     case 'csv': return CSV_RULES
+    case 'xml': return XML_RULES
   }
 }
 
