@@ -117,7 +117,9 @@ subnet/
 │   │   ├── cloud-providers.ts  AWS/Azure/GCP constraints
 │   │   ├── rfc-ranges.ts    RFC special-purpose range detection
 │   │   ├── constants.ts     Pre-computed reference table
-│   │   ├── export.ts        JSON/CSV/Terraform/Pulumi/CFN generators
+│   │   ├── export.ts        JSON/CSV/Terraform (AWS/Azure/GCP) generators
+│   │   ├── export-cli.ts    CLI command generators (AWS/Azure/GCP)
+│   │   ├── syntax-highlight.ts  Regex-based syntax tokenizer
 │   │   └── url-codec.ts     URL path encoding/decoding
 │   ├── store/             Zustand state management
 │   │   ├── calculator-store.ts  Main app state and actions

@@ -18,8 +18,13 @@ function decodeLabel(encoded: string): string {
   }
 }
 
+import { parseIPv4, inferDefaultPrefix } from './ipv4'
+
 // CIDR pattern: digits.digits.digits.digits/digits
 const CIDR_PATTERN = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}$/
+
+// Bare IP pattern (no prefix): digits.digits.digits.digits
+const IP_PATTERN = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
 
 /**
  * Encode state as a path + query string.
@@ -70,7 +75,37 @@ export function decodeState(pathname: string, search: string): UrlState | null {
   }
 
   // Network mode — validate as CIDR
-  if (!CIDR_PATTERN.test(path)) return null
+  if (!CIDR_PATTERN.test(path)) {
+    // Bare IP fallback — infer prefix from trailing zeros
+    if (IP_PATTERN.test(path)) {
+      const ip = parseIPv4(path)
+      if (ip !== null) {
+        const prefix = inferDefaultPrefix(ip)
+        const cidr = `${path}/${prefix}`
+        const params = new URLSearchParams(search)
+        const splitParam = params.get('split')
+
+        if (splitParam) {
+          const splits: number[] = []
+          const splitLabels: string[] = []
+          for (const segment of splitParam.split(',')) {
+            const [prefixStr, label] = segment.split('~')
+            const p = Number(prefixStr)
+            if (!isNaN(p) && p >= 0 && p <= 32) {
+              splits.push(p)
+              splitLabels.push(label ? decodeLabel(label) : `Subnet ${splits.length}`)
+            }
+          }
+          if (splits.length > 0) {
+            return { mode: 'network', cidr, splits, splitLabels }
+          }
+        }
+
+        return { mode: 'network', cidr }
+      }
+    }
+    return null
+  }
 
   const cidr = path
   const params = new URLSearchParams(search)

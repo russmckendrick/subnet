@@ -17,6 +17,19 @@ The CIDR notation is used directly as the path.
 - `/192.168.1.0/24`
 - `/172.16.0.0/12`
 
+#### Bare IP URLs
+
+Bare IPs (without a prefix) are also accepted. The prefix is inferred from the IP's trailing-zero structure using `inferDefaultPrefix()`:
+
+| URL path | Inferred CIDR | Reason |
+|----------|---------------|--------|
+| `/10.0.0.0` | `10.0.0.0/8` | `.0.0.0` → `/8` |
+| `/10.10.0.0` | `10.10.0.0/16` | `.0.0` → `/16` |
+| `/192.168.1.0` | `192.168.1.0/24` | `.0` → `/24` |
+| `/8.8.8.8` | `8.8.8.8/32` | No trailing zeros → `/32` |
+
+On load, bare IP URLs are normalized to include the inferred prefix (e.g. `/8.8.8.8` becomes `/8.8.8.8/32` in the address bar).
+
 ### Splitter Mode
 
 ```
@@ -85,8 +98,9 @@ Parses a pathname and search string:
 1. Strip leading `/` and trim whitespace
 2. If empty, return `null` (home page)
 3. If path is `super` — parse supernet format from `?nets=` query param
-4. If path matches CIDR pattern — parse as network mode, optionally with `?split=` query param
-5. Otherwise — return `null`
+4. If path matches CIDR pattern (`ip/prefix`) — parse as network mode, optionally with `?split=` query param
+5. If path matches bare IP pattern (`ip` without prefix) — validate with `parseIPv4()`, infer prefix via `inferDefaultPrefix()`, construct full CIDR, and continue as network mode (with optional `?split=`)
+6. Otherwise — return `null`
 
 ### updateUrl(state: UrlState) → void
 
@@ -157,10 +171,9 @@ sequenceDiagram
 
     alt Supernet drawer
         Hook->>Codec: updateUrl({ mode: 'supernet', ... })
-    else Network (with splits)
-        Hook->>Codec: updateUrl({ mode: 'network', cidr, splits, labels })
-    else Network (no splits)
-        Hook->>Codec: updateUrl({ mode: 'network', cidr })
+    else Network
+        Note over Hook: If rawInput is a bare IP (no /),<br/>append inferred prefix via inferDefaultPrefix()
+        Hook->>Codec: updateUrl({ mode: 'network', cidr, ... })
     end
 
     Codec->>Browser: history.replaceState()

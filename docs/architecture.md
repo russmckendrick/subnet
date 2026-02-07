@@ -45,6 +45,8 @@ flowchart TD
         layout["layout/"]
     end
 
+    ipv4 --> urlcodec
+
     lib --> store
     store --> hooks
     hooks --> components
@@ -58,7 +60,7 @@ Each layer has a strict dependency direction:
 |-------|---------------|--------------|
 | `lib/` | Pure functions. IPv4 parsing, CIDR math, subnet allocation, binary formatting, cloud provider logic, RFC detection, RDAP response parsing and caching, export formatting, URL encoding, and centralised app configuration (`config.ts`). Zero React imports. | None |
 | `store/` | Zustand stores. Holds all application state and actions. Calls `lib/` functions to compute derived values. | `lib/` |
-| `hooks/` | React hooks for side effects. URL hash synchronization, keyboard shortcut handling, clipboard operations, RDAP lookups. | `store/`, `lib/` |
+| `hooks/` | React hooks for side effects. URL synchronization (with bare IP normalization), keyboard shortcut handling, clipboard operations, RDAP lookups. | `store/`, `lib/` |
 | `components/` | React components organized by feature domain. Read from stores, call actions, render UI. | `store/`, `hooks/`, `lib/` |
 
 ## Data Flow

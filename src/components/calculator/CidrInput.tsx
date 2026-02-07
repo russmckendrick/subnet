@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useCallback } from 'react'
 import { motion } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
-import { ipv4ToString } from '@/lib/ipv4'
+import { ipv4ToString, parseIPv4, inferDefaultPrefix } from '@/lib/ipv4'
 import { config } from '@/lib/config'
 
 const PREFIX_OPTIONS = Array.from({ length: 33 }, (_, i) => {
@@ -69,7 +69,9 @@ export function CidrInput() {
     setSplitIp(newIp)
     setSplitIpSource('local')
     if (newIp.trim()) {
-      setRawInput(`${newIp}/${currentPrefix}`)
+      const parsed = parseIPv4(newIp.trim())
+      const prefix = parsed !== null ? inferDefaultPrefix(parsed) : currentPrefix
+      setRawInput(`${newIp}/${prefix}`)
     } else {
       setRawInput('')
     }

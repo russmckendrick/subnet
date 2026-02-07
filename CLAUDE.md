@@ -91,7 +91,7 @@ The `dark` class is toggled on `<html>` by the theme store. The visual design us
 
 ### Export Formats
 
-`src/lib/export.ts` generates JSON, CSV, Terraform HCL, Pulumi TypeScript, and CloudFormation JSON from calculator results.
+`src/lib/export.ts` generates JSON, CSV, and Terraform HCL (AWS, Azure, GCP). `src/lib/export-cli.ts` generates CLI commands (AWS CLI, Azure CLI, gcloud). `src/lib/syntax-highlight.ts` provides regex-based tokenization for `hcl`, `json`, `shell`, and `csv` with Solarized colors. The export UI uses two-tier tabs (Data, CLI, Terraform, Share) with provider selector for CLI/Terraform categories.
 
 ### Deployment
 

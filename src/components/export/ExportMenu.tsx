@@ -1,101 +1,146 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
-import { useClipboard } from '@/hooks/use-clipboard'
-import { toJSON, toCSV, toTerraform, toPulumi, toCloudFormation } from '@/lib/export'
+import { toJSON, toCSV, toTerraformAws, toTerraformAzure, toTerraformGcp } from '@/lib/export'
+import { toAwsCli, toAzureCli, toGcloudCli } from '@/lib/export-cli'
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
+import { CodeBlock } from './CodeBlock'
+import { TerminalFrame } from './TerminalFrame'
+import { ProviderSelector, type CloudProvider } from './ProviderSelector'
+import { ShareCard } from './ShareCard'
 
-type ExportFormat = 'json' | 'csv' | 'terraform' | 'pulumi' | 'cloudformation' | 'url'
+type Category = 'data' | 'cli' | 'terraform' | 'share'
+type DataFormat = 'json' | 'csv'
 
-interface ExportOption {
-  id: ExportFormat
+interface CategoryOption {
+  id: Category
   label: string
   icon: string
 }
 
-const EXPORT_OPTIONS: ExportOption[] = [
-  { id: 'json', label: 'JSON', icon: '{ }' },
-  { id: 'csv', label: 'CSV', icon: ',' },
+const CATEGORIES: CategoryOption[] = [
+  { id: 'data', label: 'Data', icon: '{ }' },
+  { id: 'cli', label: 'CLI', icon: '>' },
   { id: 'terraform', label: 'Terraform', icon: 'TF' },
-  { id: 'pulumi', label: 'Pulumi', icon: 'PL' },
-  { id: 'cloudformation', label: 'CloudFormation', icon: 'CF' },
-  { id: 'url', label: 'Share URL', icon: '#' },
+  { id: 'share', label: 'Share', icon: '#' },
 ]
+
+const PROVIDER_LABELS: Record<CloudProvider, { name: string; color: string }> = {
+  aws: { name: 'AWS CLI', color: '#cb4b16' },
+  azure: { name: 'Azure CLI', color: '#268bd2' },
+  gcp: { name: 'Google Cloud CLI', color: '#6c71c4' },
+}
 
 function ExportMenuInner() {
   const { result, splits } = useCalculatorStore()
-  const { copy, isCopied } = useClipboard()
-  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('terraform')
+  const [category, setCategory] = useState<Category>('data')
+  const [provider, setProvider] = useState<CloudProvider>('aws')
+  const [dataFormat, setDataFormat] = useState<DataFormat>('json')
 
   if (!result) return null
 
-  function getExportContent(format: ExportFormat): string {
-    switch (format) {
-      case 'json':
-        return toJSON(result!, splits.length > 0 ? splits : undefined)
-      case 'csv':
-        return toCSV(result!, splits.length > 0 ? splits : undefined)
-      case 'terraform':
-        return toTerraform(result!, splits.length > 0 ? splits : undefined)
-      case 'pulumi':
-        return toPulumi(result!, splits.length > 0 ? splits : undefined)
-      case 'cloudformation':
-        return toCloudFormation(result!, splits.length > 0 ? splits : undefined)
-      case 'url':
-        return window.location.href
+  const splitArg = splits.length > 0 ? splits : undefined
+
+  function renderContent() {
+    switch (category) {
+      case 'data': {
+        const code = dataFormat === 'json'
+          ? toJSON(result!, splitArg)
+          : toCSV(result!, splitArg)
+        return (
+          <CodeBlock
+            code={code}
+            language={dataFormat === 'json' ? 'json' : 'csv'}
+            copyKey={`export-${dataFormat}`}
+          />
+        )
+      }
+      case 'cli': {
+        const generators = { aws: toAwsCli, azure: toAzureCli, gcp: toGcloudCli }
+        const code = generators[provider](result!, splitArg)
+        const info = PROVIDER_LABELS[provider]
+        return (
+          <TerminalFrame
+            title={info.name}
+            providerColor={info.color}
+            code={code}
+            copyKey={`export-cli-${provider}`}
+          />
+        )
+      }
+      case 'terraform': {
+        const generators = { aws: toTerraformAws, azure: toTerraformAzure, gcp: toTerraformGcp }
+        const code = generators[provider](result!, splitArg)
+        return (
+          <CodeBlock
+            code={code}
+            language="hcl"
+            copyKey={`export-tf-${provider}`}
+          />
+        )
+      }
+      case 'share':
+        return <ShareCard />
       default:
-        return ''
+        return null
     }
   }
 
-  const content = getExportContent(selectedFormat)
-
   return (
     <div>
-      <div className="flex items-center justify-end mb-4">
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => copy(content, `export-${selectedFormat}`)}
-          className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
-            isCopied(`export-${selectedFormat}`)
-              ? 'bg-[#859900]/20 text-[#859900]'
-              : 'bg-[#2aa198]/10 text-[#2aa198] hover:bg-[#2aa198]/20'
-          }`}
-        >
-          {isCopied(`export-${selectedFormat}`) ? 'Copied!' : 'Copy to clipboard'}
-        </motion.button>
-      </div>
-
-      {/* Format selector */}
-      <div className="flex flex-wrap gap-1.5 mb-4">
-        {EXPORT_OPTIONS.map((opt) => (
+      {/* Category tabs */}
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {CATEGORIES.map((cat) => (
           <button
-            key={opt.id}
-            onClick={() => setSelectedFormat(opt.id)}
+            key={cat.id}
+            onClick={() => setCategory(cat.id)}
             className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors border ${
-              selectedFormat === opt.id
+              category === cat.id
                 ? 'bg-[#2aa198]/10 text-[#2aa198] border-[#2aa198]/20'
                 : 'bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 text-[#586e75] border-transparent hover:bg-[#fdf6e3] dark:hover:bg-[#002b36]/50'
             }`}
           >
-            <span className="font-mono mr-1 opacity-50">{opt.icon}</span>
-            {opt.label}
+            <span className="font-mono mr-1 opacity-50">{cat.icon}</span>
+            {cat.label}
           </button>
         ))}
       </div>
 
-      {/* Code preview */}
+      {/* Second row — contextual controls */}
+      {category === 'data' && (
+        <div className="flex gap-1.5 mb-3">
+          {(['json', 'csv'] as DataFormat[]).map((fmt) => (
+            <button
+              key={fmt}
+              onClick={() => setDataFormat(fmt)}
+              className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors border ${
+                dataFormat === fmt
+                  ? 'bg-[#2aa198]/10 text-[#2aa198] border-[#2aa198]/20'
+                  : 'bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 text-[#586e75] border-transparent hover:bg-[#fdf6e3] dark:hover:bg-[#002b36]/50'
+              }`}
+            >
+              {fmt.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {(category === 'cli' || category === 'terraform') && (
+        <div className="mb-3">
+          <ProviderSelector selected={provider} onChange={setProvider} />
+        </div>
+      )}
+
+      {/* Content */}
       <AnimatePresence mode="wait">
         <motion.div
-          key={selectedFormat}
+          key={`${category}-${category === 'data' ? dataFormat : ''}-${(category === 'cli' || category === 'terraform') ? provider : ''}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
         >
-          <pre className="bg-[#002b36] text-[#839496] text-xs font-mono rounded-lg p-4 overflow-x-auto max-h-48 overflow-y-auto">
-            <code>{content}</code>
-          </pre>
+          {renderContent()}
         </motion.div>
       </AnimatePresence>
     </div>

@@ -20,6 +20,7 @@ flowchart TD
     ipv4 --> subnetmath
     ipv4 --> binary
     ipv4 --> rfc
+    ipv4 --> urlcodec
     cidr --> subnetmath
     cidr --> rfc
     cidr --> exportmod
@@ -41,7 +42,8 @@ Handles conversion between dotted-decimal strings and 32-bit unsigned integers.
 | `isValidIPv4` | `(str: string) => boolean` | Convenience wrapper around `parseIPv4`. |
 | `ipv4ToBinary` | `(num: number) => string` | Returns 32-character binary string (zero-padded). |
 | `ipv4ToDottedBinary` | `(num: number) => string` | Binary with dots between octets (e.g. `00001010.00000000.00000000.00000000`). |
-| `parseIPv4WithCidr` | `(input: string) => { ip: number; prefix: number } \| null` | Parse `ip/prefix` format. Bare IPs default to `/32`. |
+| `inferDefaultPrefix` | `(ip: number) => number` | Infer a default prefix from trailing zero octets: `.0.0.0` → `/8`, `.0.0` → `/16`, `.0` → `/24`, otherwise `/32`. |
+| `parseIPv4WithCidr` | `(input: string) => { ip: number; prefix: number } \| null` | Parse `ip/prefix` format. Bare IPs use `inferDefaultPrefix()` to determine the prefix. |
 
 ### Validation Rules
 
@@ -275,15 +277,23 @@ Transforms `CidrResult` (and optional `SubnetSplit[]`) into various output forma
 |----------|-----------|--------|
 | `toJSON` | `(result, splits?) => string` | Pretty-printed JSON object |
 | `toCSV` | `(result, splits?) => string` | CSV with header row |
-| `toTerraform` | `(result, splits?) => string` | AWS VPC + Subnet HCL |
-| `toPulumi` | `(result, splits?) => string` | AWS VPC + Subnet TypeScript |
-| `toCloudFormation` | `(result, splits?) => string` | AWS CloudFormation JSON template |
+| `toTerraformAws` | `(result, splits?) => string` | AWS VPC + Subnet HCL |
+| `toTerraformAzure` | `(result, splits?) => string` | Azure Resource Group + VNet + Subnet HCL |
+| `toTerraformGcp` | `(result, splits?) => string` | GCP Network + Subnetwork HCL |
+
+### export-cli.ts — CLI Command Generators
+
+| Function | Signature | Output |
+|----------|-----------|--------|
+| `toAwsCli` | `(result, splits?) => string` | `aws ec2 create-vpc` + subnet commands |
+| `toAzureCli` | `(result, splits?) => string` | `az network vnet create` + subnet commands |
+| `toGcloudCli` | `(result, splits?) => string` | `gcloud compute networks create` + subnet commands |
 
 ### Label Sanitization
 
-IaC formats sanitize labels for use as identifiers:
-- Terraform/Pulumi: `label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')`
-- CloudFormation: `label.replace(/[^a-zA-Z0-9]+/g, '')` (prefixed with `Subnet`)
+IaC and CLI formats sanitize labels for use as identifiers:
+- Terraform: `label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')`
+- CLI: `label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')`
 
 ## url-codec.ts — URL Path Encoding
 

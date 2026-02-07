@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { readUrl, updateUrl, migrateHashUrl } from '@/lib/url-codec'
+import { parseIPv4, inferDefaultPrefix } from '@/lib/ipv4'
 
 export function useUrlSync() {
   const { rawInput, splitPrefixes, splitLabels, supernetInputs, activeDrawer, initFromUrl, setSupernetInputs } =
@@ -38,10 +39,18 @@ export function useUrlSync() {
     }
 
     if (rawInput) {
+      // Normalize bare IPs by appending inferred prefix
+      let cidr = rawInput
+      if (!cidr.includes('/')) {
+        const ip = parseIPv4(cidr.trim())
+        if (ip !== null) {
+          cidr = `${cidr.trim()}/${inferDefaultPrefix(ip)}`
+        }
+      }
       if (splitPrefixes.length > 0) {
-        updateUrl({ mode: 'network', cidr: rawInput, splits: splitPrefixes, splitLabels })
+        updateUrl({ mode: 'network', cidr, splits: splitPrefixes, splitLabels })
       } else {
-        updateUrl({ mode: 'network', cidr: rawInput })
+        updateUrl({ mode: 'network', cidr })
       }
     }
   }, [rawInput, splitPrefixes, splitLabels, supernetInputs, activeDrawer])

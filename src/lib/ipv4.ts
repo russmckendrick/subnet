@@ -40,6 +40,13 @@ export function ipv4ToDottedBinary(num: number): string {
   ].join('.')
 }
 
+export function inferDefaultPrefix(ip: number): number {
+  if ((ip & 0x00ffffff) === 0) return 8   // x.0.0.0
+  if ((ip & 0x0000ffff) === 0) return 16  // x.x.0.0
+  if ((ip & 0x000000ff) === 0) return 24  // x.x.x.0
+  return 32                                // x.x.x.x (host)
+}
+
 export function parseIPv4WithCidr(input: string): { ip: number; prefix: number } | null {
   const trimmed = input.trim()
 
@@ -48,7 +55,7 @@ export function parseIPv4WithCidr(input: string): { ip: number; prefix: number }
   if (slashIndex === -1) {
     const ip = parseIPv4(trimmed)
     if (ip === null) return null
-    return { ip, prefix: 32 }
+    return { ip, prefix: inferDefaultPrefix(ip) }
   }
 
   const ipStr = trimmed.slice(0, slashIndex)

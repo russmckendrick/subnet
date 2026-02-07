@@ -10,10 +10,11 @@ The default view. Enter any IPv4 address in CIDR notation (e.g. `10.0.0.0/16`) t
 
 Two input modes, toggled via an inline Guided/CIDR switch at the trailing edge of the input row:
 
-- **Guided mode** (default) — Separate IP address field and prefix length dropdown, ideal for interactive exploration
-- **CIDR mode** — Single free-text field accepting full CIDR notation (e.g. `10.0.0.0/16`)
+- **Guided mode** (default) — Separate IP address field and prefix length dropdown, ideal for interactive exploration. When a valid IP is entered, the prefix dropdown auto-adjusts based on the IP's trailing-zero structure (e.g. `10.0.0.0` → `/8`, `192.168.1.0` → `/24`, `8.8.8.8` → `/32`). The user can always override the inferred prefix via the dropdown.
+- **CIDR mode** — Single free-text field accepting full CIDR notation (e.g. `10.0.0.0/16`). Bare IPs without a prefix are also accepted and use the same smart prefix inference.
 
 Both modes support:
+- Smart prefix defaulting from trailing-zero structure when no explicit prefix is provided
 - Real-time parsing and validation with green/red border feedback
 - `↑↓` arrow keys while focused to increment/decrement the prefix length
 - `/` from anywhere to focus the input
@@ -80,15 +81,31 @@ This section is only visible when no subnet splits are allocated — when splits
 
 Generate infrastructure-as-code and data exports:
 
+Two-tier navigation organizes exports into four categories:
+
+**Data** — JSON and CSV formats:
 | Format | Output |
 |--------|--------|
 | JSON | Structured object with all CIDR properties and optional subnets |
 | CSV | Property/value pairs, or subnet table when splits are present |
-| Terraform | AWS VPC + Subnet HCL resources |
-| Pulumi | AWS VPC + Subnet TypeScript resources |
-| CloudFormation | AWS VPC + Subnet JSON template |
 
-For IaC formats, subnet labels are sanitized to valid identifiers (lowercase, alphanumeric, underscores).
+**CLI** — Cloud provider CLI commands (AWS, Azure, GCP):
+| Provider | Commands |
+|----------|----------|
+| AWS CLI | `aws ec2 create-vpc` + `create-subnet` per split |
+| Azure CLI | `az network vnet create` + `subnet create` per split |
+| gcloud | `gcloud compute networks create` + `subnets create` per split |
+
+**Terraform** — Multi-cloud HCL (AWS, Azure, GCP):
+| Provider | Resources |
+|----------|-----------|
+| AWS | `aws_vpc` + `aws_subnet` |
+| Azure | `azurerm_resource_group` + `azurerm_virtual_network` + `azurerm_subnet` |
+| GCP | `google_compute_network` + `google_compute_subnetwork` |
+
+**Share** — Enhanced URL card with color-coded URL breakdown, state badges, copy button, and QR code.
+
+Code blocks use Solarized syntax highlighting. CLI commands render in a macOS-style terminal frame. For IaC and CLI formats, subnet labels are sanitized to valid identifiers.
 
 ## Splitter Tab
 
@@ -166,7 +183,8 @@ State is encoded in the URL path and query string, making every configuration sh
 | Mode | Format | Example |
 |------|--------|---------|
 | Calculator | `/<cidr>` | `/10.0.0.0/16` |
+| Calculator (bare IP) | `/<ip>` | `/8.8.8.8` (infers `/32`) |
 | Splitter | `/<cidr>?split=<prefix~label,...>` | `/10.0.0.0/16?split=24~Web,25~API` |
 | Supernet | `/super?nets=<cidr>,<cidr>,...` | `/super?nets=10.0.0.0/24,10.0.1.0/24` |
 
-See [URL Sharing](url-sharing.md) for the full specification.
+Bare IP URLs are normalized on load to include the inferred prefix (e.g. `/10.0.0.0` → `/10.0.0.0/8`). See [URL Sharing](url-sharing.md) for the full specification.

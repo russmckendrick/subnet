@@ -16,7 +16,7 @@
 - **Reference Table** — Collapsible lookup table for all prefix lengths (/0–/32) with masks, wildcards, and host counts
 - **RDAP / WHOIS Lookup** — Query `rdap.org` for public IP registration data including RIR, country, organization, and allocated range (with in-memory + localStorage caching)
 - **Cloud Provider Context** — See AWS, Azure, and GCP reserved addresses, prefix limits, and usable host calculations for any subnet
-- **IaC Export** — Generate Terraform HCL, Pulumi TypeScript, CloudFormation JSON, plus JSON and CSV from calculator results
+- **Export** — Data (JSON, CSV), CLI commands (AWS, Azure, GCP), Terraform HCL (AWS, Azure, GCP), and enhanced Share URL with QR code
 - **Keyboard Shortcuts** — `/` to focus input, `↑↓` to adjust prefix length, `Escape` to blur
 - **Dark/Light Mode** — Toggle with system preference detection and localStorage persistence
 - **Shareable URLs** — Clean path-based URLs for calculator, splitter, and supernet state (with legacy hash URL migration)
