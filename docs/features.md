@@ -8,10 +8,16 @@ The default view. Enter any IPv4 address in CIDR notation (e.g. `10.0.0.0/16`) t
 
 ### CIDR Input
 
-- Text input with real-time parsing and validation
-- Accepts formats: `10.0.0.0/16` or bare IPs like `192.168.1.1` (defaults to `/32`)
-- Use `↑↓` arrow keys while focused to increment/decrement the prefix length
-- Press `/` from anywhere to focus the input
+Two input modes, toggled via an inline Guided/CIDR switch at the trailing edge of the input row:
+
+- **Guided mode** (default) — Separate IP address field and prefix length dropdown, ideal for interactive exploration
+- **CIDR mode** — Single free-text field accepting full CIDR notation (e.g. `10.0.0.0/16`)
+
+Both modes support:
+- Real-time parsing and validation with green/red border feedback
+- `↑↓` arrow keys while focused to increment/decrement the prefix length
+- `/` from anywhere to focus the input
+- The default input mode is configurable via `config.defaultInputMode`
 
 ### Results Panel
 
@@ -125,8 +131,8 @@ Each row shows:
 ## Dark/Light Mode
 
 - Toggle via the sun/moon button in the header
-- Detection cascade: localStorage → system preference → dark (default)
-- Persisted to `localStorage` under key `subnet-fit-theme`
+- Detection cascade: localStorage → `config.defaultTheme` (resolved via system preference when set to `'system'`)
+- Persisted to `localStorage` under a key defined by `config.themeStorageKey`
 - Applied by toggling the `dark` class on `<html>`
 
 ## Shareable URLs

@@ -109,6 +109,7 @@ subnet/
 ├── public/                Static assets
 ├── src/
 │   ├── lib/               Pure calculation functions (no React)
+│   │   ├── config.ts        Centralised app defaults (CIDR, theme, input mode)
 │   │   ├── ipv4.ts          IPv4 parsing and formatting
 │   │   ├── cidr.ts          CIDR calculation (CidrResult)
 │   │   ├── subnet-math.ts   Subnet splitting and supernet

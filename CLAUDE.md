@@ -19,8 +19,8 @@ subnet.fit is a client-side-only CIDR/subnet calculator. All computation happens
 
 ### Layers
 
-- **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, IaC export formatters, and URL hash codec. All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
-- **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs). `theme-store.ts` persists dark/light mode to localStorage.
+- **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, IaC export formatters, URL hash codec, and centralised app configuration (`config.ts`). All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
+- **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs). `theme-store.ts` persists dark/light mode to localStorage. Both stores read defaults from `config.ts`.
 - **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL hash bidirectionally. `use-keyboard-shortcuts.ts` handles `/` to focus, arrows to adjust prefix. `use-clipboard.ts` wraps clipboard API with feedback state.
 - **`src/components/`** — UI organized by feature domain: `calculator/`, `splitter/`, `visual-map/`, `cloud/`, `tools/`, `export/`, `shared/`, `layout/`.
 

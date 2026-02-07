@@ -64,7 +64,7 @@ Called by `addSplit`, `removeSplit`, `resetSplits`, `setParentCidr`, and `initFr
 
 ### Initial State
 
-The store initializes with `10.0.0.0/16` as the default CIDR for both calculator and splitter. The result is computed at module load time via `parseCidr('10.0.0.0/16')`.
+The store initializes with the default CIDR from `config.defaultCidr` (default: `'10.0.0.0/16'`) for both calculator and splitter. The result is computed at module load time via `parseCidr(config.defaultCidr)`. To change the default, edit `src/lib/config.ts`.
 
 ## theme-store.ts
 
@@ -86,15 +86,14 @@ interface ThemeState {
 
 On initialization, the theme is determined by:
 
-1. **localStorage** — Check for `subnet-fit-theme` key. If `'light'` or `'dark'`, use it.
-2. **System preference** — Check `prefers-color-scheme: dark` media query.
-3. **Default** — Fall back to `'dark'`.
+1. **localStorage** — Check for the key defined by `config.themeStorageKey`. If `'light'` or `'dark'`, use it.
+2. **Config default** — Use `config.defaultTheme`, resolved via `resolveTheme()`. When set to `'system'`, this checks the `prefers-color-scheme: dark` media query.
 
 ### Theme Application
 
 The `applyTheme()` function:
 1. Adds or removes the `dark` class on `document.documentElement`
-2. Writes the value to `localStorage` under key `subnet-fit-theme`
+2. Writes the value to `localStorage` under the key from `config.themeStorageKey`
 
 This runs immediately at module load (before any React render) and on every `toggleTheme`/`setTheme` call.
 

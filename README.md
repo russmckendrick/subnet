@@ -28,10 +28,10 @@ A client-side CIDR/subnet calculator and network planner. All computation happen
 ## Quick Start
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/russmckendrick/subnet.git
 cd subnet
 pnpm install
-pnpm dev        # http://localhost:5173
+pnpm dev          # http://localhost:5173
 ```
 
 ## Scripts
@@ -48,6 +48,7 @@ pnpm preview      # Preview production build
 ```
 src/
 ├── lib/            Pure calculation functions (zero React)
+│   └── config.ts     Centralised app defaults (CIDR, theme, input mode)
 ├── store/          Zustand stores (calculator + theme)
 ├── hooks/          Side-effect hooks (URL sync, keyboard, clipboard)
 ├── components/     UI organized by feature domain
@@ -73,7 +74,3 @@ See the [`docs/`](docs/) folder for detailed documentation:
 - [Styling & Theming](docs/styling.md) — Tailwind v4, dark mode, custom theme tokens
 - [URL Sharing](docs/url-sharing.md) — Hash format, state persistence
 - [Development Guide](docs/development.md) — Setup, tooling, adding new features
-
-## License
-
-<!-- Add license here -->

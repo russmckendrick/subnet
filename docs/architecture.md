@@ -16,6 +16,7 @@ flowchart TD
         constants["constants.ts"]
         exportmod["export.ts"]
         urlcodec["url-codec.ts"]
+        configmod["config.ts"]
     end
 
     subgraph store["store/ — State Management"]
@@ -51,7 +52,7 @@ Each layer has a strict dependency direction:
 
 | Layer | Responsibility | Dependencies |
 |-------|---------------|--------------|
-| `lib/` | Pure functions. IPv4 parsing, CIDR math, subnet allocation, binary formatting, cloud provider logic, RFC detection, export formatting, URL encoding. Zero React imports. | None |
+| `lib/` | Pure functions. IPv4 parsing, CIDR math, subnet allocation, binary formatting, cloud provider logic, RFC detection, export formatting, URL encoding, and centralised app configuration (`config.ts`). Zero React imports. | None |
 | `store/` | Zustand stores. Holds all application state and actions. Calls `lib/` functions to compute derived values. | `lib/` |
 | `hooks/` | React hooks for side effects. URL hash synchronization, keyboard shortcut handling, clipboard operations. | `store/`, `lib/` |
 | `components/` | React components organized by feature domain. Read from stores, call actions, render UI. | `store/`, `hooks/`, `lib/` |
@@ -143,8 +144,8 @@ flowchart TD
 
 Two Zustand stores with no middleware:
 
-- **`calculator-store`** — All app state: active tab, CIDR input/result, splitter allocations (parent CIDR, prefix list, labels, computed splits, remaining space, available prefixes), and supernet inputs/result.
-- **`theme-store`** — Dark/light theme with localStorage persistence.
+- **`calculator-store`** — All app state: active tab, CIDR input/result, splitter allocations (parent CIDR, prefix list, labels, computed splits, remaining space, available prefixes), and supernet inputs/result. Reads default CIDR from `config.ts`.
+- **`theme-store`** — Dark/light theme with localStorage persistence. Reads default theme preference and storage key from `config.ts`, with support for `'system'` as the default (resolves via `prefers-color-scheme` media query).
 
 See [State Management](state-management.md) for the full state shape and action descriptions.
 

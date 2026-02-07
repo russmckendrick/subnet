@@ -168,6 +168,9 @@ The dot grid provides subtle texture without distraction. No fixed-position blur
 | Input borders (valid) | `border-[#859900]/40` | `border-[#859900]/40` |
 | Input borders (invalid) | `border-[#dc322f]/40` | `border-[#dc322f]/40` |
 | Input borders (focus) | `border-[#2aa198]/40` | `border-[#2aa198]/40` |
+| Inline dividers | `bg-[#586e75]/20` | `bg-[#93a1a1]/20` |
+
+The CidrInput component uses a transparent background with a single `border` (no shadow), matching the lightweight feel of surrounding content panels.
 
 ## Animation Patterns
 
