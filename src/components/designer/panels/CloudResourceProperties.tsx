@@ -1,75 +1,11 @@
 import { useDesignerStore, type CloudResourceNodeData } from '@/store/designer-store'
 import { getCloudTheme } from '@/lib/cloud-theme'
+import { RESOURCE_TYPE_LABELS } from '@/lib/resource-labels'
 import { CLOUD_ICON_MAPS } from '../icons/cloud-icon-registry'
 
 interface CloudResourcePropertiesProps {
   nodeId: string
   data: CloudResourceNodeData
-}
-
-const RESOURCE_TYPE_LABELS: Record<string, string> = {
-  // AWS
-  'aws-vpc': 'VPC',
-  'aws-ec2': 'EC2 Instance',
-  'aws-rds': 'RDS Database',
-  'aws-s3': 'S3 Bucket',
-  'aws-lambda': 'Lambda Function',
-  'aws-elb': 'Elastic Load Balancer',
-  'aws-igw': 'Internet Gateway',
-  'aws-nat': 'NAT Gateway',
-  'aws-route53': 'Route 53',
-  'aws-cloudfront': 'CloudFront',
-  'aws-ecs': 'ECS / Fargate',
-  'aws-eks': 'EKS',
-  'aws-dynamodb': 'DynamoDB',
-  'aws-elasticache': 'ElastiCache',
-  'aws-waf': 'WAF',
-  'aws-sg': 'Security Group',
-  'aws-tgw': 'Transit Gateway',
-  'aws-vpngw': 'VPN Gateway',
-  // Azure
-  'azure-vnet': 'Virtual Network',
-  'azure-vm': 'Virtual Machine',
-  'azure-sql': 'SQL Database',
-  'azure-blob': 'Blob Storage',
-  'azure-functions': 'Azure Functions',
-  'azure-lb': 'Load Balancer',
-  'azure-appgw': 'App Gateway',
-  'azure-nat': 'NAT Gateway',
-  'azure-dns': 'DNS Zone',
-  'azure-frontdoor': 'Front Door',
-  'azure-aks': 'AKS',
-  'azure-container': 'Container Instances',
-  'azure-cosmos': 'Cosmos DB',
-  'azure-redis': 'Cache for Redis',
-  'azure-nsg': 'Network Security Group',
-  'azure-waf': 'WAF',
-  'azure-vpngw': 'VPN Gateway',
-  'azure-expressroute': 'ExpressRoute',
-  'azure-appservices': 'App Services',
-  'azure-files': 'Azure Files',
-  'azure-firewall': 'Firewall',
-  'azure-privatelink': 'Private Link',
-  'azure-recoveryservicesvaults': 'Recovery Services Vault',
-  'azure-subnet': 'Subnet',
-  // GCP
-  'gcp-vpc': 'VPC Network',
-  'gcp-compute': 'Compute Engine',
-  'gcp-sql': 'Cloud SQL',
-  'gcp-storage': 'Cloud Storage',
-  'gcp-functions': 'Cloud Functions',
-  'gcp-lb': 'Cloud Load Balancer',
-  'gcp-nat': 'Cloud NAT',
-  'gcp-dns': 'Cloud DNS',
-  'gcp-cdn': 'Cloud CDN',
-  'gcp-gke': 'GKE',
-  'gcp-run': 'Cloud Run',
-  'gcp-firestore': 'Firestore',
-  'gcp-memorystore': 'Memorystore',
-  'gcp-armor': 'Cloud Armor',
-  'gcp-firewall': 'Firewall Rules',
-  'gcp-interconnect': 'Cloud Interconnect',
-  'gcp-vpn': 'Cloud VPN',
 }
 
 export function CloudResourceProperties({ nodeId, data }: CloudResourcePropertiesProps) {

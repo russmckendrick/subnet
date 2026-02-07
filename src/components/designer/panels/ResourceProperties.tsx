@@ -1,21 +1,10 @@
 import { useDesignerStore, type ResourceNodeData } from '@/store/designer-store'
+import { RESOURCE_TYPE_LABELS } from '@/lib/resource-labels'
 import { RESOURCE_ICONS } from '../icons/NetworkIcons'
 
 interface ResourcePropertiesProps {
   nodeId: string
   data: ResourceNodeData
-}
-
-const RESOURCE_TYPE_LABELS: Record<string, string> = {
-  router: 'Router',
-  switch: 'Switch',
-  firewall: 'Firewall',
-  server: 'Server',
-  database: 'Database',
-  'load-balancer': 'Load Balancer',
-  'internet-gateway': 'Internet Gateway',
-  cloud: 'Cloud',
-  vpc: 'VPC / VNet',
 }
 
 export function ResourceProperties({ nodeId, data }: ResourcePropertiesProps) {
