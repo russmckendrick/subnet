@@ -24,6 +24,7 @@ The dev server starts at `http://localhost:5173` with hot module replacement.
 | `build` | `tsc -b && vite build` | Type-check then build for production |
 | `lint` | `eslint .` | Run ESLint with flat config |
 | `preview` | `vite preview` | Serve the production build locally |
+| `generate-icons` | `node scripts/generate-icons.mjs` | Regenerate TSX icon components from SVGs |
 
 ## Path Alias
 
@@ -106,6 +107,12 @@ Plugins:
 
 ```
 subnet/
+├── icons/                 Source SVGs for cloud provider icons (input for generate-icons)
+│   ├── azure/               24 official Azure service SVGs
+│   ├── aws/                 (add official AWS SVGs here)
+│   └── gcp/                 (add official GCP SVGs here)
+├── scripts/
+│   └── generate-icons.mjs   SVG → TSX icon generator (zero dependencies)
 ├── public/                Static assets
 ├── src/
 │   ├── lib/               Pure calculation functions (no React)
@@ -116,6 +123,7 @@ subnet/
 │   │   ├── binary.ts        Binary bit representation
 │   │   ├── cloud-providers.ts  AWS/Azure/GCP constraints
 │   │   ├── rfc-ranges.ts    RFC special-purpose range detection
+│   │   ├── resource-labels.ts  Human-readable labels for all resource types
 │   │   ├── constants.ts     Pre-computed reference table
 │   │   ├── export.ts        JSON/CSV/Terraform (AWS/Azure/GCP) generators
 │   │   ├── export-cli.ts    CLI command generators (AWS/Azure/GCP)
@@ -144,7 +152,12 @@ subnet/
 │   │   │   ├── nodes/         SubnetNode, ResourceNode, NodeLabel
 │   │   │   ├── edges/         NetworkEdge (custom Solarized edge)
 │   │   │   ├── panels/        SubnetProperties, ResourceProperties
-│   │   │   ├── icons/         NetworkIcons (SVG icon components)
+│   │   │   ├── icons/         Cloud icon components (auto-generated + generic)
+│   │   │   │   ├── azure/       24 generated TSX components + index.ts barrel
+│   │   │   │   ├── aws/         18 TSX components + index.ts barrel
+│   │   │   │   ├── gcp/         17 TSX components + index.ts barrel
+│   │   │   │   ├── cloud-icon-registry.ts  Three-tier icon resolution
+│   │   │   │   └── NetworkIcons.tsx  Generic resource icons
 │   │   │   ├── DesignerPage, DesignerCanvas, DesignerHeader
 │   │   │   ├── ResourcePalette, PaletteItem
 │   │   │   ├── PropertiesPanel, ArrangeToolbar
@@ -203,7 +216,23 @@ Create a new directory under `components/` for the feature domain:
 - Add the `id` value to the `AppTab` type union in `calculator-store.ts`
 - Add a conditional render block for the new tab in the JSX
 
-### 5. URL Sharing (optional)
+### 5. Adding Cloud Provider Icons
+
+To add or update cloud provider icons:
+
+1. Place official SVG files in `icons/{provider}/` (e.g. `icons/azure/AzureVmIcon.svg`)
+2. Run `pnpm generate-icons` (or `pnpm generate-icons azure` for a single provider)
+3. The script auto-discovers SVGs, derives component names and resource keys from filenames, converts SVG attributes to JSX (camelCase, gradient preservation), and writes TSX components + barrel `index.ts` to `src/components/designer/icons/{provider}/`
+4. Add resource type labels to `src/lib/resource-labels.ts`
+5. Add palette entries to `AZURE_CATEGORIES` (or equivalent) in `src/components/designer/ResourcePalette.tsx`
+6. Update generic-to-provider mappings in `src/components/designer/icons/cloud-icon-registry.ts` if needed
+
+**Naming conventions** (derived automatically from filename):
+- `AzureFirewall.svg` → component `AzureFirewallIcon`, key `azure-firewall`
+- `AzureVmIcon.svg` → component `AzureVmIcon`, key `azure-vm`
+- `AzureFilesIcons.svg` → component `AzureFilesIcon`, key `azure-files` (plural "Icons" normalised)
+
+### 6. URL Sharing (optional)
 
 If the feature should be shareable via URL:
 1. Add a new mode to the `UrlState` type in `url-codec.ts`

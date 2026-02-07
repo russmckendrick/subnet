@@ -47,24 +47,29 @@ pnpm dev          # http://localhost:5173
 ## Scripts
 
 ```bash
-pnpm dev          # Start Vite dev server
-pnpm build        # TypeScript type-check + Vite production build
-pnpm lint         # ESLint with flat config
-pnpm preview      # Preview production build
+pnpm dev              # Start Vite dev server
+pnpm build            # TypeScript type-check + Vite production build
+pnpm lint             # ESLint with flat config
+pnpm preview          # Preview production build
+pnpm generate-icons   # Regenerate TSX icon components from SVGs
 ```
 
 ## Project Structure
 
 ```
+icons/              Source SVGs for cloud provider icons (input for generate-icons)
+scripts/            Build tooling (generate-icons.mjs)
 src/
 ├── lib/            Pure calculation functions (zero React)
-│   └── config.ts     Centralised app defaults (CIDR, theme, input mode)
+│   ├── config.ts     Centralised app defaults (CIDR, theme, input mode)
+│   └── resource-labels.ts  Human-readable labels for all resource types
 ├── store/          Zustand stores (calculator, designer, theme)
 ├── hooks/          Side-effect hooks (URL sync, keyboard, clipboard, designer URL)
 ├── components/     UI organized by feature domain
 │   ├── calculator/   CIDR input, results, binary breakdown, reference
 │   ├── splitter/     Subnet splitting with integrated visualization
 │   ├── designer/     Network diagram designer (React Flow canvas, nodes, palette)
+│   │   └── icons/      Auto-generated cloud icons (azure/24, aws/18, gcp/17) + generic
 │   ├── visual-map/   Address space visualization (calculator mode)
 │   ├── cloud/        Cloud provider context cards
 │   ├── whois/        RDAP / WHOIS lookup section

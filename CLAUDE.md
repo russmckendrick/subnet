@@ -5,10 +5,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-pnpm dev          # Start Vite dev server (localhost:5173)
-pnpm build        # TypeScript type-check + Vite production build
-pnpm lint         # ESLint with flat config
-pnpm preview      # Preview production build
+pnpm dev              # Start Vite dev server (localhost:5173)
+pnpm build            # TypeScript type-check + Vite production build
+pnpm lint             # ESLint with flat config
+pnpm preview          # Preview production build
+pnpm generate-icons   # Regenerate TSX icon components from SVGs (all providers, or pass provider name)
 ```
 
 No test framework is currently configured.
@@ -19,7 +20,7 @@ subnet.fit is a client-side-only CIDR/subnet calculator. All computation happens
 
 ### Layers
 
-- **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, RDAP response parsing (`rdap.ts`) and caching (`rdap-cache.ts`), IaC export formatters, URL path codec, and centralised app configuration (`config.ts`). All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
+- **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, RDAP response parsing (`rdap.ts`) and caching (`rdap-cache.ts`), IaC export formatters, URL path codec, resource type labels (`resource-labels.ts`), and centralised app configuration (`config.ts`). All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
 - **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs, input mode, command palette open state). `designer-store.ts` holds diagram state (nodes, edges, palette, selection, multi-selection, export modal, node color updates, localStorage persistence, cloud provider). Node data types: `SubnetNodeData`, `ResourceNodeData` (legacy flat), `VpcContainerNodeData`, `SubnetContainerNodeData`, `CloudResourceNodeData` (cloud containment). `theme-store.ts` persists dark/light mode to localStorage. Calculator and theme stores read defaults from `config.ts`.
 - **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-designer-url-sync.ts` reads `?from=`, `&split=`, and `&provider=` params on `/designer` route and initializes the diagram canvas. `use-keyboard-shortcuts.ts` handles `/` to open command palette, arrows to adjust prefix when input focused. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching. `use-diagram-persistence.ts` auto-saves/loads designer state to/from localStorage with 1s debounce, runs migration from v1→v2 on load. `use-designer-shortcuts.ts` handles Escape (deselect/close), Cmd+E (export modal), Cmd+S (manual save) in designer.
 - **`src/components/`** — UI organized by feature domain: `calculator/`, `splitter/`, `designer/`, `visual-map/`, `cloud/`, `whois/`, `tools/`, `export/`, `command-palette/`, `shared/`, `layout/`.
@@ -110,11 +111,11 @@ The designer at `/designer` uses **nested containment** to produce cloud-native 
 
 - **Cloud Provider System** — `CloudProvider` type (`'aws' | 'azure' | 'gcp' | 'generic'`). Theme system in `src/lib/cloud-theme.ts` maps each provider to border colors, styles, backgrounds. `CloudProviderSelector` segmented control switches providers, re-skinning all container nodes. Icon registry (`src/components/designer/icons/cloud-icon-registry.ts`) provides two-level lookup: provider-specific → generic fallback.
 - **Container Nodes** — `VpcContainerNode` (large dashed/solid box), `SubnetContainerNode` (dotted box nested inside VPC), `CloudResourceNode` (icon+label inside subnet). All use React Flow `parentId` and `extent: 'parent'` for visual nesting. Container dimensions set via `style.width/height`.
-- **Cloud Icons** — ~18 per provider in `src/components/designer/icons/{aws,azure,gcp}/`. Each is a stroke-based SVG component accepting `{ className, color }` props. Provider barrel exports in `index.ts` feed `ICON_MAP` records.
+- **Cloud Icons** — Auto-generated from official provider SVGs via `pnpm generate-icons` (see `scripts/generate-icons.mjs`). Source SVGs live in `icons/{provider}/`; generated TSX components are written to `src/components/designer/icons/{provider}/`. Azure has 24 multicolor gradient icons (18x18 viewBox, fill-based with `<defs>` gradients). AWS/GCP retain stroke-based placeholders until official SVGs are added. Each component accepts `{ className, color? }` props (`color` accepted for interface compat but unused by multicolor icons). Provider barrel exports in `index.ts` feed `{PROVIDER}_ICON_MAP` records.
 - **Layout** — `generateCloudLayout()` in `src/lib/diagram-layout.ts` creates IGW → VPC container → subnet containers. `generateLegacyFlatLayout()` preserved for v1 backwards compat. `autoLayoutNested()` in `diagram-arrange.ts` handles BFS on top-level nodes + grid layout within containers.
 - **Container-Aware Drop** — `DesignerCanvas.onDrop` checks `findContainerAtPoint()` from `src/lib/diagram-container.ts`, sets `parentId` and converts to parent-relative coordinates.
-- **Provider-Specific Palette** — `ResourcePalette` shows ~18 categorized resources per provider (Networking, Compute, Database, Storage & Security). Generic mode shows traditional network resources.
-- **Properties Panels** — `VpcProperties`, `SubnetContainerProperties`, `CloudResourceProperties` panels with provider badges, in addition to legacy `SubnetProperties` and `ResourceProperties`.
+- **Provider-Specific Palette** — `ResourcePalette` shows categorized resources per provider (Azure: 24, AWS: 18, GCP: 17, across Networking, Compute, Database, Storage & Security). Generic mode shows traditional network resources.
+- **Properties Panels** — `VpcProperties`, `SubnetContainerProperties`, `CloudResourceProperties` panels with provider badges, in addition to legacy `SubnetProperties` and `ResourceProperties`. All resource type labels are centralised in `src/lib/resource-labels.ts` — edit that file to add/rename labels without touching component code.
 - **Persistence** — Storage version 2 includes `cloudProvider`. Migration in `src/lib/diagram-migration.ts` converts v1 → v2 (adds `cloudProvider: 'generic'`). Old flat diagrams load intact.
 - **Export** — draw.io XML uses `container=1` style for VPC/subnet containers, children use `parent="{containerId}"`. JSON version bumped to 2.
 - **Custom Edges** — `NetworkEdge` component using `getSmoothStepPath` with Solarized cyan stroke, width changes on selection.

@@ -22,6 +22,7 @@ flowchart TD
         configmod["config.ts"]
         diaglayout["diagram-layout.ts"]
         diagarrange["diagram-arrange.ts"]
+        reslabels["resource-labels.ts"]
     end
 
     subgraph store["store/ — State Management"]
@@ -66,7 +67,7 @@ Each layer has a strict dependency direction:
 
 | Layer | Responsibility | Dependencies |
 |-------|---------------|--------------|
-| `lib/` | Pure functions. IPv4 parsing, CIDR math, subnet allocation, binary formatting, cloud provider logic, RFC detection, RDAP response parsing and caching, export formatting (data, IaC, diagram), URL encoding, diagram layout/arrange algorithms, and centralised app configuration (`config.ts`). Zero React imports. | None |
+| `lib/` | Pure functions. IPv4 parsing, CIDR math, subnet allocation, binary formatting, cloud provider logic, RFC detection, RDAP response parsing and caching, export formatting (data, IaC, diagram), URL encoding, diagram layout/arrange algorithms, resource type labels (`resource-labels.ts`), and centralised app configuration (`config.ts`). Zero React imports. | None |
 | `store/` | Zustand stores. Holds all application state and actions. `calculator-store` for the main app, `designer-store` for the network diagram, `theme-store` for dark/light mode. Calls `lib/` functions to compute derived values. | `lib/` |
 | `hooks/` | React hooks for side effects. URL synchronization (with bare IP normalization), designer URL sync, diagram persistence (localStorage), keyboard shortcuts (calculator and designer), clipboard operations, RDAP lookups. | `store/`, `lib/` |
 | `components/` | React components organized by feature domain. Read from stores, call actions, render UI. | `store/`, `hooks/`, `lib/` |
@@ -184,6 +185,8 @@ flowchart TD
     PropertiesPanel --> SubnetProps["SubnetProperties"]
     PropertiesPanel --> ResourceProps["ResourceProperties"]
 ```
+
+Cloud provider icons are auto-generated from official SVGs via `scripts/generate-icons.mjs`. Source SVGs live in `icons/{provider}/`; generated TSX components are output to `src/components/designer/icons/{provider}/`. Resource type labels used by properties panels are centralised in `src/lib/resource-labels.ts`.
 
 See the [Network Designer documentation](network-designer.md) for full details.
 

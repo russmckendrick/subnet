@@ -19,6 +19,7 @@ flowchart TD
     diaglayout["diagram-layout.ts<br/>Initial layout"]
     diagarrange["diagram-arrange.ts<br/>Arrange algorithms"]
     syntaxhl["syntax-highlight.ts<br/>Code tokenizer"]
+    reslabels["resource-labels.ts<br/>Resource type labels"]
 
     ipv4 --> cidr
     ipv4 --> subnetmath
@@ -376,6 +377,18 @@ Generates exportable artifacts from diagram nodes and edges.
 | `database` | `cylinder3` |
 | `load-balancer` | `triangle` |
 | `server` | Default rectangle |
+
+## resource-labels.ts — Resource Type Labels
+
+Centralised human-readable labels for all resource types across all providers and the generic palette. Both `CloudResourceProperties` and `ResourceProperties` panels import from this single file rather than maintaining their own inline maps.
+
+### Exports
+
+| Export | Type | Description |
+|--------|------|-------------|
+| `RESOURCE_TYPE_LABELS` | `Record<string, string>` | Maps resource keys (e.g. `azure-vm`, `aws-ec2`, `router`) to display labels (e.g. `Virtual Machine`, `EC2 Instance`, `Router`) |
+
+Organised by section: Generic, AWS, Azure, GCP. To add a new resource, add a single line here and register it in the palette and icon map.
 
 ## url-codec.ts — URL Path Encoding
 

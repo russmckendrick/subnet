@@ -179,13 +179,13 @@ The React Flow canvas supports:
 Two node types are available:
 
 - **Subnet Nodes** — Represent network subnets with CIDR notation, label, color bar, host count, and network address
-- **Resource Nodes** — Represent network infrastructure (routers, switches, firewalls, servers, databases, load balancers, internet gateways, VPCs, cloud resources) with icons and labels
+- **Resource Nodes** — Represent network infrastructure (routers, switches, firewalls, servers, databases, load balancers, internet gateways, VPCs, cloud resources) with icons and labels. Cloud provider icons (Azure: 24, AWS: 18, GCP: 17) are auto-generated from official SVGs via `pnpm generate-icons` — Azure uses multicolor gradient icons, while AWS/GCP use stroke-based placeholders until official SVGs are added
 
 ### Properties Panel
 
 Click any node to open a right-side drawer panel for editing:
 - **Subnet nodes** — View CIDR (read-only), edit label, change color via an 8-swatch Solarized accent picker, view host count and network/broadcast addresses
-- **Resource nodes** — View icon and type (read-only), edit label
+- **Resource nodes** — View icon and type (read-only), edit label. Resource type labels are centralised in `src/lib/resource-labels.ts` for easy editing without touching component code
 
 ### Arrange Tools
 
