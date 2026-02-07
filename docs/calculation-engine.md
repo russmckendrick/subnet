@@ -14,7 +14,11 @@ flowchart TD
     rfc["rfc-ranges.ts<br/>RFC range detection"]
     constants["constants.ts<br/>Reference table"]
     exportmod["export.ts<br/>Format generators"]
+    exportdiag["export-diagram.ts<br/>Diagram export"]
     urlcodec["url-codec.ts<br/>URL path encoding"]
+    diaglayout["diagram-layout.ts<br/>Initial layout"]
+    diagarrange["diagram-arrange.ts<br/>Arrange algorithms"]
+    syntaxhl["syntax-highlight.ts<br/>Code tokenizer"]
 
     ipv4 --> cidr
     ipv4 --> subnetmath
@@ -24,9 +28,12 @@ flowchart TD
     cidr --> subnetmath
     cidr --> rfc
     cidr --> exportmod
+    cidr --> diaglayout
     cloud --> cidr
     rfc --> cidr
     subnetmath --> exportmod
+    subnetmath --> diaglayout
+    syntaxhl --> exportdiag
 ```
 
 ## ipv4.ts — IPv4 Parsing & Formatting
@@ -294,6 +301,81 @@ Transforms `CidrResult` (and optional `SubnetSplit[]`) into various output forma
 IaC and CLI formats sanitize labels for use as identifiers:
 - Terraform: `label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')`
 - CLI: `label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')`
+
+## diagram-layout.ts — Initial Diagram Layout
+
+Generates an initial network diagram from a parent `CidrResult` and `SubnetSplit[]` array. Used when navigating to `/designer?from=...&split=...`.
+
+### Constants
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `NODE_WIDTH` | 220 | Width of each node in pixels |
+| `NODE_HEIGHT` | 100 | Height of each node in pixels |
+| `COLUMN_GAP` | 40 | Horizontal gap between columns |
+| `ROW_GAP` | 80 | Vertical gap between rows |
+| `COLUMNS` | 3 | Number of columns in the subnet grid |
+
+### Exports
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `generateInitialLayout` | `(parentResult: CidrResult, splits: SubnetSplit[]) => { nodes, edges }` | Creates Internet Gateway → VPC → Subnet grid with `networkEdge` connections. |
+
+### Layout Structure
+
+```
+Internet Gateway (resourceNode, top center)
+        │ networkEdge
+   VPC / Network (resourceNode, parent CIDR label)
+        │ networkEdge (one per subnet)
+   ┌────┼────┐
+Subnet  Subnet  Subnet   (subnetNode, 3-column grid)
+```
+
+## diagram-arrange.ts — Arrange Algorithms
+
+Pure functions for reorganizing diagram nodes. All functions are generic (`<T extends Node>`) to preserve typed node data through transformations.
+
+### Exports
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `autoLayout` | `(nodes, edges) => nodes` | Hierarchical BFS layout. Finds root nodes (no incoming edges), layers outward via BFS, places in 3-column grid rows. Centers layers with fewer than 3 nodes. Appends disconnected nodes to the last layer. |
+| `alignNodes` | `(nodes, selectedIds, direction) => nodes` | Aligns 2+ selected nodes. Direction: `left`, `right`, `top`, `bottom`, `center-h`, `center-v`. Snaps to min/max or midpoint of bounding box. |
+| `distributeNodes` | `(nodes, selectedIds, axis) => nodes` | Distributes 3+ selected nodes evenly. Axis: `horizontal` or `vertical`. Sorts by position, spaces evenly between first and last. |
+
+### AlignDirection Type
+
+```typescript
+type AlignDirection = 'left' | 'right' | 'top' | 'bottom' | 'center-h' | 'center-v'
+```
+
+## export-diagram.ts — Diagram Export
+
+Generates exportable artifacts from diagram nodes and edges.
+
+### Exports
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `diagramToPng` | `(element: HTMLElement, isDark: boolean) => Promise<Blob>` | Renders the React Flow DOM element to a PNG blob at 2x pixel ratio using `html-to-image`. |
+| `diagramToSvg` | `(element: HTMLElement, isDark: boolean) => Promise<Blob>` | Renders to SVG blob. |
+| `diagramToJson` | `(nodes, edges) => string` | Returns `JSON.stringify({ nodes, edges, version: 1 }, null, 2)`. |
+| `diagramToDrawio` | `(nodes, edges) => string` | Builds draw.io-compatible `<mxfile>` XML. Subnet nodes → rounded rects with fill color. Resource nodes → shapes mapped by type. Edges → orthogonal style with cyan stroke. |
+
+### draw.io Shape Mapping
+
+| Resource Type | draw.io Shape |
+|---------------|---------------|
+| `internet-gateway` | `ellipse` |
+| `cloud` | `cloud` |
+| `vpc` | `mxgraph.aws3.virtual_private_cloud` |
+| `router`, `switch` | `hexagon` |
+| `firewall` | `trapezoid` |
+| `database` | `cylinder3` |
+| `load-balancer` | `triangle` |
+| `server` | Default rectangle |
 
 ## url-codec.ts — URL Path Encoding
 

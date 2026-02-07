@@ -61,6 +61,24 @@ Components:
 - `/super?nets=10.0.0.0/24,10.0.1.0/24`
 - `/super?nets=192.168.0.0/24,192.168.1.0/24,192.168.2.0/24`
 
+### Designer Mode
+
+```
+/designer
+/designer?from=<cidr>&split=<prefix~label,prefix~label,...>
+```
+
+Components:
+- `/designer` — Fixed path for designer mode
+- `?from=` — Optional parent CIDR to auto-generate a diagram from
+- `&split=` — Optional child subnets (same format as splitter mode)
+
+**Examples:**
+- `/designer` — Empty canvas (loads from localStorage if available)
+- `/designer?from=10.0.0.0/16&split=24~Web,25~API` — Auto-generates Internet Gateway → VPC → Subnet nodes
+
+When URL parameters are present, they take precedence over any saved localStorage diagram. The `useDesignerUrlSync` hook reads these params and calls `generateInitialLayout()` from `diagram-layout.ts`.
+
 ## UrlState Type
 
 ```typescript
