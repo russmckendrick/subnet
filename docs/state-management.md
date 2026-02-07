@@ -45,7 +45,7 @@ interface CalculatorState {
 | `updateSplitLabel` | `(index: number, label: string) => void` | Change a subnet's display label in both `splitLabels` and `splits`. |
 | `resetSplits` | `() => void` | Clear all splits for the current parent CIDR. Triggers `recalcSplits`. |
 | `setSupernetInputs` | `(inputs: string) => void` | Update supernet textarea. Parses lines and calls `findSmallestContainingCidr()` when >= 2 valid CIDRs are present. |
-| `initFromHash` | `(cidr, tab?, splits?, labels?) => void` | Restore full state from URL hash. Used on mount by `useUrlSync`. |
+| `initFromUrl` | `(cidr, splits?, labels?) => void` | Restore full state from URL. Used on mount by `useUrlSync`. |
 
 ### recalcSplits Helper
 
@@ -60,7 +60,7 @@ function recalcSplits(parentCidr: string, prefixes: number[], labels: string[]) 
 }
 ```
 
-Called by `addSplit`, `removeSplit`, `resetSplits`, `setParentCidr`, and `initFromHash`.
+Called by `addSplit`, `removeSplit`, `resetSplits`, `setParentCidr`, and `initFromUrl`.
 
 ### Initial State
 
@@ -106,15 +106,15 @@ flowchart TD
     Lib["lib/ Calculation<br/>(parseCidr, allocateSubnets)"]
     State["Zustand State Update"]
     Render["Component Re-render"]
-    Hash["URL Hash Update<br/>(via useUrlSync)"]
+    Url["URL Path Update<br/>(via useUrlSync)"]
 
     UI --> Action
     Action --> Lib
     Lib --> State
     State --> Render
-    State --> Hash
+    State --> Url
 
-    Hash2["URL Hash on Mount"] --> InitAction["initFromHash"]
+    Url2["URL Path on Mount"] --> InitAction["initFromUrl"]
     InitAction --> Lib
 ```
 
@@ -122,15 +122,16 @@ flowchart TD
 
 The `useUrlSync` hook in `src/hooks/use-url-sync.ts` provides bidirectional synchronization:
 
-**Mount (hash → store):**
+**Mount (URL → store):**
 1. `useEffect` with empty dependency array runs once on mount
-2. Calls `readHash()` to decode `window.location.hash`
-3. If a valid state is found, calls `initFromHash()` to restore it
-4. Supports calculator mode (CIDR only) and splitter mode (CIDR + splits + labels)
+2. Calls `migrateHashUrl()` to redirect any legacy hash-based URLs
+3. Calls `readUrl()` to decode `window.location.pathname` + `window.location.search`
+4. If a valid state is found, calls `initFromUrl()` to restore it
+5. Supports network mode (CIDR with optional splits) and supernet mode
 
-**Changes (store → hash):**
-1. `useEffect` watches `rawInput`, `activeTab`, `splitPrefixes`, `splitLabels`, `supernetInputs`, and `parentCidr`
-2. On change, calls `updateHash()` which encodes the current state
+**Changes (store → URL):**
+1. `useEffect` watches `rawInput`, `splitPrefixes`, `splitLabels`, `supernetInputs`, and `activeDrawer`
+2. On change, calls `updateUrl()` which encodes the current state as a path + query string
 3. Uses `history.replaceState()` — no browser navigation events are triggered
 
-See [URL Sharing](url-sharing.md) for the hash format specification.
+See [URL Sharing](url-sharing.md) for the URL format specification.

@@ -145,12 +145,12 @@ Each row shows:
 
 ## Shareable URLs
 
-State is encoded in the URL hash, making every configuration shareable by copying the URL.
+State is encoded in the URL path and query string, making every configuration shareable by copying the URL. Legacy hash-based URLs are automatically redirected to the new format on load.
 
 | Mode | Format | Example |
 |------|--------|---------|
-| Calculator | `#<cidr>` | `#10.0.0.0/16` |
-| Splitter | `#split:<cidr>:<prefix~label,...>` | `#split:10.0.0.0/16:24~Web,25~API` |
-| Supernet | `#super:<cidr>,<cidr>,...` | `#super:10.0.0.0/24,10.0.1.0/24` |
+| Calculator | `/<cidr>` | `/10.0.0.0/16` |
+| Splitter | `/<cidr>?split=<prefix~label,...>` | `/10.0.0.0/16?split=24~Web,25~API` |
+| Supernet | `/super?nets=<cidr>,<cidr>,...` | `/super?nets=10.0.0.0/24,10.0.1.0/24` |
 
 See [URL Sharing](url-sharing.md) for the full specification.

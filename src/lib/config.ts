@@ -6,7 +6,7 @@ export interface AppConfig {
 }
 
 export const config: AppConfig = {
-  defaultCidr: '10.0.0.0/16',
+  defaultCidr: '10.0.0.0/24',
   defaultTheme: 'system',
   defaultInputMode: 'guided',
   themeStorageKey: 'subnet-fit-theme',

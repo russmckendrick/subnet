@@ -75,11 +75,11 @@ sequenceDiagram
     Component->>User: Displays results
 
     Note over Store,URL: URL sync (via useUrlSync hook)
-    Store->>URL: updateHash({ mode, cidr })
+    Store->>URL: updateUrl({ mode, cidr })
     URL-->>URL: history.replaceState()
 ```
 
-On mount, the flow reverses — the URL hash is read first and used to initialize the store:
+On mount, the flow reverses — any legacy hash URL is migrated first, then the path is read and used to initialize the store:
 
 ```mermaid
 sequenceDiagram
@@ -88,8 +88,10 @@ sequenceDiagram
     participant Store
     participant Lib
 
-    URL->>Hook: useUrlSync reads window.location.hash
-    Hook->>Store: initFromHash(cidr, tab, splits, labels)
+    URL->>Hook: useUrlSync mounts
+    Hook->>Hook: migrateHashUrl() (legacy redirect)
+    Hook->>URL: readUrl() reads pathname + search
+    Hook->>Store: initFromUrl(cidr, splits, labels)
     Store->>Lib: parseCidr() + allocateSubnets()
     Lib-->>Store: CidrResult + SubnetSplit[]
     Store-->>Hook: State initialized
@@ -146,12 +148,16 @@ See [State Management](state-management.md) for the full state shape and action 
 
 ## URL Routing
 
-There is no router library. The app uses hash-based URL encoding for state sharing:
+There is no router library. The app uses **path-based URL encoding** for state sharing:
 
-- `#10.0.0.0/16` — Calculator mode
-- `#split:10.0.0.0/16:24~Web,25~API` — Splitter mode with labels
-- `#super:10.0.0.0/24,10.0.1.0/24` — Supernet mode
+- `/10.0.0.0/16` — Calculator mode
+- `/10.0.0.0/16?split=24~Web,25~API` — Splitter mode with labels
+- `/super?nets=10.0.0.0/24,10.0.1.0/24` — Supernet mode
 
-The `useUrlSync` hook reads the hash on mount to restore state, and writes it on state changes using `history.replaceState()` (no navigation events).
+The `useUrlSync` hook migrates legacy hash URLs on mount, reads the current path to restore state, and writes URL changes on state updates using `history.replaceState()` (no navigation events).
 
 See [URL Sharing](url-sharing.md) for the full specification.
+
+## Deployment
+
+Deployed to **Cloudflare Workers** via GitHub Actions (`.github/workflows/deploy.yml`). The `wrangler.jsonc` config uses `single-page-application` not-found handling so all paths serve `index.html`, which is critical for path-based routing.

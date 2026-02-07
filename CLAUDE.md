@@ -19,23 +19,23 @@ subnet.fit is a client-side-only CIDR/subnet calculator. All computation happens
 
 ### Layers
 
-- **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, IaC export formatters, URL hash codec, and centralised app configuration (`config.ts`). All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
+- **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, IaC export formatters, URL path codec, and centralised app configuration (`config.ts`). All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
 - **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs). `theme-store.ts` persists dark/light mode to localStorage. Both stores read defaults from `config.ts`.
-- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL hash bidirectionally. `use-keyboard-shortcuts.ts` handles `/` to focus, arrows to adjust prefix. `use-clipboard.ts` wraps clipboard API with feedback state.
+- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-keyboard-shortcuts.ts` handles `/` to focus, arrows to adjust prefix. `use-clipboard.ts` wraps clipboard API with feedback state.
 - **`src/components/`** — UI organized by feature domain: `calculator/`, `splitter/`, `visual-map/`, `cloud/`, `tools/`, `export/`, `shared/`, `layout/`.
 
 ### Routing
 
-No router library. The app uses **hash-based URL encoding** for tab state and shareability:
-- Calculator: `#10.0.0.0/16`
-- Splitter: `#split:10.0.0.0/16:24~Label,25~Other`
-- Supernet: `#super:10.0.0.0/24,10.0.1.0/24`
+No router library. The app uses **path-based URL encoding** for state and shareability:
+- Calculator: `/10.0.0.0/16`
+- Splitter: `/10.0.0.0/16?split=24~Web,25~API`
+- Supernet: `/super?nets=10.0.0.0/24,10.0.1.0/24`
 
-Encoding/decoding is in `src/lib/url-codec.ts`. The `useUrlSync` hook reads the hash on mount and writes it on state changes.
+Encoding/decoding is in `src/lib/url-codec.ts`. The `useUrlSync` hook migrates legacy hash URLs on mount, reads the path, and writes it on state changes via `history.replaceState()`.
 
 ### State Flow
 
-`App.tsx` → `useUrlSync()` initializes store from hash → Zustand store drives all components → store changes trigger hash updates.
+`App.tsx` → `useUrlSync()` migrates legacy hash URLs then initializes store from path → Zustand store drives all components → store changes trigger URL path updates.
 
 ### Tailwind CSS v4
 
@@ -85,8 +85,32 @@ The `dark` class is toggled on `<html>` by the theme store. The visual design us
 
 - `CidrResult` (in `src/lib/cidr.ts`) — Full parsed CIDR with network/broadcast addresses, masks, host counts, IP class, RFC type, cloud context.
 - `SubnetSplit` (in `src/lib/subnet-math.ts`) — A single allocated subnet within a splitter session, with CIDR, label, color, and host info.
-- `UrlState` (in `src/lib/url-codec.ts`) — Serializable state for hash encoding (mode, cidr, splits, labels).
+- `UrlState` (in `src/lib/url-codec.ts`) — Serializable state for path-based URL encoding (mode, cidr, splits, labels).
 
 ### Export Formats
 
 `src/lib/export.ts` generates JSON, CSV, Terraform HCL, Pulumi TypeScript, and CloudFormation JSON from calculator results.
+
+### Deployment
+
+Deployed to **Cloudflare Workers** via GitHub Actions (`.github/workflows/deploy.yml`). Configuration in `wrangler.jsonc` uses `single-page-application` fallback so all paths serve `index.html`. Triggers on pushes to `main` and pull requests. Requires `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` GitHub secrets.
+
+## Post-Change Checklist
+
+After making code changes, update the relevant documentation:
+
+- **`docs/`** — Check `url-sharing.md`, `architecture.md`, `state-management.md`, `features.md`, `calculation-engine.md`, `development.md`
+- **`README.md`** — Feature list, tech stack, deployment info
+- **`CLAUDE.md`** — This file: architecture, routing, key types, design system
+
+Keep mermaid diagrams in docs in sync with actual function and action names.
+
+## Common Gotchas
+
+- Don't use `require()` in Vite/ESM — use ES imports
+- Unused variables cause TS build errors (strict mode)
+- `motion/react` (not `framer-motion`) for animations
+- Use hardcoded Solarized hex values (e.g. `text-[#2aa198]`), not Tailwind color names like `text-cyan-500`
+- URL codec uses `encodeState`/`decodeState(pathname, search)`, `updateUrl`/`readUrl` — not hash-based functions
+- Store action is `initFromUrl` (not `initFromHash`)
+- Legacy hash URLs auto-redirect via `migrateHashUrl()` on mount

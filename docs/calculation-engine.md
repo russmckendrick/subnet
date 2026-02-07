@@ -14,7 +14,7 @@ flowchart TD
     rfc["rfc-ranges.ts<br/>RFC range detection"]
     constants["constants.ts<br/>Reference table"]
     exportmod["export.ts<br/>Format generators"]
-    urlcodec["url-codec.ts<br/>Hash encoding"]
+    urlcodec["url-codec.ts<br/>URL path encoding"]
 
     ipv4 --> cidr
     ipv4 --> subnetmath
@@ -285,13 +285,14 @@ IaC formats sanitize labels for use as identifiers:
 - Terraform/Pulumi: `label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')`
 - CloudFormation: `label.replace(/[^a-zA-Z0-9]+/g, '')` (prefixed with `Subnet`)
 
-## url-codec.ts — Hash Encoding
+## url-codec.ts — URL Path Encoding
 
 See [URL Sharing](url-sharing.md) for the full specification. Key exports:
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `encodeState` | `(state: UrlState) => string` | Encode state to hash string (without `#`). |
-| `decodeState` | `(hash: string) => UrlState \| null` | Parse hash string to state object. |
-| `updateHash` | `(state: UrlState) => void` | Write encoded state to `window.location.hash` via `replaceState`. |
-| `readHash` | `() => UrlState \| null` | Read and decode current hash. |
+| `encodeState` | `(state: UrlState) => string` | Encode state to URL path + query string. |
+| `decodeState` | `(pathname: string, search: string) => UrlState \| null` | Parse pathname and search string to state object. |
+| `updateUrl` | `(state: UrlState) => void` | Write encoded state to URL via `history.replaceState`. |
+| `readUrl` | `() => UrlState \| null` | Read and decode current pathname + search. |
+| `migrateHashUrl` | `() => boolean` | Redirect legacy hash-based URLs to new path format. |

@@ -1,6 +1,12 @@
-# subnet.fit
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/logo-dark.svg" />
+    <source media="(prefers-color-scheme: light)" srcset="public/logo-light.svg" />
+    <img alt="subnet.fit" src="public/logo-dark.svg" width="280" />
+  </picture>
+</p>
 
-A client-side CIDR/subnet calculator and network planner. All computation happens in the browser — no backend required.
+<p align="center">A client-side CIDR/subnet calculator and network planner. All computation happens in the browser — no backend required.</p>
 
 ## Features
 
@@ -12,7 +18,7 @@ A client-side CIDR/subnet calculator and network planner. All computation happen
 - **IaC Export** — Generate Terraform HCL, Pulumi TypeScript, CloudFormation JSON, plus JSON and CSV from calculator results
 - **Keyboard Shortcuts** — `/` to focus input, `↑↓` to adjust prefix length, `Escape` to blur
 - **Dark/Light Mode** — Toggle with system preference detection and localStorage persistence
-- **Shareable URLs** — Hash-based encoding for calculator, splitter, and supernet state
+- **Shareable URLs** — Clean path-based URLs for calculator, splitter, and supernet state (with legacy hash URL migration)
 
 ## Tech Stack
 
@@ -24,6 +30,7 @@ A client-side CIDR/subnet calculator and network planner. All computation happen
 | State | Zustand 5 |
 | Animation | Motion (Framer Motion) |
 | Build | Vite 7 |
+| Hosting | Cloudflare Workers |
 
 ## Quick Start
 
@@ -72,5 +79,15 @@ See the [`docs/`](docs/) folder for detailed documentation:
 - [Calculation Engine](docs/calculation-engine.md) — IPv4 math, CIDR parsing, subnet allocation
 - [State Management](docs/state-management.md) — Zustand stores, actions, URL sync
 - [Styling & Theming](docs/styling.md) — Tailwind v4, dark mode, custom theme tokens
-- [URL Sharing](docs/url-sharing.md) — Hash format, state persistence
+- [URL Sharing](docs/url-sharing.md) — Path-based URL format, state persistence, legacy hash migration
 - [Development Guide](docs/development.md) — Setup, tooling, adding new features
+
+## Deployment
+
+The site is deployed to **Cloudflare Workers** via GitHub Actions. The workflow triggers on pushes to `main` and pull requests, running build + deploy automatically.
+
+**Required GitHub secrets:**
+- `CLOUDFLARE_API_TOKEN` — API token with Workers Scripts: Edit permission
+- `CLOUDFLARE_ACCOUNT_ID` — Cloudflare account ID
+
+The `wrangler.jsonc` config uses `single-page-application` fallback so all paths (e.g. `/10.0.0.0/16`) serve `index.html`.

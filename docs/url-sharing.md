@@ -1,59 +1,58 @@
 # URL Sharing & State Persistence
 
-subnet.fit encodes application state in the URL hash, making every configuration shareable by copying the URL. No server is involved — the hash is decoded client-side on page load.
+subnet.fit encodes application state in the URL path and query string, making every configuration shareable by copying the URL. No server is involved — the path is decoded client-side on page load.
 
-## Hash Format Specification
+## URL Format Specification
 
 ### Calculator Mode
 
 ```
-#<ip>/<prefix>
+/<ip>/<prefix>
 ```
 
-The CIDR notation is used directly as the hash.
+The CIDR notation is used directly as the path.
 
 **Examples:**
-- `#10.0.0.0/16`
-- `#192.168.1.0/24`
-- `#172.16.0.0/12`
+- `/10.0.0.0/16`
+- `/192.168.1.0/24`
+- `/172.16.0.0/12`
 
 ### Splitter Mode
 
 ```
-#split:<parent-cidr>:<prefix~label,prefix~label,...>
+/<ip>/<prefix>?split=<prefix~label,prefix~label,...>
 ```
 
 Components:
-- `split:` — Mode prefix
-- `<parent-cidr>` — Parent network in CIDR notation
-- `:` — Separator
+- `/<ip>/<prefix>` — Parent network in CIDR notation as the path
+- `?split=` — Query parameter containing child subnets
 - `<prefix~label>` — Child prefix length, optionally followed by `~` and a URL-encoded label
 - `,` — Separator between child entries
 
 **Examples:**
-- `#split:10.0.0.0/16:24~Web,25~API,26~Database`
-- `#split:192.168.0.0/16:24,24,24` (uses default labels)
-- `#split:10.0.0.0/8:16~Production,16~Staging`
+- `/10.0.0.0/16?split=24~Web,25~API,26~Database`
+- `/192.168.0.0/16?split=24,24,24` (uses default labels)
+- `/10.0.0.0/8?split=16~Production,16~Staging`
 
 ### Supernet Mode
 
 ```
-#super:<cidr>,<cidr>,...
+/super?nets=<cidr>,<cidr>,...
 ```
 
 Components:
-- `super:` — Mode prefix
-- Comma-separated list of CIDR notations
+- `/super` — Fixed path for supernet mode
+- `?nets=` — Query parameter with comma-separated CIDR notations
 
 **Examples:**
-- `#super:10.0.0.0/24,10.0.1.0/24`
-- `#super:192.168.0.0/24,192.168.1.0/24,192.168.2.0/24`
+- `/super?nets=10.0.0.0/24,10.0.1.0/24`
+- `/super?nets=192.168.0.0/24,192.168.1.0/24,192.168.2.0/24`
 
 ## UrlState Type
 
 ```typescript
 interface UrlState {
-  mode: 'calculator' | 'splitter' | 'supernet'
+  mode: 'network' | 'supernet'
   cidr: string
   splits?: number[]
   splitLabels?: string[]
@@ -73,41 +72,53 @@ Labels support arbitrary text through URL encoding:
 
 ### encodeState(state: UrlState) → string
 
-Produces the hash string (without the leading `#`):
+Produces the URL path + query string:
 
-- **Calculator:** Returns `state.cidr` directly
-- **Splitter:** Builds `split:<cidr>:<segments>` where each segment is `prefix` or `prefix~encodedLabel`
-- **Supernet:** Builds `super:<cidr1>,<cidr2>,...`
+- **Network (no splits):** Returns `/<cidr>` (e.g. `/10.0.0.0/16`)
+- **Network (with splits):** Returns `/<cidr>?split=<segments>` where each segment is `prefix` or `prefix~encodedLabel`
+- **Supernet:** Returns `/super?nets=<cidr1>,<cidr2>,...`
 
-### decodeState(hash: string) → UrlState | null
+### decodeState(pathname: string, search: string) → UrlState | null
 
-Parses a hash string (with or without leading `#`):
+Parses a pathname and search string:
 
-1. Strip leading `#` and trim whitespace
-2. If empty, return `null`
-3. If starts with `split:` — parse splitter format
-4. If starts with `super:` — parse supernet format
-5. Otherwise — treat as calculator mode CIDR
+1. Strip leading `/` and trim whitespace
+2. If empty, return `null` (home page)
+3. If path is `super` — parse supernet format from `?nets=` query param
+4. If path matches CIDR pattern — parse as network mode, optionally with `?split=` query param
+5. Otherwise — return `null`
 
-### updateHash(state: UrlState) → void
+### updateUrl(state: UrlState) → void
 
 Encodes the state and writes it to the URL:
 
 ```typescript
-window.history.replaceState(null, '', `#${encoded}`)
+window.history.replaceState(null, '', encodedPath)
 ```
 
 Uses `replaceState` (not `pushState`) to avoid polluting browser history.
 
-### readHash() → UrlState | null
+### readUrl() → UrlState | null
 
-Reads and decodes `window.location.hash`.
+Reads and decodes `window.location.pathname` + `window.location.search`.
+
+## Legacy Hash URL Migration
+
+The `migrateHashUrl()` function provides backward compatibility with old hash-based URLs. On mount, `useUrlSync` calls this before reading the current URL.
+
+**Supported legacy formats:**
+- `#10.0.0.0/16` → `/10.0.0.0/16`
+- `#10.0.0.0/16:24~Web,25~API` → `/10.0.0.0/16?split=24~Web,25~API`
+- `#split:10.0.0.0/16:24~Web,25~API` → `/10.0.0.0/16?split=24~Web,25~API`
+- `#super:10.0.0.0/24,10.0.1.0/24` → `/super?nets=10.0.0.0/24,10.0.1.0/24`
+
+The migration uses `history.replaceState()` so the old hash URL is replaced in-place without a page reload.
 
 ## useUrlSync Hook
 
-The `useUrlSync` hook in `src/hooks/use-url-sync.ts` provides bidirectional sync between the Zustand store and the URL hash.
+The `useUrlSync` hook in `src/hooks/use-url-sync.ts` provides bidirectional sync between the Zustand store and the URL.
 
-### Mount: Hash → Store
+### Mount: URL → Store
 
 ```mermaid
 sequenceDiagram
@@ -117,20 +128,22 @@ sequenceDiagram
     participant Store as calculator-store
 
     Browser->>Hook: Component mounts
-    Hook->>Codec: readHash()
-    Codec->>Codec: decodeState(window.location.hash)
+    Hook->>Codec: migrateHashUrl()
+    Note over Codec: Redirects legacy #hash URLs
+    Hook->>Codec: readUrl()
+    Codec->>Codec: decodeState(pathname, search)
     Codec-->>Hook: UrlState | null
 
-    alt Calculator mode
-        Hook->>Store: initFromHash(cidr, 'calculator')
-    else Splitter mode
-        Hook->>Store: initFromHash(cidr, 'splitter', splits, labels)
+    alt Network mode
+        Hook->>Store: initFromUrl(cidr, splits, labels)
+    else Supernet mode
+        Hook->>Store: setSupernetInputs(inputs)
     end
 ```
 
 Runs once on mount via `useEffect(() => { ... }, [])`.
 
-### Changes: Store → Hash
+### Changes: Store → URL
 
 ```mermaid
 sequenceDiagram
@@ -140,14 +153,14 @@ sequenceDiagram
     participant Browser
 
     Store->>Hook: State change detected
-    Note over Hook: Watches: rawInput, activeTab,<br/>splitPrefixes, splitLabels,<br/>supernetInputs, parentCidr
+    Note over Hook: Watches: rawInput,<br/>splitPrefixes, splitLabels,<br/>supernetInputs, activeDrawer
 
-    alt Calculator tab
-        Hook->>Codec: updateHash({ mode: 'calculator', cidr: rawInput })
-    else Splitter tab
-        Hook->>Codec: updateHash({ mode: 'splitter', cidr, splits, labels })
-    else Supernet tab
-        Hook->>Codec: updateHash({ mode: 'supernet', supernetInputs })
+    alt Supernet drawer
+        Hook->>Codec: updateUrl({ mode: 'supernet', ... })
+    else Network (with splits)
+        Hook->>Codec: updateUrl({ mode: 'network', cidr, splits, labels })
+    else Network (no splits)
+        Hook->>Codec: updateUrl({ mode: 'network', cidr })
     end
 
     Codec->>Browser: history.replaceState()
@@ -155,13 +168,13 @@ sequenceDiagram
 
 Runs on every relevant state change via `useEffect` with a dependency array.
 
-## initFromHash Flow
+## initFromUrl Flow
 
-When restoring from a URL hash, the `initFromHash` store action:
+When restoring from a URL, the `initFromUrl` store action:
 
 1. Calls `parseCidr(cidr)` to compute the calculator result
-2. Sets `rawInput`, `result`, and `activeTab`
-3. If in splitter mode with splits:
-   - Sets `parentCidr`, `splitPrefixes`, `splitLabels`
+2. Sets `rawInput` and `result`
+3. If splits are present:
+   - Sets `splitPrefixes` and `splitLabels`
    - Calls `recalcSplits()` to compute `splits`, `remainingSpace`, and `availablePrefixes`
    - Merges all computed values into the state

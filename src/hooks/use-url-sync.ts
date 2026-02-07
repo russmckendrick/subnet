@@ -1,18 +1,19 @@
 import { useEffect, useRef } from 'react'
 import { useCalculatorStore } from '@/store/calculator-store'
-import { readHash, updateHash } from '@/lib/url-codec'
+import { readUrl, updateUrl, migrateHashUrl } from '@/lib/url-codec'
 
 export function useUrlSync() {
-  const { rawInput, splitPrefixes, splitLabels, supernetInputs, activeDrawer, initFromHash, setSupernetInputs } =
+  const { rawInput, splitPrefixes, splitLabels, supernetInputs, activeDrawer, initFromUrl, setSupernetInputs } =
     useCalculatorStore()
   const initializedRef = useRef(false)
 
-  // Read hash on mount
+  // Read URL on mount (with hash migration for backward compat)
   useEffect(() => {
-    const state = readHash()
+    migrateHashUrl()
+    const state = readUrl()
     if (state) {
       if (state.mode === 'network' && state.cidr) {
-        initFromHash(state.cidr, state.splits, state.splitLabels)
+        initFromUrl(state.cidr, state.splits, state.splitLabels)
       } else if (state.mode === 'supernet' && state.supernetInputs) {
         setSupernetInputs(state.supernetInputs.join('\n'))
       }
@@ -21,7 +22,7 @@ export function useUrlSync() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Write hash on state changes (skip until after initial hash read)
+  // Write URL on state changes (skip until after initial read)
   useEffect(() => {
     if (!initializedRef.current) return
 
@@ -31,16 +32,16 @@ export function useUrlSync() {
         .map((l) => l.trim())
         .filter(Boolean)
       if (inputs.length > 0) {
-        updateHash({ mode: 'supernet', cidr: '', supernetInputs: inputs })
+        updateUrl({ mode: 'supernet', cidr: '', supernetInputs: inputs })
         return
       }
     }
 
     if (rawInput) {
       if (splitPrefixes.length > 0) {
-        updateHash({ mode: 'network', cidr: rawInput, splits: splitPrefixes, splitLabels })
+        updateUrl({ mode: 'network', cidr: rawInput, splits: splitPrefixes, splitLabels })
       } else {
-        updateHash({ mode: 'network', cidr: rawInput })
+        updateUrl({ mode: 'network', cidr: rawInput })
       }
     }
   }, [rawInput, splitPrefixes, splitLabels, supernetInputs, activeDrawer])

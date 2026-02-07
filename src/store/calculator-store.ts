@@ -31,7 +31,7 @@ interface CalculatorState {
   resetSplits: () => void
   setSupernetInputs: (inputs: string) => void
   setActiveDrawer: (drawer: 'none' | 'supernet' | 'reference') => void
-  initFromHash: (cidr: string, splits?: number[], labels?: string[]) => void
+  initFromUrl: (cidr: string, splits?: number[], labels?: string[]) => void
 }
 
 function recalcSplits(parentCidr: string, prefixes: number[], labels: string[]) {
@@ -123,7 +123,7 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
 
   setActiveDrawer: (drawer) => set({ activeDrawer: drawer }),
 
-  initFromHash: (cidr, splits, labels) => {
+  initFromUrl: (cidr, splits, labels) => {
     const result = parseCidr(cidr)
     const state: Partial<CalculatorState> = {
       rawInput: cidr,

@@ -118,12 +118,12 @@ subnet/
 │   │   ├── rfc-ranges.ts    RFC special-purpose range detection
 │   │   ├── constants.ts     Pre-computed reference table
 │   │   ├── export.ts        JSON/CSV/Terraform/Pulumi/CFN generators
-│   │   └── url-codec.ts     URL hash encoding/decoding
+│   │   └── url-codec.ts     URL path encoding/decoding
 │   ├── store/             Zustand state management
 │   │   ├── calculator-store.ts  Main app state and actions
 │   │   └── theme-store.ts      Dark/light theme
 │   ├── hooks/             React hooks for side effects
-│   │   ├── use-url-sync.ts      Bidirectional URL ↔ store sync
+│   │   ├── use-url-sync.ts      Bidirectional URL path ↔ store sync (with legacy hash migration)
 │   │   ├── use-keyboard-shortcuts.ts  / focus, ↑↓ prefix, Escape blur
 │   │   └── use-clipboard.ts    Clipboard API with feedback state
 │   ├── components/        UI components by feature domain
@@ -146,6 +146,7 @@ subnet/
 ├── tsconfig.node.json     Build tooling TypeScript config
 ├── eslint.config.js       ESLint flat config
 ├── package.json           Dependencies and scripts
+├── wrangler.jsonc         Cloudflare Workers deployment config
 └── CLAUDE.md              AI assistant instructions
 ```
 
@@ -186,4 +187,5 @@ If the feature should be shareable via URL:
 1. Add a new mode to the `UrlState` type in `url-codec.ts`
 2. Add encode/decode logic in `encodeState`/`decodeState`
 3. Update the `useUrlSync` hook to handle the new mode
-4. Update `initFromHash` in the calculator store
+4. Update `initFromUrl` in the calculator store
+5. Update documentation (`docs/`, `README.md`, `CLAUDE.md`) if applicable
