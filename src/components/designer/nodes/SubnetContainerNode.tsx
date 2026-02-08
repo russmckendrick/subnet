@@ -20,7 +20,6 @@ export function SubnetContainerNode({ id, data, selected }: SubnetContainerNodeP
         backgroundColor: isDark
           ? `${data.color}08`
           : `${data.color}06`,
-        pointerEvents: 'none',
       }}
     >
       <NodeResizer
@@ -31,8 +30,8 @@ export function SubnetContainerNode({ id, data, selected }: SubnetContainerNodeP
         handleStyle={{ backgroundColor: data.color, width: 8, height: 8, borderRadius: 2 }}
       />
 
-      {/* Header row — clickable to select container */}
-      <div className="flex items-center justify-between px-3 py-2" style={{ pointerEvents: 'auto' }}>
+      {/* Header row */}
+      <div className="flex items-center justify-between px-3 py-2">
         <div className="flex items-center gap-2">
           <div
             className="w-2 h-2 rounded-full shrink-0"
@@ -68,7 +67,6 @@ export function SubnetContainerNode({ id, data, selected }: SubnetContainerNodeP
         style={{
           backgroundColor: data.color,
           borderColor: isDark ? '#073642' : '#eee8d5',
-          pointerEvents: 'auto',
         }}
       />
       <Handle
@@ -78,7 +76,6 @@ export function SubnetContainerNode({ id, data, selected }: SubnetContainerNodeP
         style={{
           backgroundColor: data.color,
           borderColor: isDark ? '#073642' : '#eee8d5',
-          pointerEvents: 'auto',
         }}
       />
       <Handle
@@ -89,7 +86,6 @@ export function SubnetContainerNode({ id, data, selected }: SubnetContainerNodeP
         style={{
           backgroundColor: data.color,
           borderColor: isDark ? '#073642' : '#eee8d5',
-          pointerEvents: 'auto',
         }}
       />
       <Handle
@@ -100,7 +96,6 @@ export function SubnetContainerNode({ id, data, selected }: SubnetContainerNodeP
         style={{
           backgroundColor: data.color,
           borderColor: isDark ? '#073642' : '#eee8d5',
-          pointerEvents: 'auto',
         }}
       />
     </div>

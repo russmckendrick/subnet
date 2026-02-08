@@ -18,7 +18,6 @@ export function VpcContainerNode({ id, data, selected }: VpcContainerNodeProps) 
         height: '100%',
         border: `2px ${theme.borderStyle} ${selected ? theme.borderColor : theme.borderColor + '99'}`,
         backgroundColor: isDark ? theme.bgTintDark : theme.bgTint,
-        pointerEvents: 'none',
       }}
     >
       <NodeResizer
@@ -29,8 +28,8 @@ export function VpcContainerNode({ id, data, selected }: VpcContainerNodeProps) 
         handleStyle={{ backgroundColor: theme.borderColor, width: 8, height: 8, borderRadius: 2 }}
       />
 
-      {/* Header row — clickable to select container */}
-      <div className="flex items-center justify-between px-3 py-2" style={{ pointerEvents: 'auto' }}>
+      {/* Header row */}
+      <div className="flex items-center justify-between px-3 py-2">
         <div className="flex items-center gap-2">
           <span
             className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
@@ -57,7 +56,6 @@ export function VpcContainerNode({ id, data, selected }: VpcContainerNodeProps) 
         style={{
           backgroundColor: theme.borderColor,
           borderColor: isDark ? '#002b36' : '#fdf6e3',
-          pointerEvents: 'auto',
         }}
       />
       <Handle
@@ -67,7 +65,6 @@ export function VpcContainerNode({ id, data, selected }: VpcContainerNodeProps) 
         style={{
           backgroundColor: theme.borderColor,
           borderColor: isDark ? '#002b36' : '#fdf6e3',
-          pointerEvents: 'auto',
         }}
       />
       <Handle
@@ -78,7 +75,6 @@ export function VpcContainerNode({ id, data, selected }: VpcContainerNodeProps) 
         style={{
           backgroundColor: theme.borderColor,
           borderColor: isDark ? '#002b36' : '#fdf6e3',
-          pointerEvents: 'auto',
         }}
       />
       <Handle
@@ -89,7 +85,6 @@ export function VpcContainerNode({ id, data, selected }: VpcContainerNodeProps) 
         style={{
           backgroundColor: theme.borderColor,
           borderColor: isDark ? '#002b36' : '#fdf6e3',
-          pointerEvents: 'auto',
         }}
       />
     </div>
