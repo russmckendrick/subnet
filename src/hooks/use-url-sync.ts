@@ -19,7 +19,11 @@ export function useUrlSync() {
         setSupernetInputs(state.supernetInputs.join('\n'))
       }
     }
-    initializedRef.current = true
+    // Defer so the write-back effect (which runs in the same batch) still
+    // sees false and skips — prevents overwriting the URL with stale closure
+    // values before the store update triggers a re-render.  This also avoids
+    // React Strict Mode's double-mount from reading an already-overwritten URL.
+    queueMicrotask(() => { initializedRef.current = true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
