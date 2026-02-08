@@ -39,7 +39,10 @@ export function SplitterToolbar({ viewMode, onViewModeChange }: SplitterToolbarP
 
   if (splits.length === 0) return null
 
-  const designerHref = `/designer?from=${encodeURIComponent(rawInput)}&split=${splits.map((s) => `${s.prefixLength}~${encodeURIComponent(s.label)}`).join(',')}`
+  const hasSavedDiagram = (() => { try { return !!localStorage.getItem('subnet-designer-state') } catch { return false } })()
+  const designerHref = hasSavedDiagram
+    ? '/designer'
+    : `/designer?from=${encodeURIComponent(rawInput)}&split=${splits.map((s) => `${s.prefixLength}~${encodeURIComponent(s.label)}`).join(',')}`
   const allCidrs = splits.map((s) => `${s.label}: ${s.cidr}`).join('\n')
 
   // Quick prefixes shown inline, the rest go in the "More" dropdown
