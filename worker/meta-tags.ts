@@ -9,7 +9,7 @@ interface MetaTags {
 }
 
 const BASE_URL = 'https://subnet.fit'
-const DEFAULT_DESCRIPTION = 'A modern subnet calculator with visual network mapping, cloud provider context, and infrastructure-as-code export.'
+const DEFAULT_DESCRIPTION = 'Free online CIDR calculator with subnet splitting, visual network diagrams, cloud provider context, and infrastructure-as-code export for AWS, Azure & GCP.'
 
 function computeMetaTags(url: URL): MetaTags {
   const pathname = url.pathname
@@ -18,8 +18,8 @@ function computeMetaTags(url: URL): MetaTags {
   // Designer
   if (pathname.startsWith('/designer')) {
     return {
-      title: 'Network Designer — subnet.fit',
-      description: 'Visual cloud architecture diagrams with AWS, Azure & GCP support. Drag-and-drop network design with export to draw.io, PNG, SVG, and shareable URLs.',
+      title: 'Network Designer — Visual Cloud Architecture | subnet.fit',
+      description: 'Design cloud network architectures visually with AWS, Azure & GCP support. Drag-and-drop subnet planning with export to draw.io, PNG, SVG & shareable URLs.',
       ogImage: `${BASE_URL}/og/designer`,
       ogUrl: `${BASE_URL}${pathname}${search}`,
     }
@@ -30,7 +30,7 @@ function computeMetaTags(url: URL): MetaTags {
 
   if (!state) {
     return {
-      title: 'subnet.fit — CIDR Calculator & Network Planner',
+      title: 'subnet.fit — CIDR Calculator, Splitter & Network Planner',
       description: DEFAULT_DESCRIPTION,
       ogImage: `${BASE_URL}/og/`,
       ogUrl: BASE_URL,
@@ -42,8 +42,8 @@ function computeMetaTags(url: URL): MetaTags {
     const nets = state.supernetInputs ?? []
     const count = nets.length
     return {
-      title: 'Supernet Calculator — subnet.fit',
-      description: `Route aggregation for ${count} network${count !== 1 ? 's' : ''}. Calculate the smallest CIDR that contains all input networks.`,
+      title: `Supernet Calculator — Aggregate ${count} Network${count !== 1 ? 's' : ''} | subnet.fit`,
+      description: `Aggregate ${count} network${count !== 1 ? 's' : ''} into the smallest covering CIDR. Free supernet calculator for route summarization, CIDR aggregation & network planning.`,
       ogImage: `${BASE_URL}/og${pathname}${search}`,
       ogUrl: `${BASE_URL}${pathname}${search}`,
     }
@@ -53,7 +53,7 @@ function computeMetaTags(url: URL): MetaTags {
   const result = parseCidr(state.cidr)
   if (!result) {
     return {
-      title: 'subnet.fit — CIDR Calculator & Network Planner',
+      title: 'subnet.fit — CIDR Calculator, Splitter & Network Planner',
       description: DEFAULT_DESCRIPTION,
       ogImage: `${BASE_URL}/og/`,
       ogUrl: BASE_URL,
@@ -64,8 +64,8 @@ function computeMetaTags(url: URL): MetaTags {
   if (state.splits && state.splits.length > 0) {
     const splitCount = state.splits.length
     return {
-      title: `${result.input} Subnet Splitter — subnet.fit`,
-      description: `Split ${result.input} into ${splitCount} subnet${splitCount > 1 ? 's' : ''} (${result.usableHosts.toLocaleString('en-US')} usable hosts, Class ${result.ipClass}).`,
+      title: `${result.input} Split into ${splitCount} Subnet${splitCount > 1 ? 's' : ''} — Splitter | subnet.fit`,
+      description: `Split ${result.input} into ${splitCount} subnet${splitCount > 1 ? 's' : ''} (${result.usableHosts.toLocaleString('en-US')} usable hosts, Class ${result.ipClass}). Visual subnet allocator with Terraform, CLI & JSON export for AWS, Azure & GCP.`,
       ogImage: `${BASE_URL}/og${pathname}${search}`,
       ogUrl: `${BASE_URL}${pathname}${search}`,
     }
@@ -73,8 +73,8 @@ function computeMetaTags(url: URL): MetaTags {
 
   // Plain CIDR
   return {
-    title: `${result.input} — subnet.fit`,
-    description: `${result.input}: ${result.usableHosts.toLocaleString('en-US')} usable hosts, netmask ${result.netmask}, Class ${result.ipClass}${result.rfcType ? ` (${result.rfcType.split(' — ')[1]})` : ''}.`,
+    title: `${result.input} Subnet Details — CIDR Calculator | subnet.fit`,
+    description: `${result.input}: ${result.usableHosts.toLocaleString('en-US')} usable hosts, netmask ${result.netmask}, range ${result.firstHost}–${result.lastHost}, Class ${result.ipClass}${result.rfcType ? ` (${result.rfcType.split(' — ')[1]})` : ''}. Free subnet calculator with splitting & IaC export.`,
     ogImage: `${BASE_URL}/og${pathname}`,
     ogUrl: `${BASE_URL}${pathname}`,
   }
