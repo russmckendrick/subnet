@@ -3,6 +3,7 @@ import { ReactFlowProvider } from '@xyflow/react'
 import { useDesignerUrlSync } from '@/hooks/use-designer-url-sync'
 import { useDiagramPersistence } from '@/hooks/use-diagram-persistence'
 import { useDesignerShortcuts } from '@/hooks/use-designer-shortcuts'
+import { useCalculatorHref } from '@/hooks/use-calculator-href'
 import { DesignerHeader } from './DesignerHeader'
 import { DesignerCanvas } from './DesignerCanvas'
 import { ResourcePalette } from './ResourcePalette'
@@ -14,6 +15,7 @@ function DesignerContent() {
   useDesignerUrlSync()
   useDiagramPersistence()
   useDesignerShortcuts()
+  const calculatorHref = useCalculatorHref()
 
   const [isMobile, setIsMobile] = useState(false)
 
@@ -38,7 +40,7 @@ function DesignerContent() {
             The Network Designer works best on larger screens with drag-and-drop support.
           </p>
           <a
-            href="/"
+            href={calculatorHref}
             className="inline-flex items-center gap-2 text-sm text-[#2aa198] hover:text-[#2aa198]/80 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

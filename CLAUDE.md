@@ -32,9 +32,9 @@ subnet.fit is a client-side-only CIDR/subnet calculator. All computation happens
 
 ### Layers
 
-- **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, RDAP response parsing (`rdap.ts`) and caching (`rdap-cache.ts`), IaC export formatters, URL path codec, resource type labels (`resource-labels.ts`), centralised app configuration (`config.ts`), draw.io icon registry (`drawio-icons.ts`), raw SVG string maps (`drawio-svg-strings/`), and named diagram saves (`diagram-saves.ts`). All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
+- **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, RDAP response parsing (`rdap.ts`) and caching (`rdap-cache.ts`), IaC export formatters, URL path codec, resource type labels (`resource-labels.ts`), centralised app configuration (`config.ts`), draw.io icon registry (`drawio-icons.ts`), raw SVG string maps (`drawio-svg-strings/`), named diagram saves (`diagram-saves.ts`), and designer state extraction (`designer-state-extract.ts`) for extracting CIDR/splits from diagram nodes. All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
 - **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs, input mode, command palette open state). `designer-store.ts` holds diagram state (nodes, edges, palette, selection, multi-selection, export modal, node color updates, localStorage persistence, cloud provider, `activeLayer` for layer filtering, `pendingDrop` for touch tap-to-place). Node data types: `SubnetNodeData`, `ResourceNodeData` (legacy flat), `VpcContainerNodeData`, `SubnetContainerNodeData`, `CloudResourceNodeData` (cloud containment). `theme-store.ts` persists dark/light mode to localStorage. Calculator and theme stores read defaults from `config.ts`.
-- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-designer-url-sync.ts` reads `?from=`, `&split=`, and `&provider=` params on `/designer` route and initializes the diagram canvas. `use-keyboard-shortcuts.ts` handles `/` to open command palette, arrows to adjust prefix when input focused. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching. `use-diagram-persistence.ts` auto-saves/loads designer state to/from localStorage with 1s debounce, runs migration from v1→v2 on load. `use-designer-shortcuts.ts` handles Escape (deselect/close), Cmd+E (export modal), Cmd+S (manual save), 1/2/3 (layer switching) in designer. `use-touch-detect.ts` detects touch devices for tap-to-place mode.
+- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-designer-url-sync.ts` reads `?from=`, `&split=`, and `&provider=` params on `/designer` route and initializes the diagram canvas. `use-calculator-href.ts` returns a calculator URL from designer state via `extractDesignerState()` and `encodeState()`, enabling state-preserving back-navigation from designer to calculator. `use-keyboard-shortcuts.ts` handles `/` to open command palette, arrows to adjust prefix when input focused. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching. `use-diagram-persistence.ts` auto-saves/loads designer state to/from localStorage with 1s debounce, runs migration from v1→v2 on load. `use-designer-shortcuts.ts` handles Escape (deselect/close), Cmd+E (export modal), Cmd+S (manual save), 1/2/3 (layer switching) in designer. `use-touch-detect.ts` detects touch devices for tap-to-place mode.
 - **`src/components/`** — UI organized by feature domain: `calculator/`, `splitter/`, `designer/`, `visual-map/`, `cloud/`, `whois/`, `tools/`, `export/`, `command-palette/`, `shared/`, `layout/`.
 
 ### Routing
@@ -49,7 +49,7 @@ Encoding/decoding is in `src/lib/url-codec.ts`. The `useUrlSync` hook migrates l
 
 ### State Flow
 
-`App.tsx` checks pathname — if `/designer`, renders `<DesignerPage>` (separate React Flow canvas); otherwise renders the calculator `<Layout>`. Calculator: `useUrlSync()` migrates legacy hash URLs then initializes store from path → Zustand store drives all components → store changes trigger URL path updates. Designer: `useDesignerUrlSync()` reads `?from=` and `&split=` params → `generateInitialLayout()` creates nodes/edges → `designer-store` drives React Flow canvas.
+`App.tsx` checks pathname — if `/designer`, renders `<DesignerPage>` (separate React Flow canvas); otherwise renders the calculator `<Layout>`. Calculator: `useUrlSync()` migrates legacy hash URLs then initializes store from path → Zustand store drives all components → store changes trigger URL path updates. Designer: `useDesignerUrlSync()` reads `?from=` and `&split=` params → `generateInitialLayout()` creates nodes/edges → `designer-store` drives React Flow canvas. Navigation between views is bidirectional and state-preserving: the Header and command palette build designer URLs from calculator store state (`?from=&split=`), while `DesignerHeader` and the mobile fallback use `useCalculatorHref()` to build calculator URLs from diagram nodes.
 
 ### Tailwind CSS v4
 
@@ -111,6 +111,7 @@ The `dark` class is toggled on `<html>` by the theme store. The visual design us
 - `DesignerNodeData` (in `src/store/designer-store.ts`) — Union of all 5 node data types.
 - `DiagramJsonData` (in `src/lib/export-diagram.ts`) — Validated JSON import structure: `{ nodes, edges, version, cloudProvider? }`.
 - `SaveEntry` (in `src/lib/diagram-saves.ts`) — Named save manifest entry: id, name, createdAt, updatedAt, nodeCount, cloudProvider.
+- `ExtractedDesignerState` (in `src/lib/designer-state-extract.ts`) — Extracted CIDR, splits (prefix + label), and cloud provider from designer diagram nodes.
 
 ### Command Palette
 
@@ -141,6 +142,7 @@ The designer at `/designer` uses **nested containment** to produce cloud-native 
 - **Keyboard Shortcuts** — `Escape` (deselect/close modal), `Cmd/Ctrl+E` (toggle export), `Cmd/Ctrl+S` (save to localStorage), `1`/`2`/`3` (layer switching).
 - **Floating Toolbar** — Bottom-center bar with Fit View, Export, Save, and Clear buttons.
 - **URL Params** — `?provider=aws|azure|gcp` sets cloud provider: `/designer?from=10.0.0.0/16&split=24~Web,25~API&provider=aws`. `?d={compressed}` loads a shared diagram (base64url-encoded pako-deflated JSON), handled by `useDesignerUrlSync` before `?from=` processing.
+- **Bidirectional Navigation** — All navigation links between calculator and designer preserve state. Calculator → Designer: Header link and command palette build `/designer?from=&split=` from calculator store. Designer → Calculator: `useCalculatorHref()` hook extracts CIDR and splits from diagram nodes via `extractDesignerState()` and encodes a calculator URL via `encodeState()`. Used by `DesignerHeader` back links and mobile fallback.
 
 ### Deployment
 

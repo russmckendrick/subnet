@@ -11,7 +11,7 @@ import { CommandItem } from './CommandItem'
 const EASE = [0.25, 0.46, 0.45, 0.94] as const
 
 export function CommandPalette() {
-  const { commandPaletteOpen, setCommandPaletteOpen, result, splits, setRawInput, setActiveDrawer, resetSplits, setInputMode } = useCalculatorStore()
+  const { commandPaletteOpen, setCommandPaletteOpen, result, splits, rawInput, setRawInput, setActiveDrawer, resetSplits, setInputMode } = useCalculatorStore()
   const { toggleTheme } = useThemeStore()
 
   const [search, setSearch] = useState('')
@@ -101,7 +101,18 @@ export function CommandPalette() {
 
     if (action === 'open-reference') { setActiveDrawer('reference'); return }
     if (action === 'open-supernet') { setActiveDrawer('supernet'); return }
-    if (action === 'open-designer') { window.location.href = '/designer'; return }
+    if (action === 'open-designer') {
+      let href = '/designer'
+      if (result && rawInput) {
+        const params: string[] = [`from=${encodeURIComponent(rawInput)}`]
+        if (splits.length > 0) {
+          params.push(`split=${splits.map((s) => `${s.prefixLength}~${encodeURIComponent(s.label)}`).join(',')}`)
+        }
+        href = `/designer?${params.join('&')}`
+      }
+      window.location.href = href
+      return
+    }
     if (action === 'toggle-theme') { toggleTheme(); return }
     if (action === 'clear-input') { setRawInput(''); return }
     if (action === 'reset-splits') { resetSplits(); return }
@@ -128,7 +139,7 @@ export function CommandPalette() {
       }
       if (content) navigator.clipboard.writeText(content)
     }
-  }, [result, splits, setRawInput, setActiveDrawer, resetSplits, setInputMode, toggleTheme, setCommandPaletteOpen])
+  }, [result, splits, rawInput, setRawInput, setActiveDrawer, resetSplits, setInputMode, toggleTheme, setCommandPaletteOpen])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {

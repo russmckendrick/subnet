@@ -136,6 +136,7 @@ subnet/
 │   │   │   └── generic.ts    Hand-written generic network icon SVGs
 │   │   ├── syntax-highlight.ts  Regex-based syntax tokenizer (HCL/JSON/Shell/CSV/XML)
 │   │   ├── url-codec.ts     URL path encoding/decoding
+│   │   ├── designer-state-extract.ts  Extract CIDR/splits from designer nodes
 │   │   ├── diagram-layout.ts   Initial diagram layout from splitter data
 │   │   └── diagram-arrange.ts  Auto-layout, align, distribute algorithms
 │   ├── store/             Zustand state management
@@ -148,6 +149,7 @@ subnet/
 │   │   ├── use-diagram-persistence.ts  Auto-save/load to localStorage
 │   │   ├── use-designer-shortcuts.ts  Designer keyboard shortcuts
 │   │   ├── use-keyboard-shortcuts.ts  / focus, ↑↓ prefix, Escape blur
+│   │   ├── use-calculator-href.ts  Calculator URL from designer state
 │   │   ├── use-clipboard.ts    Clipboard API with feedback state
 │   │   └── use-rdap-lookup.ts  RDAP data fetch with debounce and caching
 │   ├── components/        UI components by feature domain

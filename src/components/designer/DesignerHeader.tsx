@@ -1,6 +1,7 @@
 import { motion } from 'motion/react'
 import { useThemeStore } from '@/store/theme-store'
 import { useDesignerStore } from '@/store/designer-store'
+import { useCalculatorHref } from '@/hooks/use-calculator-href'
 import { ArrangeToolbar } from './ArrangeToolbar'
 import { LayerToggle } from './LayerToggle'
 import { FaFileExport, FaTrashAlt } from 'react-icons/fa'
@@ -8,13 +9,14 @@ import { FaFileExport, FaTrashAlt } from 'react-icons/fa'
 export function DesignerHeader() {
   const { theme, toggleTheme } = useThemeStore()
   const { nodes, selectedNodeId, removeNode, clearDiagram, setExportOpen } = useDesignerStore()
+  const calculatorHref = useCalculatorHref()
 
   return (
     <header className="flex items-center justify-between px-4 py-2.5 border-b border-[#93a1a1]/15 dark:border-[#586e75]/20 bg-[#fdf6e3] dark:bg-[#002b36]">
       <div className="flex items-center gap-3">
         {/* Back to calculator */}
         <a
-          href="/"
+          href={calculatorHref}
           className="flex items-center gap-2 text-[#586e75] hover:text-[#2aa198] transition-colors"
         >
           <img
@@ -81,7 +83,7 @@ export function DesignerHeader() {
 
         {/* Back to calculator */}
         <a
-          href="/"
+          href={calculatorHref}
           className="flex items-center gap-1.5 text-xs text-[#586e75] bg-[#eee8d5] dark:bg-[#073642] px-2.5 py-1.5 rounded-lg hover:bg-[#eee8d5]/80 dark:hover:bg-[#073642]/80 transition-colors"
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

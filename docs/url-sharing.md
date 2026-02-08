@@ -79,6 +79,23 @@ Components:
 
 When URL parameters are present, they take precedence over any saved localStorage diagram. The `useDesignerUrlSync` hook reads these params and calls `generateInitialLayout()` from `diagram-layout.ts`.
 
+### Bidirectional Navigation
+
+Navigation between the calculator and designer preserves state in both directions using URL parameters:
+
+**Calculator → Designer:**
+- The Header "Designer" link and command palette "Open Designer" command build `/designer?from={cidr}&split={prefix~label,...}` from calculator store state (`rawInput`, `result`, `splits`)
+- The SplitterToolbar "Open in Designer" button uses the same pattern
+- Falls back to bare `/designer` when no CIDR is loaded
+
+**Designer → Calculator:**
+- The `useCalculatorHref()` hook in `src/hooks/use-calculator-href.ts` extracts CIDR and splits from designer nodes using `extractDesignerState()` from `src/lib/designer-state-extract.ts`
+- Finds the first `vpc-container` node for the parent CIDR
+- Collects all `subnet-container` nodes for split prefixes and labels
+- Encodes the result as a calculator URL via `encodeState()` (e.g. `/10.0.0.0/16?split=24~Web,25~API`)
+- Falls back to `/` when no VPC container exists in the diagram
+- Used by `DesignerHeader` logo/back button and `DesignerPage` mobile fallback
+
 ## UrlState Type
 
 ```typescript

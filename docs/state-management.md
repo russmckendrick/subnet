@@ -187,6 +187,9 @@ flowchart TD
     Canvas["DesignerCanvas<br/>(React Flow)"]
     Persist["useDiagramPersistence"]
     Storage["localStorage"]
+    CalcHref["useCalculatorHref"]
+    Extract["extractDesignerState"]
+    BackLink["DesignerHeader back links"]
 
     UrlParams --> UrlSync
     UrlSync --> LayoutLib
@@ -198,7 +201,28 @@ flowchart TD
     Persist --> Storage
     Storage -->|"mount (if no URL nodes)"| Persist
     Persist -->|"loadFromStorage"| Store
+
+    Store -->|"nodes, cloudProvider"| CalcHref
+    CalcHref --> Extract
+    Extract -->|"cidr, splits"| CalcHref
+    CalcHref -->|"calculator URL"| BackLink
 ```
+
+### Bidirectional Navigation (Calculator ↔ Designer)
+
+State is preserved when navigating between the calculator and designer views:
+
+**Calculator → Designer:**
+- `Header.tsx` and `CommandPalette.tsx` read `rawInput`, `result`, and `splits` from `calculator-store`
+- Build `/designer?from={cidr}&split={prefix~label,...}` URL
+- Falls back to bare `/designer` when no CIDR is loaded
+
+**Designer → Calculator:**
+- `useCalculatorHref()` hook reads `nodes` and `cloudProvider` from `designer-store`
+- Calls `extractDesignerState()` to find VPC container CIDR and subnet container splits
+- Calls `encodeState()` to produce a calculator URL (e.g. `/10.0.0.0/16?split=24~Web`)
+- Falls back to `/` when no VPC container exists
+- Used by `DesignerHeader` back links and `DesignerPage` mobile fallback
 
 ### How URL Sync Works
 

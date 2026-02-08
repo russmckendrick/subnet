@@ -224,6 +224,14 @@ Navigate to `/designer?from=10.0.0.0/16&split=24~Web,25~API` to auto-generate a 
 
 URL parameters take precedence over localStorage.
 
+### Bidirectional State-Preserving Navigation
+
+All navigation links between the calculator and designer preserve state, enabling seamless round-trips:
+
+- **Calculator → Designer**: The "Designer" link in the Header and the "Open Designer" command in the command palette carry the current CIDR and splits as `?from=` and `&split=` URL parameters. The existing "Open in Designer" button in the SplitterToolbar also carries state.
+- **Designer → Calculator**: The logo, "Calculator" button, and mobile fallback link all extract the current CIDR from the VPC container node and subnet splits from subnet container nodes, encoding them into a calculator URL (e.g. `/10.0.0.0/16?split=24~Web,25~API`).
+- **Empty state**: When no CIDR is loaded in the calculator, the designer link goes to bare `/designer`. When the designer has no VPC node, the back link goes to bare `/`.
+
 ### Floating Toolbar
 
 A compact bar at the bottom-center of the canvas with:

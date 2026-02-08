@@ -23,6 +23,7 @@ flowchart TD
         diaglayout["diagram-layout.ts"]
         diagarrange["diagram-arrange.ts"]
         reslabels["resource-labels.ts"]
+        desextract["designer-state-extract.ts"]
     end
 
     subgraph store["store/ — State Management"]
@@ -34,6 +35,7 @@ flowchart TD
     subgraph hooks["hooks/ — Side Effects"]
         urlsync["use-url-sync.ts"]
         designerurlsync["use-designer-url-sync.ts"]
+        calchref["use-calculator-href.ts"]
         diagrampersist["use-diagram-persistence.ts"]
         designershortcuts["use-designer-shortcuts.ts"]
         keyboard["use-keyboard-shortcuts.ts"]
@@ -69,7 +71,7 @@ Each layer has a strict dependency direction:
 |-------|---------------|--------------|
 | `lib/` | Pure functions. IPv4 parsing, CIDR math, subnet allocation, binary formatting, cloud provider logic, RFC detection, RDAP response parsing and caching, export formatting (data, IaC, diagram), URL encoding, diagram layout/arrange algorithms, resource type labels (`resource-labels.ts`), and centralised app configuration (`config.ts`). Zero React imports. | None |
 | `store/` | Zustand stores. Holds all application state and actions. `calculator-store` for the main app, `designer-store` for the network diagram, `theme-store` for dark/light mode. Calls `lib/` functions to compute derived values. | `lib/` |
-| `hooks/` | React hooks for side effects. URL synchronization (with bare IP normalization), designer URL sync, diagram persistence (localStorage), keyboard shortcuts (calculator and designer), clipboard operations, RDAP lookups. | `store/`, `lib/` |
+| `hooks/` | React hooks for side effects. URL synchronization (with bare IP normalization), designer URL sync, calculator href generation from designer state, diagram persistence (localStorage), keyboard shortcuts (calculator and designer), clipboard operations, RDAP lookups. | `store/`, `lib/` |
 | `components/` | React components organized by feature domain. Read from stores, call actions, render UI. | `store/`, `hooks/`, `lib/` |
 
 ## Data Flow
@@ -209,6 +211,8 @@ There is no router library. The app uses **path-based URL encoding** for state s
 - `/super?nets=10.0.0.0/24,10.0.1.0/24` — Supernet mode
 
 The `useUrlSync` hook migrates legacy hash URLs on mount, reads the current path to restore state, and writes URL changes on state updates using `history.replaceState()` (no navigation events).
+
+Navigation between calculator and designer is bidirectional and state-preserving. When navigating Calculator → Designer, the Header link and command palette build `/designer?from=&split=` URLs from calculator store state. When navigating Designer → Calculator, the `useCalculatorHref()` hook extracts CIDR and splits from diagram nodes via `extractDesignerState()` and encodes them into a calculator URL using `encodeState()`.
 
 See [URL Sharing](url-sharing.md) for the full specification.
 

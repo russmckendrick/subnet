@@ -1,10 +1,20 @@
+import { useMemo } from 'react'
 import { motion } from 'motion/react'
 import { useThemeStore } from '@/store/theme-store'
 import { useCalculatorStore } from '@/store/calculator-store'
 
 export function Header() {
   const { theme, toggleTheme } = useThemeStore()
-  const { setActiveDrawer, setCommandPaletteOpen } = useCalculatorStore()
+  const { setActiveDrawer, setCommandPaletteOpen, rawInput, result, splits } = useCalculatorStore()
+
+  const designerHref = useMemo(() => {
+    if (!result || !rawInput) return '/designer'
+    const params: string[] = [`from=${encodeURIComponent(rawInput)}`]
+    if (splits.length > 0) {
+      params.push(`split=${splits.map((s) => `${s.prefixLength}~${encodeURIComponent(s.label)}`).join(',')}`)
+    }
+    return `/designer?${params.join('&')}`
+  }, [rawInput, result, splits])
 
   return (
     <header className="relative z-10 flex items-center justify-between px-6 py-4 max-w-7xl mx-auto w-full">
@@ -35,7 +45,7 @@ export function Header() {
       >
         {/* Designer link */}
         <a
-          href="/designer"
+          href={designerHref}
           className="flex items-center gap-1.5 text-xs text-[#586e75] bg-[#eee8d5] dark:bg-[#073642] px-2.5 py-1.5 rounded-lg hover:bg-[#eee8d5]/80 dark:hover:bg-[#073642]/80 transition-colors"
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
