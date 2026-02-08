@@ -282,3 +282,17 @@ State is encoded in the URL path and query string, making every configuration sh
 | Supernet | `/super?nets=<cidr>,<cidr>,...` | `/super?nets=10.0.0.0/24,10.0.1.0/24` |
 
 Bare IP URLs are normalized on load to include the inferred prefix (e.g. `/10.0.0.0` → `/10.0.0.0/8`). See [URL Sharing](url-sharing.md) for the full specification.
+
+## OpenGraph & Social Previews
+
+Shared links display rich previews on Twitter, Slack, LinkedIn, Discord, and other platforms. A Cloudflare Worker generates dynamic OG images and meta tags for every page:
+
+| Page | OG Image | Title |
+|------|----------|-------|
+| Homepage | Logo + feature pills | subnet.fit — CIDR Calculator & Network Planner |
+| CIDR (`/10.0.0.0/24`) | CIDR + network details card | 10.0.0.0/24 — subnet.fit |
+| Splitter (`/10.0.0.0/16?split=...`) | Parent CIDR + split rows | 10.0.0.0/16 Subnet Splitter — subnet.fit |
+| Supernet (`/super?nets=...`) | Input networks list | Supernet Calculator — subnet.fit |
+| Designer (`/designer`) | Cloud provider tagline | Network Designer — subnet.fit |
+
+OG images are 1200x630 PNGs rendered on-the-fly using satori + resvg-wasm, cached for 7 days. The page `<title>` is also updated client-side via `useDocumentTitle()`.

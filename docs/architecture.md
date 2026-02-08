@@ -218,4 +218,10 @@ See [URL Sharing](url-sharing.md) for the full specification.
 
 ## Deployment
 
-Deployed to **Cloudflare Workers** via GitHub Actions (`.github/workflows/deploy.yml`). The `wrangler.jsonc` config uses `single-page-application` not-found handling so all paths serve `index.html`, which is critical for path-based routing.
+Deployed to **Cloudflare Workers** via GitHub Actions (`.github/workflows/deploy.yml`). The Worker (`worker/index.ts`) handles three concerns:
+
+1. **Static assets** — requests with file extensions pass through to `env.ASSETS.fetch()`
+2. **OG image generation** — `/og/*` routes render dynamic PNG images using `satori` (SVG) + `@resvg/resvg-wasm` (PNG), with 7-day cache headers
+3. **SPA routing + meta tags** — all other paths serve `index.html` via `env.ASSETS.fetch()`, with `HTMLRewriter` injecting dynamic `og:*` and `twitter:*` meta tags based on the URL (CIDR, splitter, supernet, designer)
+
+The `wrangler.jsonc` config uses Worker+Assets hybrid mode (`main` + `assets.binding: "ASSETS"`). Module rules bundle TTF fonts as `Data` and WASM as `CompiledWasm`.

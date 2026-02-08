@@ -1,7 +1,7 @@
 import satori from 'satori'
 import { Resvg, initWasm } from '@resvg/resvg-wasm'
 // @ts-expect-error -- wasm binary import handled by wrangler CompiledWasm rule
-import resvgWasm from '@resvg/resvg-wasm/index_bg.wasm'
+import resvgWasm from './resvg.wasm'
 import { getFonts } from './fonts'
 import { parseCidr } from '../src/lib/cidr'
 import { decodeState } from '../src/lib/url-codec'
@@ -14,18 +14,16 @@ let cachedBgBase64: string | null = null
 const WIDTH = 1200
 const HEIGHT = 630
 
-async function ensureWasm(): Promise<boolean> {
-  if (wasmInitialized) return true
-  if (wasmFailed) return false
+async function ensureWasm(): Promise<void> {
+  if (wasmInitialized) return
+  if (wasmFailed) throw new Error('WASM previously failed to initialize')
 
   try {
     await initWasm(resvgWasm)
     wasmInitialized = true
-    return true
   } catch (e) {
-    console.error('Failed to initialize resvg WASM:', e)
     wasmFailed = true
-    return false
+    throw e
   }
 }
 
@@ -80,43 +78,57 @@ export async function handleOgImage(
   request: Request,
   env: Env,
 ): Promise<Response> {
-  const wasmReady = await ensureWasm()
-  if (!wasmReady) {
-    return new Response('OG image generation unavailable', { status: 503 })
+  try {
+    await ensureWasm()
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return new Response(`OG image generation failed: WASM init error: ${msg}`, {
+      status: 500,
+      headers: { 'Content-Type': 'text/plain' },
+    })
   }
 
-  const url = new URL(request.url)
-  const ogPath = url.pathname.replace(/^\/og\/?/, '/')
-  const search = url.search
+  try {
+    const url = new URL(request.url)
+    const ogPath = url.pathname.replace(/^\/og\/?/, '/')
+    const search = url.search
 
-  const bgBase64 = await getBackgroundBase64(env)
+    const bgBase64 = await getBackgroundBase64(env)
 
-  let template
+    let template
 
-  if (ogPath.startsWith('/designer')) {
-    template = designerTemplate(bgBase64)
-  } else if (ogPath === '/') {
-    template = homepageTemplate(bgBase64)
-  } else {
-    const state = decodeState(ogPath, search)
-    const cidrResult = state?.cidr ? parseCidr(state.cidr) : null
-    template = buildTemplate(bgBase64, state, cidrResult)
+    if (ogPath.startsWith('/designer')) {
+      template = designerTemplate(bgBase64)
+    } else if (ogPath === '/') {
+      template = homepageTemplate(bgBase64)
+    } else {
+      const state = decodeState(ogPath, search)
+      const cidrResult = state?.cidr ? parseCidr(state.cidr) : null
+      template = buildTemplate(bgBase64, state, cidrResult)
+    }
+
+    const fonts = getFonts()
+
+    const svg = await satori(template as Parameters<typeof satori>[0], {
+      width: WIDTH,
+      height: HEIGHT,
+      fonts,
+    })
+
+    const png = svgToPng(svg)
+
+    return new Response(png, {
+      headers: {
+        'Content-Type': 'image/png',
+        'Cache-Control': 'public, max-age=604800, s-maxage=604800',
+      },
+    })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    const stack = e instanceof Error ? e.stack : ''
+    return new Response(`OG image generation failed: ${msg}\n${stack}`, {
+      status: 500,
+      headers: { 'Content-Type': 'text/plain' },
+    })
   }
-
-  const fonts = getFonts()
-
-  const svg = await satori(template as Parameters<typeof satori>[0], {
-    width: WIDTH,
-    height: HEIGHT,
-    fonts,
-  })
-
-  const png = svgToPng(svg)
-
-  return new Response(png, {
-    headers: {
-      'Content-Type': 'image/png',
-      'Cache-Control': 'public, max-age=604800, s-maxage=604800',
-    },
-  })
 }

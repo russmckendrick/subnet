@@ -19,13 +19,7 @@ export default {
 
     // 1. OG image generation
     if (pathname.startsWith('/og')) {
-      try {
-        return await handleOgImage(request, env)
-      } catch (e) {
-        console.error('OG image generation failed:', e)
-        // Fallback: return a transparent 1x1 pixel
-        return new Response(null, { status: 500 })
-      }
+      return handleOgImage(request, env)
     }
 
     // 2. Static assets — pass through to Cloudflare Assets

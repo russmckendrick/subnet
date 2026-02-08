@@ -184,11 +184,21 @@ subnet/
 │   └── index.css          Tailwind import, theme tokens, global styles
 ├── index.html             HTML shell
 ├── vite.config.ts         Vite + React + Tailwind plugins
-├── tsconfig.json          Root tsconfig (references app + node)
+├── tsconfig.json          Root tsconfig (references app + node; worker excluded)
 ├── tsconfig.app.json      Application TypeScript config
 ├── tsconfig.node.json     Build tooling TypeScript config
 ├── eslint.config.js       ESLint flat config
 ├── package.json           Dependencies and scripts
+├── worker/                Cloudflare Worker (OG images, meta tags, SPA routing)
+│   ├── index.ts           Worker entry point and request routing
+│   ├── og-image.ts        satori + resvg-wasm PNG generation pipeline
+│   ├── og-template.ts     Satori virtual DOM templates per page type
+│   ├── meta-tags.ts       HTMLRewriter handlers for dynamic meta injection
+│   ├── fonts.ts           Bundled font data (Schibsted Grotesk, Martian Mono)
+│   ├── logo.ts            Logo SVG as data URI
+│   ├── types.d.ts         Type declarations for TTF/WASM imports
+│   └── fonts/             TTF font files
+├── tsconfig.worker.json   Worker TypeScript config (not in tsc -b references)
 ├── wrangler.jsonc         Cloudflare Workers deployment config
 └── CLAUDE.md              AI assistant instructions
 ```
