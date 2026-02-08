@@ -35,6 +35,7 @@ interface CalculatorState {
   addSplit: (prefix: number) => void
   removeSplit: (index: number) => void
   updateSplitLabel: (index: number, label: string) => void
+  updateSplitColor: (index: number, color: string) => void
   resetSplits: () => void
   setSupernetInputs: (inputs: string) => void
   setActiveDrawer: (drawer: 'none' | 'supernet' | 'reference') => void
@@ -116,6 +117,12 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
     newLabels[index] = label
     const newSplits = splits.map((s, i) => (i === index ? { ...s, label } : s))
     set({ splitLabels: newLabels, splits: newSplits })
+  },
+
+  updateSplitColor: (index, color) => {
+    const { splits } = get()
+    const newSplits = splits.map((s, i) => (i === index ? { ...s, color } : s))
+    set({ splits: newSplits })
   },
 
   resetSplits: () => {
