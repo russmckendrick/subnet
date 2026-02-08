@@ -8,12 +8,6 @@ export function Header() {
   const { setActiveDrawer, setCommandPaletteOpen, rawInput, result, splits } = useCalculatorStore()
 
   const designerHref = useMemo(() => {
-    // If the designer already has a saved diagram, go bare so persistence
-    // restores the full state (including resources the user added).
-    try {
-      if (localStorage.getItem('subnet-designer-state')) return '/designer'
-    } catch { /* noop */ }
-
     if (!result || !rawInput) return '/designer'
     const params: string[] = [`from=${encodeURIComponent(rawInput)}`]
     if (splits.length > 0) {

@@ -77,15 +77,15 @@ Components:
 - `/designer` — Empty canvas (loads from localStorage if available)
 - `/designer?from=10.0.0.0/16&split=24~Web,25~API` — Auto-generates Internet Gateway → VPC → Subnet nodes
 
-When URL parameters are present, they take precedence over any saved localStorage diagram. The `useDesignerUrlSync` hook reads these params and calls `generateInitialLayout()` from `diagram-layout.ts`.
+When URL parameters are present, `useDesignerUrlSync` checks for a saved diagram in localStorage. If a saved diagram exists with the same VPC CIDR, new subnets from the URL are **merged** into the existing diagram — preserving all existing nodes, edges, positions, and user-added resources. If no saved diagram exists or the CIDR differs, a fresh layout is generated via `generateInitialLayout()` from `diagram-layout.ts`.
 
 ### Bidirectional Navigation
 
 Navigation between the calculator and designer preserves state in both directions using URL parameters:
 
 **Calculator → Designer:**
-- The Header "Designer" link and command palette "Open Designer" command build `/designer?from={cidr}&split={prefix~label,...}` from calculator store state — but only when no saved diagram exists in localStorage. If a saved diagram exists, they link to bare `/designer` so persistence restores the full state (including any resources the user added)
-- The SplitterToolbar "Open in Designer" button always carries params as an explicit "generate new diagram" action
+- The Header "Designer" link, command palette "Open Designer" command, and SplitterToolbar "Open in Designer" button always build `/designer?from={cidr}&split={prefix~label,...}` from calculator store state
+- `useDesignerUrlSync` handles merge logic: if a saved diagram exists with the same VPC CIDR, only new subnets are added (existing nodes/resources preserved); otherwise a fresh layout is generated
 - Falls back to bare `/designer` when no CIDR is loaded
 
 **Designer → Calculator:**
