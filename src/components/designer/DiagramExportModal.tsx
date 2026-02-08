@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useDesignerStore } from '@/store/designer-store'
 import { useThemeStore } from '@/store/theme-store'
 import { useClipboard } from '@/hooks/use-clipboard'
-import { diagramToPng, diagramToSvg, diagramToJson, diagramToDrawio } from '@/lib/export-diagram'
+import { diagramToPng, diagramToSvg, diagramToJson, diagramToDrawio, getDiagramsNetUrl } from '@/lib/export-diagram'
 import { tokenize, getTokenColor, type Language } from '@/lib/syntax-highlight'
 
 type ExportCategory = 'image' | 'data' | 'drawio'
@@ -223,10 +223,34 @@ export function DiagramExportModal() {
                             Compatible with draw.io / diagrams.net.
                           </p>
                           <button
-                            onClick={() => downloadText(drawioCode, 'network-diagram.drawio', 'application/xml')}
-                            className="text-xs px-2.5 py-1 rounded-md font-medium bg-[#fdf6e3] dark:bg-[#002b36] text-[#93a1a1] dark:text-[#586e75] hover:text-[#2aa198] transition-colors"
+                            onClick={() => copy(drawioCode, 'diagram-drawio')}
+                            className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
+                              isCopied('diagram-drawio')
+                                ? 'bg-[#859900]/20 text-[#859900]'
+                                : 'bg-[#fdf6e3] dark:bg-[#002b36] text-[#93a1a1] dark:text-[#586e75] hover:text-[#586e75] dark:hover:text-[#93a1a1]'
+                            }`}
                           >
+                            {isCopied('diagram-drawio') ? 'Copied!' : 'Copy'}
+                          </button>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => downloadText(drawioCode, 'network-diagram.drawio', 'application/xml')}
+                            className="flex-1 flex items-center justify-center gap-2 text-xs font-medium text-[#586e75] dark:text-[#93a1a1] bg-[#fdf6e3] dark:bg-[#002b36] px-4 py-2.5 rounded-lg border border-[#93a1a1]/20 dark:border-[#586e75]/20 hover:border-[#2aa198]/30 hover:text-[#2aa198] transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                            </svg>
                             Download .drawio
+                          </button>
+                          <button
+                            onClick={() => window.open(getDiagramsNetUrl(drawioCode), '_blank')}
+                            className="flex-1 flex items-center justify-center gap-2 text-xs font-medium text-[#586e75] dark:text-[#93a1a1] bg-[#fdf6e3] dark:bg-[#002b36] px-4 py-2.5 rounded-lg border border-[#93a1a1]/20 dark:border-[#586e75]/20 hover:border-[#2aa198]/30 hover:text-[#2aa198] transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg>
+                            Open in diagrams.net
                           </button>
                         </div>
                         <CodePreview code={drawioCode} language="xml" />

@@ -1,5 +1,6 @@
 import { toPng, toSvg } from 'html-to-image'
 import type { Node, Edge } from '@xyflow/react'
+import pako from 'pako'
 import { CLOUD_THEMES, type CloudProvider } from './cloud-theme'
 import { getDrawioSvgDataUri } from './drawio-icons'
 
@@ -299,4 +300,13 @@ export function diagramToDrawio(nodes: Node[], edges: Edge[]): string {
     '  </diagram>',
     '</mxfile>',
   ].join('\n')
+}
+
+export function getDiagramsNetUrl(xml: string): string {
+  // Strip background attribute so diagrams.net uses its own default
+  const cleanXml = xml.replace(/ background="[^"]*"/, '')
+  const uriEncoded = encodeURIComponent(cleanXml)
+  const deflated = pako.deflateRaw(uriEncoded)
+  const base64 = btoa(String.fromCharCode.apply(null, deflated as unknown as number[]))
+  return `https://app.diagrams.net/#R${base64}`
 }
