@@ -46,7 +46,7 @@ export function homepageTemplate(): string {
 
   return rootContainer(
     logoAndBrand(),
-    `<div style="display:flex;flex-direction:column;margin-top:40px;gap:12px"><span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:52px;color:${BASE1}">CIDR Calculator &amp;</span><span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:52px;color:${CYAN}">Network Planner</span></div>`,
+    `<div style="display:flex;flex-direction:column;margin-top:40px;gap:12px"><span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:52px;color:${BASE1}">CIDR Calculator and</span><span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:52px;color:${CYAN}">Network Planner</span></div>`,
     `<div style="display:flex;margin-top:24px;gap:16px">${pills.map(p => `<div style="display:flex;padding:12px 24px;border-radius:8px;background-color:${p.color}20;border:2px solid ${p.color}40"><span style="font-family:'Schibsted Grotesk';font-weight:600;font-size:22px;color:${p.color}">${p.label}</span></div>`).join('')}</div>`,
     ctaText('Visual subnet calculator with cloud context'),
   )
@@ -73,7 +73,7 @@ export function cidrTemplate(result: CidrResult): string {
     logoAndBrand(),
     `<div style="display:flex;align-items:baseline;margin-top:20px"><span style="font-family:'Martian Mono';font-weight:400;font-size:56px;color:${BASE1}">${ipAddr}</span><span style="font-family:'Martian Mono';font-weight:400;font-size:56px;color:${CYAN}">/${prefix}</span></div>`,
     `<div style="display:flex;flex-direction:column;width:100%;margin-top:20px;padding:20px 28px;background-color:${BASE02}e6;border-radius:12px;border:1px solid ${BASE1}20;gap:10px"><div style="display:flex;width:100%;align-items:center;gap:12px;margin-bottom:4px"><span style="font-family:'Martian Mono';font-size:32px;color:${CYAN}">${formatNumber(result.usableHosts)}</span><span style="font-family:'Schibsted Grotesk';font-size:22px;color:${BASE0}">usable hosts</span><div style="display:flex;margin-left:auto;gap:8px"><div style="display:flex;padding:4px 12px;border-radius:6px;background-color:${BLUE}30"><span style="font-family:'Schibsted Grotesk';font-size:16px;color:${BLUE}">Class ${result.ipClass}</span></div>${rfcBadge}</div></div>${detailRows.map(([label, value]) => `<div style="display:flex;width:100%;justify-content:space-between;align-items:center"><span style="font-family:'Schibsted Grotesk';font-size:18px;color:${BASE0}">${label}</span><span style="font-family:'Martian Mono';font-size:18px;color:${BASE1}">${value}</span></div>`).join('')}</div>`,
-    ctaText('Calculate, split &amp; visualize any subnet'),
+    ctaText('Calculate, split and visualize any subnet'),
   )
 }
 
