@@ -112,6 +112,7 @@ interface DesignerState {
   setActiveLayer: (layer: ActiveLayer) => void
   setPendingDrop: (drop: PendingDrop | null) => void
   loadFromStorage: (state: { nodes: Node<DesignerNodeData>[]; edges: Edge[]; cloudProvider?: CloudProvider }) => void
+  importDiagram: (state: { nodes: Node<DesignerNodeData>[]; edges: Edge[]; cloudProvider?: CloudProvider }) => void
 }
 
 export const useDesignerStore = create<DesignerState>((set, get) => ({
@@ -221,6 +222,15 @@ export const useDesignerStore = create<DesignerState>((set, get) => ({
     edges: state.edges,
     cloudProvider: state.cloudProvider ?? 'generic',
     isDirty: false,
+    selectedNodeId: null,
+    selectedNodeIds: [],
+  }),
+
+  importDiagram: (state) => set({
+    nodes: state.nodes,
+    edges: state.edges,
+    cloudProvider: state.cloudProvider ?? 'generic',
+    isDirty: true,
     selectedNodeId: null,
     selectedNodeIds: [],
   }),

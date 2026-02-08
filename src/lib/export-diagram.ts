@@ -4,9 +4,9 @@ import pako from 'pako'
 import { CLOUD_THEMES, type CloudProvider } from './cloud-theme'
 import { getDrawioSvgDataUri } from './drawio-icons'
 
-export async function diagramToPng(element: HTMLElement, isDark: boolean): Promise<Blob> {
+export async function diagramToPng(element: HTMLElement): Promise<Blob> {
   const dataUrl = await toPng(element, {
-    backgroundColor: isDark ? '#002b36' : '#fdf6e3',
+    backgroundColor: 'transparent',
     pixelRatio: 2,
   })
 
@@ -14,17 +14,93 @@ export async function diagramToPng(element: HTMLElement, isDark: boolean): Promi
   return res.blob()
 }
 
-export async function diagramToSvg(element: HTMLElement, isDark: boolean): Promise<Blob> {
+export async function diagramToSvg(element: HTMLElement): Promise<Blob> {
   const dataUrl = await toSvg(element, {
-    backgroundColor: isDark ? '#002b36' : '#fdf6e3',
+    backgroundColor: 'transparent',
   })
 
   const res = await fetch(dataUrl)
   return res.blob()
 }
 
-export function diagramToJson(nodes: Node[], edges: Edge[]): string {
-  return JSON.stringify({ nodes, edges, version: 2 }, null, 2)
+export interface DiagramJsonData {
+  nodes: Node[]
+  edges: Edge[]
+  version: number
+  cloudProvider: string
+}
+
+export function diagramToJson(nodes: Node[], edges: Edge[], cloudProvider?: string): string {
+  return JSON.stringify({ nodes, edges, cloudProvider: cloudProvider ?? 'generic', version: 2 }, null, 2)
+}
+
+export function parseDiagramJson(jsonStr: string): DiagramJsonData {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(jsonStr)
+  } catch {
+    throw new Error('Invalid JSON format')
+  }
+
+  if (typeof parsed !== 'object' || parsed === null) {
+    throw new Error('JSON must be an object')
+  }
+
+  const obj = parsed as Record<string, unknown>
+
+  if (!Array.isArray(obj.nodes)) {
+    throw new Error('Missing or invalid "nodes" array')
+  }
+
+  if (!Array.isArray(obj.edges)) {
+    throw new Error('Missing or invalid "edges" array')
+  }
+
+  for (const node of obj.nodes) {
+    if (typeof node !== 'object' || node === null) {
+      throw new Error('Each node must be an object')
+    }
+    const n = node as Record<string, unknown>
+    if (typeof n.id !== 'string' || typeof n.position !== 'object' || typeof n.data !== 'object') {
+      throw new Error('Each node must have id (string), position (object), and data (object)')
+    }
+  }
+
+  return {
+    nodes: obj.nodes as Node[],
+    edges: obj.edges as Edge[],
+    version: typeof obj.version === 'number' ? obj.version : 1,
+    cloudProvider: typeof obj.cloudProvider === 'string' ? obj.cloudProvider : 'generic',
+  }
+}
+
+export function compressDiagramState(nodes: Node[], edges: Edge[], cloudProvider?: string): string {
+  const json = JSON.stringify({ nodes, edges, cloudProvider: cloudProvider ?? 'generic', version: 2 })
+  const deflated = pako.deflateRaw(new TextEncoder().encode(json))
+  // base64url encoding
+  const base64 = btoa(String.fromCharCode.apply(null, deflated as unknown as number[]))
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+export function decompressDiagramState(compressed: string): DiagramJsonData | null {
+  try {
+    // Restore base64 from base64url
+    let base64 = compressed.replace(/-/g, '+').replace(/_/g, '/')
+    while (base64.length % 4 !== 0) base64 += '='
+    const binary = atob(base64)
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+    const inflated = pako.inflateRaw(bytes)
+    const json = new TextDecoder().decode(inflated)
+    return parseDiagramJson(json)
+  } catch {
+    return null
+  }
+}
+
+export function getShareUrl(nodes: Node[], edges: Edge[], cloudProvider?: string): string {
+  const compressed = compressDiagramState(nodes, edges, cloudProvider)
+  return `${window.location.origin}/designer?d=${compressed}`
 }
 
 function escapeXml(str: string): string {

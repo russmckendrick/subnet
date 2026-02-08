@@ -3,16 +3,20 @@ import { parseCidr } from '@/lib/cidr'
 import { allocateSubnets } from '@/lib/subnet-math'
 import { generateInitialLayout } from '@/lib/diagram-layout'
 import { useDesignerStore } from '@/store/designer-store'
+import type { DesignerNodeData } from '@/store/designer-store'
+import { decompressDiagramState } from '@/lib/export-diagram'
+import { migrateDiagramState, type StorageState } from '@/lib/diagram-migration'
 import type { CloudProvider } from '@/lib/cloud-theme'
+import type { Node } from '@xyflow/react'
 
 const VALID_PROVIDERS = new Set<CloudProvider>(['aws', 'azure', 'gcp', 'generic'])
 
 /**
- * Parse ?from=, &split=, and &provider= URL params on mount,
+ * Parse ?d= (compressed share URL), ?from=, &split=, and &provider= URL params on mount,
  * then initialize the designer canvas with an auto-generated layout.
  */
 export function useDesignerUrlSync() {
-  const { initFromLayout, setCloudProvider } = useDesignerStore()
+  const { initFromLayout, setCloudProvider, importDiagram } = useDesignerStore()
   const initializedRef = useRef(false)
 
   useEffect(() => {
@@ -20,6 +24,27 @@ export function useDesignerUrlSync() {
     initializedRef.current = true
 
     const params = new URLSearchParams(window.location.search)
+
+    // Handle compressed share URL (?d=)
+    const compressedParam = params.get('d')
+    if (compressedParam) {
+      const data = decompressDiagramState(compressedParam)
+      if (data) {
+        const migrated = migrateDiagramState(data as StorageState)
+        const provider = (migrated.cloudProvider as CloudProvider) || 'generic'
+        if (provider !== 'generic') {
+          setCloudProvider(provider)
+        }
+        importDiagram({
+          nodes: migrated.nodes as Node<DesignerNodeData>[],
+          edges: migrated.edges,
+          cloudProvider: provider,
+        })
+        history.replaceState(null, '', '/designer')
+      }
+      return
+    }
+
     const fromCidr = params.get('from')
     const splitParam = params.get('split')
     const providerParam = params.get('provider') as CloudProvider | null
@@ -59,5 +84,5 @@ export function useDesignerUrlSync() {
 
     const { nodes, edges } = generateInitialLayout(parentResult, splits, provider)
     initFromLayout(nodes, edges)
-  }, [initFromLayout, setCloudProvider])
+  }, [initFromLayout, setCloudProvider, importDiagram])
 }
