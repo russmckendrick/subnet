@@ -28,7 +28,7 @@ See the [`docs/`](docs/) folder for detailed documentation:
 
 ## Architecture
 
-subnet.fit is a client-side-only CIDR/subnet calculator. All computation happens in the browser — there is no backend. The only external API call is the optional RDAP lookup against `rdap.org` for public IP registration data.
+subnet.fit is a CIDR/subnet calculator. All core computation happens in the browser — there is no backend. The only external API call is the optional RDAP lookup against `rdap.org` for public IP registration data. A Cloudflare Worker handles SPA routing, dynamic OpenGraph meta tag injection via `HTMLRewriter`, and on-the-fly OG image generation using `satori` + `@resvg/resvg-wasm`.
 
 ### Layers
 

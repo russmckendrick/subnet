@@ -1,9 +1,22 @@
 {
   "name": "subnetfit",
+  "main": "worker/index.ts",
   "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./dist",
-    "html_handling": "auto-trailing-slash",
-    "not_found_handling": "single-page-application"
-  }
+    "binding": "ASSETS"
+  },
+  "rules": [
+    {
+      "type": "Data",
+      "globs": ["**/*.ttf"],
+      "fallthrough": false
+    },
+    {
+      "type": "CompiledWasm",
+      "globs": ["**/*.wasm"],
+      "fallthrough": false
+    }
+  ]
 }

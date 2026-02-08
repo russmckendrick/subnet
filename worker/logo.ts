@@ -1,0 +1,32 @@
+// Logo SVG inlined as data URI for use in satori templates
+const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100">
+  <defs>
+    <style>
+      .solarized-base1 { fill: #93a1a1; }
+      .solarized-yellow { fill: #b58900; }
+      .solarized-orange { fill: #cb4b16; }
+      .solarized-magenta { fill: #d33682; }
+      .solarized-cyan { fill: #2aa198; }
+    </style>
+  </defs>
+  <g transform="translate(20, 10)">
+    <rect class="solarized-cyan" x="0" y="0" width="80" height="20" rx="4" />
+    <rect class="solarized-yellow" x="0" y="0" width="10" height="20" rx="4" />
+    <rect class="solarized-base1" x="82" y="0" width="60" height="20" rx="4" />
+    <rect class="solarized-magenta" x="144" y="0" width="15" height="20" rx="4" />
+  </g>
+  <g transform="translate(50, 40)">
+    <rect class="solarized-cyan" x="0" y="0" width="50" height="20" rx="4" />
+    <rect class="solarized-base1" x="52" y="0" width="70" height="20" rx="4" />
+    <rect class="solarized-orange" x="80" y="0" width="12" height="20" rx="4" />
+    <rect class="solarized-magenta" x="124" y="0" width="15" height="20" rx="4" />
+  </g>
+  <g transform="translate(30, 70)">
+    <rect class="solarized-cyan" x="0" y="0" width="40" height="20" rx="4" />
+    <rect class="solarized-base1" x="42" y="0" width="90" height="20" rx="4" />
+    <rect class="solarized-magenta" x="134" y="0" width="15" height="20" rx="4" />
+    <rect class="solarized-yellow" x="139" y="0" width="10" height="20" rx="4" />
+  </g>
+</svg>`
+
+export const LOGO_DATA_URI = `data:image/svg+xml;base64,${btoa(logoSvg)}`

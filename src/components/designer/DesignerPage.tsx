@@ -17,6 +17,10 @@ function DesignerContent() {
   useDesignerShortcuts()
   const calculatorHref = useCalculatorHref()
 
+  useEffect(() => {
+    document.title = 'Network Designer — subnet.fit'
+  }, [])
+
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {

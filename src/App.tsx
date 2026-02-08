@@ -10,11 +10,13 @@ import { Drawer } from '@/components/shared/Drawer'
 import { CommandPalette } from '@/components/command-palette/CommandPalette'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { useUrlSync } from '@/hooks/use-url-sync'
+import { useDocumentTitle } from '@/hooks/use-document-title'
 import { DesignerPage } from '@/components/designer/DesignerPage'
 
 function Calculator() {
   const { result, activeDrawer, setActiveDrawer } = useCalculatorStore()
   useUrlSync()
+  useDocumentTitle()
 
   return (
     <Layout>

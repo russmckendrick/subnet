@@ -12,6 +12,7 @@
     "generate-icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
+    "@resvg/resvg-wasm": "^2.6.2",
     "@tailwindcss/vite": "^4.1.18",
     "@xyflow/react": "^12.10.0",
     "html-to-image": "^1.11.13",
@@ -21,10 +22,12 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-icons": "^5.5.0",
+    "satori": "^0.19.1",
     "tailwindcss": "^4.1.18",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260207.0",
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.1",
     "@types/pako": "^2.0.4",
