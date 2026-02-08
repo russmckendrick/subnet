@@ -170,9 +170,11 @@ The React Flow canvas supports:
 - Panning and zooming with mouse/trackpad
 - Multi-node selection with Shift+click or drag selection
 - Node deletion with Delete/Backspace keys
-- Node-to-node connections by dragging between handles
+- Node-to-node connections by dragging between handles with 20px snap radius
 - Drag-and-drop from the resource palette to add new nodes
+- Tap-to-place mode on touch devices (iPad) — tap a palette item, then tap the canvas
 - MiniMap for navigation and zoom controls
+- Container nodes (VPC, Subnet) are resizable when selected via drag handles
 
 ### Node Types
 
@@ -181,9 +183,16 @@ Two node types are available:
 - **Subnet Nodes** — Represent network subnets with CIDR notation, label, color bar, host count, and network address
 - **Resource Nodes** — Represent network infrastructure (routers, switches, firewalls, servers, databases, load balancers, internet gateways, VPCs, cloud resources) with icons and labels. Cloud provider icons (Azure: 24, AWS: 18, GCP: 17) are auto-generated from official SVGs via `pnpm generate-icons` — Azure uses multicolor gradient icons, while AWS/GCP use stroke-based placeholders until official SVGs are added
 
+### Layer System
+
+Toggle between viewing modes using the segmented control in the header or keyboard shortcuts:
+- **All** (key `1`) — All nodes visible and interactive
+- **Infrastructure** (key `2`) — Containers (VPC, Subnet) active; resources dimmed and non-interactive
+- **Resources** (key `3`) — Resources active; containers dimmed and non-interactive
+
 ### Properties Panel
 
-Click any node to open a right-side drawer panel for editing:
+Click any node to open an inline right sidebar (not an overlay) for editing. The panel includes a Delete Node button in the footer:
 - **Subnet nodes** — View CIDR (read-only), edit label, change color via an 8-swatch Solarized accent picker, view host count and network/broadcast addresses
 - **Resource nodes** — View icon and type (read-only), edit label. Resource type labels are centralised in `src/lib/resource-labels.ts` for easy editing without touching component code
 
@@ -241,6 +250,9 @@ A compact bar at the bottom-center of the canvas with:
 | `Escape` | Designer | Close export modal (if open), otherwise deselect all nodes |
 | `Cmd/Ctrl+E` | Designer | Toggle the export modal |
 | `Cmd/Ctrl+S` | Designer | Save diagram to localStorage |
+| `1` | Designer | Switch to All layers |
+| `2` | Designer | Switch to Infrastructure layer |
+| `3` | Designer | Switch to Resources layer |
 | `Delete` / `Backspace` | Designer, node selected | Delete the selected node(s) |
 
 ## Dark/Light Mode

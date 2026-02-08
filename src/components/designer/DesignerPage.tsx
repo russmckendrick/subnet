@@ -57,8 +57,8 @@ function DesignerContent() {
       <div className="flex flex-1 overflow-hidden">
         <ResourcePalette />
         <DesignerCanvas />
+        <PropertiesPanel />
       </div>
-      <PropertiesPanel />
       <DiagramExportModal />
     </div>
   )

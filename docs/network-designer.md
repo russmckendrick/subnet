@@ -145,7 +145,7 @@ All edges (auto-generated from layout, created via `onConnect`, or loaded from s
 
 ### PropertiesPanel (`src/components/designer/PropertiesPanel.tsx`)
 
-A right-side `<Drawer>` that opens when `selectedNodeId !== null`. Reads the node from the store and renders the appropriate sub-panel.
+An inline right sidebar (320px wide) that slides open when `selectedNodeId !== null`. Uses `motion/react` `AnimatePresence` for animated width transitions. Lives inside the flex row alongside `ResourcePalette` and `DesignerCanvas`, so it never overlays the header. Includes a Delete Node button in the footer.
 
 ### SubnetProperties (`src/components/designer/panels/SubnetProperties.tsx`)
 
@@ -300,6 +300,9 @@ Follows the same pattern as `use-keyboard-shortcuts.ts` — `useCallback` + `use
 | `Escape` | Close export modal (if open), otherwise deselect all nodes |
 | `Cmd/Ctrl+E` | Toggle the export modal |
 | `Cmd/Ctrl+S` | Save diagram to localStorage (prevents browser save dialog) |
+| `1` | Switch to All layers |
+| `2` | Switch to Infrastructure layer |
+| `3` | Switch to Resources layer |
 | `Delete` / `Backspace` | Delete selected nodes (handled by React Flow's `deleteKeyCode` prop) |
 
 ## Floating Toolbar
@@ -334,6 +337,8 @@ interface DesignerState {
   isPaletteOpen: boolean               // Resource palette expanded/collapsed
   isDirty: boolean                     // Unsaved changes flag
   isExportOpen: boolean                // Export modal visibility
+  activeLayer: 'all' | 'infrastructure' | 'resources'  // Layer filter
+  pendingDrop: PendingDrop | null      // Touch tap-to-place state
 }
 ```
 
@@ -401,6 +406,9 @@ sequenceDiagram
 | `src/lib/export-diagram.ts` | PNG, SVG, JSON, draw.io export functions |
 | `src/hooks/use-diagram-persistence.ts` | localStorage auto-save/load with debounce |
 | `src/hooks/use-designer-shortcuts.ts` | Keyboard shortcut handler |
+| `src/components/designer/LayerToggle.tsx` | Layer toggle segmented control (All/Infra/Resources) |
+| `src/components/designer/PendingDropBanner.tsx` | Touch tap-to-place status banner |
+| `src/hooks/use-touch-detect.ts` | Touch device detection hook |
 
 ### Existing Files
 

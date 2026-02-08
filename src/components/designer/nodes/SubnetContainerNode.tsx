@@ -1,4 +1,4 @@
-import { Handle, Position } from '@xyflow/react'
+import { Handle, Position, NodeResizer } from '@xyflow/react'
 import type { NodeProps, Node } from '@xyflow/react'
 import type { SubnetContainerNodeData } from '@/store/designer-store'
 import { getCloudTheme } from '@/lib/cloud-theme'
@@ -20,10 +20,19 @@ export function SubnetContainerNode({ id, data, selected }: SubnetContainerNodeP
         backgroundColor: isDark
           ? `${data.color}08`
           : `${data.color}06`,
+        pointerEvents: 'none',
       }}
     >
-      {/* Header row */}
-      <div className="flex items-center justify-between px-3 py-2">
+      <NodeResizer
+        isVisible={selected}
+        minWidth={200}
+        minHeight={120}
+        lineStyle={{ borderColor: data.color, borderWidth: 1 }}
+        handleStyle={{ backgroundColor: data.color, width: 8, height: 8, borderRadius: 2 }}
+      />
+
+      {/* Header row — clickable to select container */}
+      <div className="flex items-center justify-between px-3 py-2" style={{ pointerEvents: 'auto' }}>
         <div className="flex items-center gap-2">
           <div
             className="w-2 h-2 rounded-full shrink-0"
@@ -55,39 +64,43 @@ export function SubnetContainerNode({ id, data, selected }: SubnetContainerNodeP
       <Handle
         type="target"
         position={Position.Top}
-        className="!w-2.5 !h-2.5 !border-2"
+        className="!w-3 !h-3 !border-2"
         style={{
           backgroundColor: data.color,
           borderColor: isDark ? '#073642' : '#eee8d5',
+          pointerEvents: 'auto',
         }}
       />
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!w-2.5 !h-2.5 !border-2"
+        className="!w-3 !h-3 !border-2"
         style={{
           backgroundColor: data.color,
           borderColor: isDark ? '#073642' : '#eee8d5',
+          pointerEvents: 'auto',
         }}
       />
       <Handle
         type="source"
         position={Position.Left}
         id="left"
-        className="!w-2.5 !h-2.5 !border-2"
+        className="!w-3 !h-3 !border-2"
         style={{
           backgroundColor: data.color,
           borderColor: isDark ? '#073642' : '#eee8d5',
+          pointerEvents: 'auto',
         }}
       />
       <Handle
         type="source"
         position={Position.Right}
         id="right"
-        className="!w-2.5 !h-2.5 !border-2"
+        className="!w-3 !h-3 !border-2"
         style={{
           backgroundColor: data.color,
           borderColor: isDark ? '#073642' : '#eee8d5',
+          pointerEvents: 'auto',
         }}
       />
     </div>

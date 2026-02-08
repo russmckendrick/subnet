@@ -1,10 +1,12 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import {
   ReactFlow,
   MiniMap,
   Controls,
   Background,
   BackgroundVariant,
+  ConnectionMode,
+  useReactFlow,
   type Node,
   type ColorMode,
 } from '@xyflow/react'
@@ -18,6 +20,7 @@ import { SubnetContainerNode } from './nodes/SubnetContainerNode'
 import { CloudResourceNode } from './nodes/CloudResourceNode'
 import { NetworkEdge } from './edges/NetworkEdge'
 import { FloatingToolbar } from './FloatingToolbar'
+import { PendingDropBanner } from './PendingDropBanner'
 import { findContainerAtPoint, toRelativePosition } from '@/lib/diagram-container'
 
 const nodeTypes = {
@@ -45,10 +48,31 @@ export function DesignerCanvas() {
     addNode,
     setSelectedNodeId,
     setSelectedNodeIds,
+    activeLayer,
+    pendingDrop,
+    setPendingDrop,
   } = useDesignerStore()
 
   const theme = useThemeStore((s) => s.theme)
   const colorMode: ColorMode = theme === 'dark' ? 'dark' : 'light'
+
+  // Apply layer dimming via className
+  const INFRA_TYPES = new Set(['vpcContainerNode', 'subnetContainerNode'])
+  const RESOURCE_TYPES = new Set(['cloudResourceNode', 'resourceNode', 'subnetNode'])
+
+  const layeredNodes = useMemo(() => {
+    if (activeLayer === 'all') return nodes
+    return nodes.map((node) => {
+      const isDimmed =
+        (activeLayer === 'infrastructure' && RESOURCE_TYPES.has(node.type ?? '')) ||
+        (activeLayer === 'resources' && INFRA_TYPES.has(node.type ?? ''))
+      if (!isDimmed) return node
+      return {
+        ...node,
+        className: [node.className, 'layer-dimmed'].filter(Boolean).join(' '),
+      }
+    })
+  }, [nodes, activeLayer])
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
 
@@ -133,10 +157,71 @@ export function DesignerCanvas() {
     [setSelectedNodeId, setSelectedNodeIds],
   )
 
+  const { screenToFlowPosition } = useReactFlow()
+
+  // Tap-to-place for touch devices
+  const onPaneClick = useCallback(
+    (event: React.MouseEvent) => {
+      if (!pendingDrop) return
+
+      const position = screenToFlowPosition({ x: event.clientX, y: event.clientY })
+      const { nodeType, resourceType, label } = pendingDrop
+
+      // Check if position falls inside a container
+      const containerId = findContainerAtPoint(nodes, position.x, position.y)
+
+      if (containerId && nodeType === 'cloudResourceNode') {
+        const relPos = toRelativePosition(nodes, containerId, position.x, position.y)
+        const newNode: Node<CloudResourceNodeData> = {
+          id: `resource-${++nodeIdCounter}`,
+          type: 'cloudResourceNode',
+          position: relPos,
+          parentId: containerId,
+          extent: 'parent',
+          data: {
+            type: 'cloud-resource',
+            resourceType,
+            label,
+            cloudProvider,
+          },
+        }
+        addNode(newNode)
+      } else if (nodeType === 'cloudResourceNode') {
+        const newNode: Node<CloudResourceNodeData> = {
+          id: `resource-${++nodeIdCounter}`,
+          type: 'cloudResourceNode',
+          position,
+          data: {
+            type: 'cloud-resource',
+            resourceType,
+            label,
+            cloudProvider,
+          },
+        }
+        addNode(newNode)
+      } else {
+        const newNode: Node<ResourceNodeData> = {
+          id: `resource-${++nodeIdCounter}`,
+          type: nodeType,
+          position,
+          data: {
+            type: 'resource',
+            resourceType: resourceType as ResourceNodeData['resourceType'],
+            label,
+          },
+        }
+        addNode(newNode)
+      }
+
+      setPendingDrop(null)
+    },
+    [pendingDrop, setPendingDrop, screenToFlowPosition, addNode, nodes, cloudProvider],
+  )
+
   return (
     <div ref={reactFlowWrapper} className="relative flex-1 h-full">
       <ReactFlow
-        nodes={nodes}
+        nodes={layeredNodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
@@ -144,9 +229,13 @@ export function DesignerCanvas() {
         onDragOver={onDragOver}
         onDrop={onDrop}
         onSelectionChange={onSelectionChange}
+        onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         colorMode={colorMode}
+        connectionRadius={20}
+        connectionMode={ConnectionMode.Loose}
+        elevateNodesOnSelect
         fitView
         fitViewOptions={{ padding: 0.2, maxZoom: 1.5 }}
         defaultEdgeOptions={{ type: 'networkEdge', animated: false }}
@@ -168,6 +257,7 @@ export function DesignerCanvas() {
           maskColor={theme === 'dark' ? 'rgba(0, 43, 54, 0.7)' : 'rgba(253, 246, 227, 0.7)'}
         />
       </ReactFlow>
+      <PendingDropBanner />
       <FloatingToolbar />
     </div>
   )

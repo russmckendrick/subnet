@@ -36,27 +36,27 @@ export function CloudResourceNode({ id, data, selected }: CloudResourceNodeProps
       <Handle
         type="target"
         position={Position.Top}
-        className="!w-2 !h-2 !bg-[#2aa198] !border-2"
+        className="!w-3 !h-3 !bg-[#2aa198] !border-2"
         style={{ borderColor: isDark ? '#073642' : '#eee8d5' }}
       />
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!w-2 !h-2 !bg-[#2aa198] !border-2"
+        className="!w-3 !h-3 !bg-[#2aa198] !border-2"
         style={{ borderColor: isDark ? '#073642' : '#eee8d5' }}
       />
       <Handle
         type="source"
         position={Position.Left}
         id="left"
-        className="!w-2 !h-2 !bg-[#2aa198] !border-2"
+        className="!w-3 !h-3 !bg-[#2aa198] !border-2"
         style={{ borderColor: isDark ? '#073642' : '#eee8d5' }}
       />
       <Handle
         type="source"
         position={Position.Right}
         id="right"
-        className="!w-2 !h-2 !bg-[#2aa198] !border-2"
+        className="!w-3 !h-3 !bg-[#2aa198] !border-2"
         style={{ borderColor: isDark ? '#073642' : '#eee8d5' }}
       />
     </div>

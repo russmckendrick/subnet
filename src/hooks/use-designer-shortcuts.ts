@@ -4,7 +4,7 @@ import { useDesignerStore } from '@/store/designer-store'
 const STORAGE_KEY = 'subnet-designer-state'
 
 export function useDesignerShortcuts() {
-  const { setSelectedNodeId, setSelectedNodeIds, isExportOpen, setExportOpen, nodes, edges } = useDesignerStore()
+  const { setSelectedNodeId, setSelectedNodeIds, isExportOpen, setExportOpen, setActiveLayer, nodes, edges } = useDesignerStore()
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -31,6 +31,11 @@ export function useDesignerShortcuts() {
         return
       }
 
+      // 1/2/3 — switch layers
+      if (e.key === '1' && !isModKey) { setActiveLayer('all'); return }
+      if (e.key === '2' && !isModKey) { setActiveLayer('infrastructure'); return }
+      if (e.key === '3' && !isModKey) { setActiveLayer('resources'); return }
+
       // Cmd/Ctrl+S — save to localStorage
       if (isModKey && e.key === 's') {
         e.preventDefault()
@@ -41,7 +46,7 @@ export function useDesignerShortcuts() {
         return
       }
     },
-    [isExportOpen, setExportOpen, setSelectedNodeId, setSelectedNodeIds, nodes, edges],
+    [isExportOpen, setExportOpen, setSelectedNodeId, setSelectedNodeIds, setActiveLayer, nodes, edges],
   )
 
   useEffect(() => {

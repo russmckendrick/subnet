@@ -2,6 +2,7 @@ import { motion } from 'motion/react'
 import { useThemeStore } from '@/store/theme-store'
 import { useDesignerStore } from '@/store/designer-store'
 import { ArrangeToolbar } from './ArrangeToolbar'
+import { LayerToggle } from './LayerToggle'
 
 export function DesignerHeader() {
   const { theme, toggleTheme } = useThemeStore()
@@ -38,6 +39,9 @@ export function DesignerHeader() {
       <div className="flex items-center gap-2">
         {/* Arrange tools */}
         {nodes.length > 0 && <ArrangeToolbar />}
+
+        {/* Layer toggle */}
+        {nodes.length > 0 && <LayerToggle />}
 
         {/* Export */}
         {nodes.length > 0 && (

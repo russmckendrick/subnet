@@ -14,6 +14,18 @@ pnpm generate-icons   # Regenerate TSX icon components from SVGs (all providers,
 
 No test framework is currently configured.
 
+## Documentation
+
+See the [`docs/`](docs/) folder for detailed documentation:
+
+- [Features Guide](docs/features.md) — Walkthrough of every feature
+- [Architecture](docs/architecture.md) — Layers, data flow, component hierarchy
+- [Calculation Engine](docs/calculation-engine.md) — IPv4 math, CIDR parsing, subnet allocation
+- [State Management](docs/state-management.md) — Zustand stores, actions, URL sync
+- [Styling & Theming](docs/styling.md) — Tailwind v4, dark mode, custom theme tokens
+- [URL Sharing](docs/url-sharing.md) — Path-based URL format, state persistence, legacy hash migration
+- [Development Guide](docs/development.md) — Setup, tooling, adding new features
+
 ## Architecture
 
 subnet.fit is a client-side-only CIDR/subnet calculator. All computation happens in the browser — there is no backend. The only external API call is the optional RDAP lookup against `rdap.org` for public IP registration data.
@@ -21,8 +33,8 @@ subnet.fit is a client-side-only CIDR/subnet calculator. All computation happens
 ### Layers
 
 - **`src/lib/`** — Pure calculation functions (zero React). IPv4 parsing, CIDR math, subnet splitting, binary representations, cloud provider constraints, RFC range detection, RDAP response parsing (`rdap.ts`) and caching (`rdap-cache.ts`), IaC export formatters, URL path codec, resource type labels (`resource-labels.ts`), and centralised app configuration (`config.ts`). All IPv4 math uses 32-bit unsigned integers with `>>> 0`.
-- **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs, input mode, command palette open state). `designer-store.ts` holds diagram state (nodes, edges, palette, selection, multi-selection, export modal, node color updates, localStorage persistence, cloud provider). Node data types: `SubnetNodeData`, `ResourceNodeData` (legacy flat), `VpcContainerNodeData`, `SubnetContainerNodeData`, `CloudResourceNodeData` (cloud containment). `theme-store.ts` persists dark/light mode to localStorage. Calculator and theme stores read defaults from `config.ts`.
-- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-designer-url-sync.ts` reads `?from=`, `&split=`, and `&provider=` params on `/designer` route and initializes the diagram canvas. `use-keyboard-shortcuts.ts` handles `/` to open command palette, arrows to adjust prefix when input focused. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching. `use-diagram-persistence.ts` auto-saves/loads designer state to/from localStorage with 1s debounce, runs migration from v1→v2 on load. `use-designer-shortcuts.ts` handles Escape (deselect/close), Cmd+E (export modal), Cmd+S (manual save) in designer.
+- **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs, input mode, command palette open state). `designer-store.ts` holds diagram state (nodes, edges, palette, selection, multi-selection, export modal, node color updates, localStorage persistence, cloud provider, `activeLayer` for layer filtering, `pendingDrop` for touch tap-to-place). Node data types: `SubnetNodeData`, `ResourceNodeData` (legacy flat), `VpcContainerNodeData`, `SubnetContainerNodeData`, `CloudResourceNodeData` (cloud containment). `theme-store.ts` persists dark/light mode to localStorage. Calculator and theme stores read defaults from `config.ts`.
+- **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-designer-url-sync.ts` reads `?from=`, `&split=`, and `&provider=` params on `/designer` route and initializes the diagram canvas. `use-keyboard-shortcuts.ts` handles `/` to open command palette, arrows to adjust prefix when input focused. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching. `use-diagram-persistence.ts` auto-saves/loads designer state to/from localStorage with 1s debounce, runs migration from v1→v2 on load. `use-designer-shortcuts.ts` handles Escape (deselect/close), Cmd+E (export modal), Cmd+S (manual save), 1/2/3 (layer switching) in designer. `use-touch-detect.ts` detects touch devices for tap-to-place mode.
 - **`src/components/`** — UI organized by feature domain: `calculator/`, `splitter/`, `designer/`, `visual-map/`, `cloud/`, `whois/`, `tools/`, `export/`, `command-palette/`, `shared/`, `layout/`.
 
 ### Routing
@@ -92,6 +104,7 @@ The `dark` class is toggled on `<html>` by the theme store. The visual design us
 - `RdapLookupState` (in `src/lib/rdap.ts`) — Discriminated union: `idle | loading | success | error | private`.
 - `Command` (in `src/lib/commands.ts`) — Command palette entry with id, label, description, category, keywords, icon, optional `requiresResult`, and action string.
 - `CloudProvider` (in `src/lib/cloud-theme.ts`) — `'aws' | 'azure' | 'gcp' | 'generic'`.
+- `ActiveLayer` (in `src/store/designer-store.ts`) — `'all' | 'infrastructure' | 'resources'`.
 - `VpcContainerNodeData` (in `src/store/designer-store.ts`) — Container node for VPC/VNet with CIDR, label, cloudProvider.
 - `SubnetContainerNodeData` (in `src/store/designer-store.ts`) — Dotted container for subnet with CIDR, label, color, hosts, cloudProvider.
 - `CloudResourceNodeData` (in `src/store/designer-store.ts`) — Provider-aware resource icon node with resourceType, label, cloudProvider.
@@ -113,14 +126,17 @@ The designer at `/designer` uses **nested containment** to produce cloud-native 
 - **Container Nodes** — `VpcContainerNode` (large dashed/solid box), `SubnetContainerNode` (dotted box nested inside VPC), `CloudResourceNode` (icon+label inside subnet). All use React Flow `parentId` and `extent: 'parent'` for visual nesting. Container dimensions set via `style.width/height`.
 - **Cloud Icons** — Auto-generated from official provider SVGs via `pnpm generate-icons` (see `scripts/generate-icons.mjs`). Source SVGs live in `icons/{provider}/`; generated TSX components are written to `src/components/designer/icons/{provider}/`. Azure has 24 multicolor gradient icons (18x18 viewBox, fill-based with `<defs>` gradients). AWS/GCP retain stroke-based placeholders until official SVGs are added. Each component accepts `{ className, color? }` props (`color` accepted for interface compat but unused by multicolor icons). Provider barrel exports in `index.ts` feed `{PROVIDER}_ICON_MAP` records.
 - **Layout** — `generateCloudLayout()` in `src/lib/diagram-layout.ts` creates IGW → VPC container → subnet containers. `generateLegacyFlatLayout()` preserved for v1 backwards compat. `autoLayoutNested()` in `diagram-arrange.ts` handles BFS on top-level nodes + grid layout within containers.
-- **Container-Aware Drop** — `DesignerCanvas.onDrop` checks `findContainerAtPoint()` from `src/lib/diagram-container.ts`, sets `parentId` and converts to parent-relative coordinates.
+- **Container-Aware Drop** — `DesignerCanvas.onDrop` checks `findContainerAtPoint()` from `src/lib/diagram-container.ts`, sets `parentId` and converts to parent-relative coordinates. Touch devices use tap-to-place: `PaletteItem` sets `pendingDrop` in store, `DesignerCanvas.onPaneClick` creates the node at the tapped position via `screenToFlowPosition()`.
+- **Layer System** — `activeLayer` state (`'all' | 'infrastructure' | 'resources'`). `LayerToggle` segmented control in header. `DesignerCanvas` applies `layer-dimmed` className to nodes based on active layer. Keyboard shortcuts: `1`/`2`/`3`.
+- **Container Resize** — `NodeResizer` from `@xyflow/react` on `VpcContainerNode` and `SubnetContainerNode`, visible when selected. Minimum sizes: VPC 300x200, Subnet 200x120.
+- **Inline Properties Panel** — `PropertiesPanel` is an animated inline sidebar (320px, `motion/react` AnimatePresence) inside the flex row, not an overlay Drawer. Includes a Delete Node button in the footer.
 - **Provider-Specific Palette** — `ResourcePalette` shows categorized resources per provider (Azure: 24, AWS: 18, GCP: 17, across Networking, Compute, Database, Storage & Security). Generic mode shows traditional network resources.
 - **Properties Panels** — `VpcProperties`, `SubnetContainerProperties`, `CloudResourceProperties` panels with provider badges, in addition to legacy `SubnetProperties` and `ResourceProperties`. All resource type labels are centralised in `src/lib/resource-labels.ts` — edit that file to add/rename labels without touching component code.
 - **Persistence** — Storage version 2 includes `cloudProvider`. Migration in `src/lib/diagram-migration.ts` converts v1 → v2 (adds `cloudProvider: 'generic'`). Old flat diagrams load intact.
 - **Export** — draw.io XML uses `container=1` style for VPC/subnet containers, children use `parent="{containerId}"`. JSON version bumped to 2.
 - **Custom Edges** — `NetworkEdge` component using `getSmoothStepPath` with Solarized cyan stroke, width changes on selection.
 - **Arrange Tools** — `ArrangeToolbar` dropdown with auto-layout (hierarchical BFS + nested), align (6 directions for 2+ selected nodes), and distribute (horizontal/vertical for 3+ selected).
-- **Keyboard Shortcuts** — `Escape` (deselect/close modal), `Cmd/Ctrl+E` (toggle export), `Cmd/Ctrl+S` (save to localStorage).
+- **Keyboard Shortcuts** — `Escape` (deselect/close modal), `Cmd/Ctrl+E` (toggle export), `Cmd/Ctrl+S` (save to localStorage), `1`/`2`/`3` (layer switching).
 - **Floating Toolbar** — Bottom-center bar with Fit View, Export, Save, and Clear buttons.
 - **URL Params** — `?provider=aws|azure|gcp` sets cloud provider: `/designer?from=10.0.0.0/16&split=24~Web,25~API&provider=aws`
 

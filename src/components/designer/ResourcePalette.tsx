@@ -1,6 +1,7 @@
 import { useDesignerStore } from '@/store/designer-store'
 import { PaletteItem } from './PaletteItem'
 import { CloudProviderSelector } from './CloudProviderSelector'
+import { useTouchDetect } from '@/hooks/use-touch-detect'
 import type { CloudProvider } from '@/lib/cloud-theme'
 
 interface PaletteCategory {
@@ -172,6 +173,7 @@ const PROVIDER_CATEGORIES: Record<CloudProvider, PaletteCategory[]> = {
 
 export function ResourcePalette() {
   const { isPaletteOpen, setIsPaletteOpen, cloudProvider } = useDesignerStore()
+  const isTouch = useTouchDetect()
   const categories = PROVIDER_CATEGORIES[cloudProvider]
 
   // Determine if items should use cloud resource node type
@@ -258,7 +260,9 @@ export function ResourcePalette() {
       {/* Hint */}
       <div className="px-3 py-2 border-t border-[#93a1a1]/15 dark:border-[#586e75]/20">
         <p className="text-[10px] text-[#93a1a1] dark:text-[#586e75]">
-          Drag items onto the canvas to add them to your diagram.
+          {isTouch
+            ? 'Tap an item, then tap the canvas to place it.'
+            : 'Drag items onto the canvas to add them to your diagram.'}
         </p>
       </div>
     </div>

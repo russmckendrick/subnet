@@ -43,12 +43,12 @@ export function SubnetNode({ id, data, selected }: SubnetNodeProps) {
       <Handle
         type="target"
         position={Position.Top}
-        className="!w-2.5 !h-2.5 !bg-[#2aa198] !border-2 !border-[#eee8d5] dark:!border-[#073642]"
+        className="!w-3 !h-3 !bg-[#2aa198] !border-2 !border-[#eee8d5] dark:!border-[#073642]"
       />
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!w-2.5 !h-2.5 !bg-[#2aa198] !border-2 !border-[#eee8d5] dark:!border-[#073642]"
+        className="!w-3 !h-3 !bg-[#2aa198] !border-2 !border-[#eee8d5] dark:!border-[#073642]"
       />
     </div>
   )

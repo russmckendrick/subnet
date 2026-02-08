@@ -72,6 +72,14 @@ export type DesignerNodeData =
 
 const STORAGE_KEY = 'subnet-designer-state'
 
+export type ActiveLayer = 'all' | 'infrastructure' | 'resources'
+
+interface PendingDrop {
+  nodeType: string
+  resourceType: string
+  label: string
+}
+
 interface DesignerState {
   nodes: Node<DesignerNodeData>[]
   edges: Edge[]
@@ -81,6 +89,8 @@ interface DesignerState {
   isDirty: boolean
   isExportOpen: boolean
   cloudProvider: CloudProvider
+  activeLayer: ActiveLayer
+  pendingDrop: PendingDrop | null
 
   setNodes: (nodes: Node<DesignerNodeData>[]) => void
   setEdges: (edges: Edge[]) => void
@@ -99,6 +109,8 @@ interface DesignerState {
   setIsPaletteOpen: (open: boolean) => void
   setExportOpen: (open: boolean) => void
   setCloudProvider: (provider: CloudProvider) => void
+  setActiveLayer: (layer: ActiveLayer) => void
+  setPendingDrop: (drop: PendingDrop | null) => void
   loadFromStorage: (state: { nodes: Node<DesignerNodeData>[]; edges: Edge[]; cloudProvider?: CloudProvider }) => void
 }
 
@@ -111,6 +123,8 @@ export const useDesignerStore = create<DesignerState>((set, get) => ({
   isDirty: false,
   isExportOpen: false,
   cloudProvider: 'generic',
+  activeLayer: 'all',
+  pendingDrop: null,
 
   setNodes: (nodes) => set({ nodes, isDirty: true }),
   setEdges: (edges) => set({ edges, isDirty: true }),
@@ -187,6 +201,9 @@ export const useDesignerStore = create<DesignerState>((set, get) => ({
   setSelectedNodeIds: (ids) => set({ selectedNodeIds: ids }),
   setIsPaletteOpen: (open) => set({ isPaletteOpen: open }),
   setExportOpen: (open) => set({ isExportOpen: open }),
+
+  setActiveLayer: (layer) => set({ activeLayer: layer, selectedNodeId: null, selectedNodeIds: [] }),
+  setPendingDrop: (drop) => set({ pendingDrop: drop }),
 
   setCloudProvider: (provider) => {
     // Update provider and re-skin all container nodes
