@@ -6,7 +6,23 @@ import { CopyButton } from '@/components/shared/CopyButton'
 import { AllocationBar } from '@/components/splitter/AllocationBar'
 import { SplitterToolbar } from '@/components/splitter/SplitterToolbar'
 
-const QUICK_PREFIXES = [24, 25, 26, 27, 28]
+/** Compute 5 meaningful split prefixes relative to the current network */
+function getQuickPrefixes(currentPrefix: number, available: number[]): number[] {
+  // Start from prefix+1 (splitting to the same prefix = 1 subnet = whole network)
+  const candidates = available.filter(p => p > currentPrefix)
+  if (candidates.length <= 5) return candidates
+  // Spread evenly across the available range
+  const step = Math.max(1, Math.floor((candidates.length - 1) / 4))
+  const picks: number[] = []
+  for (let i = 0; i < candidates.length && picks.length < 5; i += step) {
+    picks.push(candidates[i])
+  }
+  // Always include the last candidate if we have room
+  if (picks.length < 5 && picks[picks.length - 1] !== candidates[candidates.length - 1]) {
+    picks.push(candidates[candidates.length - 1])
+  }
+  return picks
+}
 
 type ViewMode = 'table' | 'cards'
 
@@ -68,34 +84,51 @@ export function SubnetSplittingSection() {
       <SplitterToolbar viewMode={viewMode} onViewModeChange={setViewMode} />
 
       {splits.length === 0 ? (
-        <div className="text-center py-8">
-          {/* Network icon */}
-          <svg className="w-10 h-10 mx-auto mb-3 text-[#93a1a1]/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5a17.92 17.92 0 01-8.716-2.247m0 0A9 9 0 013 12c0-1.605.42-3.113 1.157-4.418" />
-          </svg>
-          <p className="text-sm font-medium text-[#586e75] dark:text-[#93a1a1] mb-1">
-            Split this network into subnets
-          </p>
-          <p className="text-xs text-[#93a1a1] dark:text-[#586e75] mb-5">
-            Choose a prefix size to allocate your first subnet
-          </p>
-          {/* Quick-add pills */}
-          <div className="flex flex-wrap justify-center gap-2">
-            {QUICK_PREFIXES.filter(p => availablePrefixes.includes(p)).map((p, i) => (
-              <motion.button
-                key={p}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                onClick={() => addSplit(p)}
-                className="group text-xs font-mono px-4 py-2.5 rounded-lg border border-[#586e75]/20 bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 text-[#586e75] dark:text-[#93a1a1] hover:border-[#2aa198]/30 hover:bg-[#2aa198]/5 transition-colors"
-              >
-                <div className="font-semibold">/{p}</div>
-                <div className="text-[10px] text-[#93a1a1] dark:text-[#586e75] mt-0.5">
-                  {Math.pow(2, 32 - p).toLocaleString()} addr
-                </div>
-              </motion.button>
-            ))}
+        <div className="py-6">
+          <div className="text-center mb-5">
+            <p className="text-sm font-medium text-[#586e75] dark:text-[#93a1a1] mb-1">
+              Split this network into subnets
+            </p>
+            <p className="text-xs text-[#93a1a1] dark:text-[#586e75]">
+              Choose a prefix size to allocate your first subnet
+            </p>
+          </div>
+          {/* Quick-add cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+            {getQuickPrefixes(result.prefixLength, availablePrefixes).map((p, i) => {
+              const size = Math.pow(2, 32 - p)
+              const usable = Math.max(0, size - 2)
+              const pct = ((size / totalSize) * 100)
+              const pctLabel = pct >= 1 ? `${pct.toFixed(0)}%` : `${pct.toFixed(1)}%`
+              return (
+                <motion.button
+                  key={p}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  onClick={() => addSplit(p)}
+                  className="group relative text-left rounded-lg border border-[#586e75]/15 bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 p-3 hover:border-[#2aa198]/40 hover:bg-[#2aa198]/5 transition-colors"
+                >
+                  <div className="flex items-baseline justify-between mb-2">
+                    <span className="text-base font-mono font-bold text-[#2aa198]">/{p}</span>
+                    <span className="text-[10px] font-mono text-[#93a1a1] dark:text-[#586e75]">{pctLabel}</span>
+                  </div>
+                  <div className="text-[11px] text-[#586e75] dark:text-[#93a1a1] font-mono">
+                    {size.toLocaleString()} addr
+                  </div>
+                  <div className="text-[10px] text-[#93a1a1] dark:text-[#586e75]">
+                    {usable.toLocaleString()} usable
+                  </div>
+                  {/* Allocation preview bar */}
+                  <div className="mt-2 h-1 rounded-full bg-[#586e75]/10 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-[#2aa198]/30 group-hover:bg-[#2aa198]/50 transition-colors"
+                      style={{ width: `${Math.min(100, pct)}%` }}
+                    />
+                  </div>
+                </motion.button>
+              )
+            })}
           </div>
         </div>
       ) : (

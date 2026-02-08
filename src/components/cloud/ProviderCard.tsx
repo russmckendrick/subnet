@@ -1,4 +1,13 @@
+import type { ReactNode } from 'react'
 import type { CloudProviderResult } from '@/lib/cloud-providers'
+import { SiAmazonwebservices, SiGooglecloud } from 'react-icons/si'
+import { VscAzure } from 'react-icons/vsc'
+
+const PROVIDER_ICONS: Record<string, ReactNode> = {
+  aws: <SiAmazonwebservices className="w-4 h-4" />,
+  azure: <VscAzure className="w-4 h-4" />,
+  gcp: <SiGooglecloud className="w-4 h-4" />,
+}
 
 interface ProviderCardProps {
   data: CloudProviderResult
@@ -7,6 +16,7 @@ interface ProviderCardProps {
 
 export function ProviderCard({ data, prefix }: ProviderCardProps) {
   const { provider, usableHosts, isValidSubnet, tooSmall, tooLarge } = data
+  const icon = PROVIDER_ICONS[provider.id]
 
   return (
     <div
@@ -16,10 +26,14 @@ export function ProviderCard({ data, prefix }: ProviderCardProps) {
       style={{ '--provider-color': provider.color } as React.CSSProperties}
     >
       <div className="flex items-center gap-2 mb-3">
-        <div
-          className="w-2.5 h-2.5 rounded-full"
-          style={{ backgroundColor: provider.color }}
-        />
+        {icon ? (
+          <span style={{ color: provider.color }}>{icon}</span>
+        ) : (
+          <div
+            className="w-2.5 h-2.5 rounded-full"
+            style={{ backgroundColor: provider.color }}
+          />
+        )}
         <span className="text-sm font-semibold text-[#586e75] dark:text-[#93a1a1]">
           {provider.shortName}
         </span>
