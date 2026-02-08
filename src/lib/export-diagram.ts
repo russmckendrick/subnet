@@ -4,10 +4,22 @@ import pako from 'pako'
 import { CLOUD_THEMES, type CloudProvider } from './cloud-theme'
 import { getDrawioSvgDataUri } from './drawio-icons'
 
+/** Filter out React Flow chrome (background dots, controls, minimap) from image exports */
+function excludeReactFlowChrome(node: HTMLElement): boolean {
+  const cls = node.classList
+  if (!cls) return true
+  if (cls.contains('react-flow__background')) return false
+  if (cls.contains('react-flow__controls')) return false
+  if (cls.contains('react-flow__minimap')) return false
+  if (cls.contains('react-flow__panel')) return false
+  return true
+}
+
 export async function diagramToPng(element: HTMLElement): Promise<Blob> {
   const dataUrl = await toPng(element, {
     backgroundColor: 'transparent',
     pixelRatio: 2,
+    filter: excludeReactFlowChrome,
   })
 
   const res = await fetch(dataUrl)
@@ -17,6 +29,7 @@ export async function diagramToPng(element: HTMLElement): Promise<Blob> {
 export async function diagramToSvg(element: HTMLElement): Promise<Blob> {
   const dataUrl = await toSvg(element, {
     backgroundColor: 'transparent',
+    filter: excludeReactFlowChrome,
   })
 
   const res = await fetch(dataUrl)

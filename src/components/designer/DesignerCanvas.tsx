@@ -1,8 +1,6 @@
 import { useCallback, useMemo, useRef } from 'react'
 import {
   ReactFlow,
-  MiniMap,
-  Controls,
   Background,
   BackgroundVariant,
   ConnectionMode,
@@ -248,13 +246,6 @@ export function DesignerCanvas() {
           gap={24}
           size={1}
           color={theme === 'dark' ? 'rgba(88, 110, 117, 0.4)' : 'rgba(88, 110, 117, 0.25)'}
-        />
-        <Controls showInteractive={false} />
-        <MiniMap
-          nodeStrokeWidth={3}
-          pannable
-          zoomable
-          maskColor={theme === 'dark' ? 'rgba(0, 43, 54, 0.7)' : 'rgba(253, 246, 227, 0.7)'}
         />
       </ReactFlow>
       <PendingDropBanner />
