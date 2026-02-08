@@ -380,3 +380,39 @@ export function distributeNodes<T extends Node>(nodes: T[], selectedIds: string[
       : { ...n, position: { ...n.position, y: val } }
   })
 }
+
+export type ResizeMode = 'width' | 'height' | 'both'
+
+/**
+ * Resize selected container nodes to match the largest selected node's dimensions.
+ */
+export function resizeToMatch<T extends Node>(
+  nodes: T[],
+  selectedIds: string[],
+  mode: ResizeMode,
+): T[] {
+  if (selectedIds.length < 2) return nodes
+
+  const selectedSet = new Set(selectedIds)
+  const selected = nodes.filter((n) => selectedSet.has(n.id))
+
+  // Only resize nodes that have explicit dimensions (containers)
+  const resizable = selected.filter(
+    (n) => n.style?.width !== undefined || n.style?.height !== undefined,
+  )
+  if (resizable.length < 2) return nodes
+
+  const maxWidth = Math.max(...resizable.map((n) => (n.style?.width as number) || 0))
+  const maxHeight = Math.max(...resizable.map((n) => (n.style?.height as number) || 0))
+
+  return nodes.map((n) => {
+    if (!selectedSet.has(n.id)) return n
+    if (n.style?.width === undefined && n.style?.height === undefined) return n
+
+    const newStyle = { ...n.style }
+    if (mode === 'width' || mode === 'both') newStyle.width = maxWidth
+    if (mode === 'height' || mode === 'both') newStyle.height = maxHeight
+
+    return { ...n, style: newStyle }
+  })
+}

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useDesignerStore } from '@/store/designer-store'
-import { autoLayout, alignNodes, distributeNodes, type AlignDirection } from '@/lib/diagram-arrange'
+import { autoLayout, alignNodes, distributeNodes, resizeToMatch, type AlignDirection, type ResizeMode } from '@/lib/diagram-arrange'
 
 export function ArrangeToolbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -32,6 +32,10 @@ export function ArrangeToolbar() {
 
   const handleDistribute = (axis: 'horizontal' | 'vertical') => {
     setNodes(distributeNodes(nodes, selectedNodeIds, axis))
+  }
+
+  const handleResize = (mode: ResizeMode) => {
+    setNodes(resizeToMatch(nodes, selectedNodeIds, mode))
   }
 
   return (
@@ -117,6 +121,50 @@ export function ArrangeToolbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 3h16M4 21h16M8 7v2h8V7zM8 11v2h8v-2zM8 15v2h8v-2z" />
                 </svg>
                 Vertical
+              </button>
+            </div>
+          </div>
+
+          <div className="border-t border-[#93a1a1]/15 dark:border-[#586e75]/20" />
+
+          {/* Resize */}
+          <div>
+            <span className={`block text-[10px] font-semibold uppercase tracking-wider mb-2 ${hasSelection ? 'text-[#93a1a1] dark:text-[#586e75]' : 'text-[#93a1a1]/40 dark:text-[#586e75]/40'}`}>
+              Resize {!hasSelection && '(select 2+)'}
+            </span>
+            <div className="flex gap-1">
+              <button
+                onClick={() => handleResize('width')}
+                disabled={!hasSelection}
+                className="flex-1 flex items-center justify-center gap-1.5 text-[10px] text-[#586e75] dark:text-[#93a1a1] px-2 py-1.5 rounded hover:bg-[#eee8d5] dark:hover:bg-[#073642] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Match width to largest"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 12h16M4 12l3-3M4 12l3 3M20 12l-3-3M20 12l-3 3" />
+                </svg>
+                Width
+              </button>
+              <button
+                onClick={() => handleResize('height')}
+                disabled={!hasSelection}
+                className="flex-1 flex items-center justify-center gap-1.5 text-[10px] text-[#586e75] dark:text-[#93a1a1] px-2 py-1.5 rounded hover:bg-[#eee8d5] dark:hover:bg-[#073642] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Match height to largest"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16M12 4l-3 3M12 4l3 3M12 20l-3-3M12 20l3-3" />
+                </svg>
+                Height
+              </button>
+              <button
+                onClick={() => handleResize('both')}
+                disabled={!hasSelection}
+                className="flex-1 flex items-center justify-center gap-1.5 text-[10px] text-[#586e75] dark:text-[#93a1a1] px-2 py-1.5 rounded hover:bg-[#eee8d5] dark:hover:bg-[#073642] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Match width and height to largest"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h4V4M20 8h-4V4M4 16h4v4M20 16h-4v4" />
+                </svg>
+                Both
               </button>
             </div>
           </div>
