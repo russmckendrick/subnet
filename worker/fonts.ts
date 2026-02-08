@@ -1,15 +1,20 @@
-import type { Font } from 'satori'
-
 import schibstedRegular from './fonts/SchibstedGrotesk-Regular.ttf'
 import schibstedBold from './fonts/SchibstedGrotesk-Bold.ttf'
 import martianMono from './fonts/MartianMono-Regular.ttf'
+
+export interface FontData {
+  name: string
+  data: ArrayBuffer
+  weight: number
+  style: string
+}
 
 function toArrayBuffer(data: ArrayBuffer | Uint8Array): ArrayBuffer {
   if (data instanceof ArrayBuffer) return data
   return (data as Uint8Array).buffer as ArrayBuffer
 }
 
-export function getFonts(): Font[] {
+export function getFonts(): FontData[] {
   return [
     {
       name: 'Schibsted Grotesk',

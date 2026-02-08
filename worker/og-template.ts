@@ -15,62 +15,29 @@ const YELLOW = '#b58900'
 const ORANGE = '#cb4b16'
 const VIOLET = '#6c71c4'
 
-const WIDTH = 1200
-const HEIGHT = 630
-
-type SatoriNode = {
-  type: string
-  props: Record<string, unknown> & { children?: (SatoriNode | string)[] }
-}
-
-function div(style: Record<string, unknown>, ...children: (SatoriNode | string)[]): SatoriNode {
-  return { type: 'div', props: { style, children } }
-}
-
-function span(style: Record<string, unknown>, text: string): SatoriNode {
-  return { type: 'span', props: { style, children: [text] } }
-}
-
-function img(style: Record<string, unknown>, src: string): SatoriNode {
-  return { type: 'img', props: { style, src, width: style.width as number, height: style.height as number } }
-}
-
-function logoAndBrand(): SatoriNode {
-  return div(
-    { display: 'flex', alignItems: 'center', gap: '16px' },
-    img({ width: 80, height: 40 }, LOGO_DATA_URI),
-    span(
-      { fontFamily: 'Schibsted Grotesk', fontWeight: 700, fontSize: '28px', color: BASE1 },
-      'subnet.fit'
-    ),
-  )
-}
-
 function formatNumber(n: number): string {
   return n.toLocaleString('en-US')
 }
 
-/** Root wrapper with background */
-function rootContainer(bgBase64: string | null, ...children: SatoriNode[]): SatoriNode {
-  const bgStyle: Record<string, unknown> = bgBase64
-    ? { backgroundImage: `url(${bgBase64})`, backgroundSize: `${WIDTH}px ${HEIGHT}px` }
-    : { backgroundColor: BASE03 }
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
 
-  return div(
-    {
-      display: 'flex',
-      flexDirection: 'column',
-      width: `${WIDTH}px`,
-      height: `${HEIGHT}px`,
-      padding: '48px',
-      ...bgStyle,
-    },
-    ...children
-  )
+function logoAndBrand(): string {
+  return `<div style="display:flex;align-items:center;gap:16px">
+    <img src="${LOGO_DATA_URI}" width="80" height="40" style="width:80px;height:40px" />
+    <span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:28px;color:${BASE1}">subnet.fit</span>
+  </div>`
+}
+
+function rootContainer(...children: string[]): string {
+  return `<div style="display:flex;flex-direction:column;width:1200px;height:630px;padding:48px;background-color:${BASE03}">
+    ${children.join('')}
+  </div>`
 }
 
 /** Homepage template */
-export function homepageTemplate(bgBase64: string | null): SatoriNode {
+export function homepageTemplate(): string {
   const pills = [
     { label: 'Calculate', color: CYAN },
     { label: 'Split', color: BLUE },
@@ -79,42 +46,21 @@ export function homepageTemplate(bgBase64: string | null): SatoriNode {
   ]
 
   return rootContainer(
-    bgBase64,
     logoAndBrand(),
-    div(
-      { display: 'flex', flexDirection: 'column', marginTop: '48px', gap: '16px' },
-      span(
-        { fontFamily: 'Schibsted Grotesk', fontWeight: 700, fontSize: '52px', color: BASE1 },
-        'CIDR Calculator &'
-      ),
-      span(
-        { fontFamily: 'Schibsted Grotesk', fontWeight: 700, fontSize: '52px', color: CYAN },
-        'Network Planner'
-      ),
-    ),
-    div(
-      { display: 'flex', marginTop: 'auto', gap: '16px' },
-      ...pills.map(p =>
-        div(
-          {
-            display: 'flex',
-            padding: '12px 24px',
-            borderRadius: '8px',
-            backgroundColor: `${p.color}20`,
-            border: `2px solid ${p.color}40`,
-          },
-          span(
-            { fontFamily: 'Schibsted Grotesk', fontWeight: 600, fontSize: '22px', color: p.color },
-            p.label
-          ),
-        )
-      ),
-    ),
+    `<div style="display:flex;flex-direction:column;margin-top:48px;gap:16px">
+      <span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:52px;color:${BASE1}">CIDR Calculator &amp;</span>
+      <span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:52px;color:${CYAN}">Network Planner</span>
+    </div>`,
+    `<div style="display:flex;margin-top:auto;gap:16px">
+      ${pills.map(p => `<div style="display:flex;padding:12px 24px;border-radius:8px;background-color:${p.color}20;border:2px solid ${p.color}40">
+        <span style="font-family:'Schibsted Grotesk';font-weight:600;font-size:22px;color:${p.color}">${p.label}</span>
+      </div>`).join('')}
+    </div>`,
   )
 }
 
 /** CIDR detail template */
-export function cidrTemplate(bgBase64: string | null, result: CidrResult): SatoriNode {
+export function cidrTemplate(result: CidrResult): string {
   const detailRows: [string, string][] = [
     ['Network', result.networkAddress],
     ['Broadcast', result.broadcastAddress],
@@ -123,299 +69,122 @@ export function cidrTemplate(bgBase64: string | null, result: CidrResult): Sator
     ['Last Host', result.lastHost],
   ]
 
+  const rfcBadge = result.rfcType
+    ? `<div style="display:flex;padding:4px 12px;border-radius:6px;background-color:${GREEN}30">
+        <span style="font-family:'Schibsted Grotesk';font-size:16px;color:${GREEN}">${escapeHtml(result.rfcType.split(' — ')[1] || result.rfcType)}</span>
+      </div>`
+    : ''
+
   return rootContainer(
-    bgBase64,
     logoAndBrand(),
-    // Large CIDR display
-    div(
-      { display: 'flex', marginTop: '32px' },
-      span(
-        { fontFamily: 'Martian Mono', fontWeight: 400, fontSize: '56px', color: BASE1 },
-        result.input
-      ),
-    ),
-    // Details card
-    div(
-      {
-        display: 'flex',
-        flexDirection: 'column',
-        marginTop: '24px',
-        padding: '24px 32px',
-        backgroundColor: `${BASE02}e6`,
-        borderRadius: '12px',
-        border: `1px solid ${BASE1}20`,
-        gap: '12px',
-      },
-      // Host count highlight
-      div(
-        { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' },
-        span(
-          { fontFamily: 'Martian Mono', fontSize: '32px', color: CYAN },
-          formatNumber(result.usableHosts)
-        ),
-        span(
-          { fontFamily: 'Schibsted Grotesk', fontSize: '22px', color: BASE0 },
-          'usable hosts'
-        ),
-        // Class + RFC badge
-        div(
-          { display: 'flex', marginLeft: 'auto', gap: '8px' },
-          div(
-            {
-              display: 'flex',
-              padding: '4px 12px',
-              borderRadius: '6px',
-              backgroundColor: `${BLUE}30`,
-            },
-            span(
-              { fontFamily: 'Schibsted Grotesk', fontSize: '16px', color: BLUE },
-              `Class ${result.ipClass}`
-            ),
-          ),
-          ...(result.rfcType ? [
-            div(
-              {
-                display: 'flex',
-                padding: '4px 12px',
-                borderRadius: '6px',
-                backgroundColor: `${GREEN}30`,
-              },
-              span(
-                { fontFamily: 'Schibsted Grotesk', fontSize: '16px', color: GREEN },
-                result.rfcType.split(' — ')[1] || result.rfcType
-              ),
-            ),
-          ] : []),
-        ),
-      ),
-      // Detail rows
-      ...detailRows.map(([label, value]) =>
-        div(
-          { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-          span(
-            { fontFamily: 'Schibsted Grotesk', fontSize: '18px', color: BASE0 },
-            label
-          ),
-          span(
-            { fontFamily: 'Martian Mono', fontSize: '18px', color: BASE1 },
-            value
-          ),
-        )
-      ),
-    ),
+    `<div style="display:flex;margin-top:32px">
+      <span style="font-family:'Martian Mono';font-weight:400;font-size:56px;color:${BASE1}">${escapeHtml(result.input)}</span>
+    </div>`,
+    `<div style="display:flex;flex-direction:column;margin-top:24px;padding:24px 32px;background-color:${BASE02}e6;border-radius:12px;border:1px solid ${BASE1}20;gap:12px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+        <span style="font-family:'Martian Mono';font-size:32px;color:${CYAN}">${formatNumber(result.usableHosts)}</span>
+        <span style="font-family:'Schibsted Grotesk';font-size:22px;color:${BASE0}">usable hosts</span>
+        <div style="display:flex;margin-left:auto;gap:8px">
+          <div style="display:flex;padding:4px 12px;border-radius:6px;background-color:${BLUE}30">
+            <span style="font-family:'Schibsted Grotesk';font-size:16px;color:${BLUE}">Class ${result.ipClass}</span>
+          </div>
+          ${rfcBadge}
+        </div>
+      </div>
+      ${detailRows.map(([label, value]) => `<div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-family:'Schibsted Grotesk';font-size:18px;color:${BASE0}">${label}</span>
+        <span style="font-family:'Martian Mono';font-size:18px;color:${BASE1}">${escapeHtml(value)}</span>
+      </div>`).join('')}
+    </div>`,
   )
 }
 
 /** Splitter template */
 export function splitterTemplate(
-  bgBase64: string | null,
   cidr: string,
   splits: { prefix: number; label: string; hosts: number }[],
-): SatoriNode {
+): string {
   const colors = [CYAN, VIOLET, YELLOW, GREEN, MAGENTA, ORANGE, BLUE]
   const maxDisplay = 6
   const displaySplits = splits.slice(0, maxDisplay)
   const remaining = splits.length - maxDisplay
 
   return rootContainer(
-    bgBase64,
     logoAndBrand(),
-    // Parent CIDR + "Subnet Splitter" label
-    div(
-      { display: 'flex', alignItems: 'center', gap: '16px', marginTop: '24px' },
-      span(
-        { fontFamily: 'Martian Mono', fontWeight: 400, fontSize: '42px', color: BASE1 },
-        cidr
-      ),
-      div(
-        {
-          display: 'flex',
-          padding: '6px 16px',
-          borderRadius: '6px',
-          backgroundColor: `${VIOLET}30`,
-        },
-        span(
-          { fontFamily: 'Schibsted Grotesk', fontSize: '18px', color: VIOLET },
-          'Subnet Splitter'
-        ),
-      ),
-    ),
-    // Split rows
-    div(
-      {
-        display: 'flex',
-        flexDirection: 'column',
-        marginTop: '24px',
-        padding: '20px 28px',
-        backgroundColor: `${BASE02}e6`,
-        borderRadius: '12px',
-        border: `1px solid ${BASE1}20`,
-        gap: '10px',
-      },
-      ...displaySplits.map((s, i) => {
+    `<div style="display:flex;align-items:center;gap:16px;margin-top:24px">
+      <span style="font-family:'Martian Mono';font-weight:400;font-size:42px;color:${BASE1}">${escapeHtml(cidr)}</span>
+      <div style="display:flex;padding:6px 16px;border-radius:6px;background-color:${VIOLET}30">
+        <span style="font-family:'Schibsted Grotesk';font-size:18px;color:${VIOLET}">Subnet Splitter</span>
+      </div>
+    </div>`,
+    `<div style="display:flex;flex-direction:column;margin-top:24px;padding:20px 28px;background-color:${BASE02}e6;border-radius:12px;border:1px solid ${BASE1}20;gap:10px">
+      ${displaySplits.map((s, i) => {
         const color = colors[i % colors.length]
-        return div(
-          { display: 'flex', alignItems: 'center', gap: '12px' },
-          // Color dot
-          div(
-            {
-              display: 'flex',
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-              backgroundColor: color,
-            },
-          ),
-          // Label
-          span(
-            { fontFamily: 'Schibsted Grotesk', fontSize: '20px', color: BASE1, flex: '1' },
-            s.label
-          ),
-          // Prefix
-          span(
-            { fontFamily: 'Martian Mono', fontSize: '18px', color: BASE0 },
-            `/${s.prefix}`
-          ),
-          // Host count
-          span(
-            { fontFamily: 'Martian Mono', fontSize: '16px', color: CYAN },
-            `${formatNumber(s.hosts)} hosts`
-          ),
-        )
-      }),
-      ...(remaining > 0 ? [
-        span(
-          { fontFamily: 'Schibsted Grotesk', fontSize: '18px', color: BASE0 },
-          `+${remaining} more subnet${remaining > 1 ? 's' : ''}...`
-        ),
-      ] : []),
-    ),
+        return `<div style="display:flex;align-items:center;gap:12px">
+          <div style="display:flex;width:12px;height:12px;border-radius:50%;background-color:${color}"></div>
+          <span style="font-family:'Schibsted Grotesk';font-size:20px;color:${BASE1};flex:1">${escapeHtml(s.label)}</span>
+          <span style="font-family:'Martian Mono';font-size:18px;color:${BASE0}">/${s.prefix}</span>
+          <span style="font-family:'Martian Mono';font-size:16px;color:${CYAN}">${formatNumber(s.hosts)} hosts</span>
+        </div>`
+      }).join('')}
+      ${remaining > 0 ? `<span style="font-family:'Schibsted Grotesk';font-size:18px;color:${BASE0}">+${remaining} more subnet${remaining > 1 ? 's' : ''}...</span>` : ''}
+    </div>`,
   )
 }
 
 /** Supernet template */
-export function supernetTemplate(
-  bgBase64: string | null,
-  inputs: string[],
-  resultCidr: string | null,
-): SatoriNode {
+export function supernetTemplate(inputs: string[]): string {
   return rootContainer(
-    bgBase64,
     logoAndBrand(),
-    div(
-      { display: 'flex', alignItems: 'center', gap: '16px', marginTop: '32px' },
-      span(
-        { fontFamily: 'Schibsted Grotesk', fontWeight: 700, fontSize: '44px', color: BASE1 },
-        'Supernet Calculator'
-      ),
-    ),
-    // Input networks
-    div(
-      {
-        display: 'flex',
-        flexDirection: 'column',
-        marginTop: '24px',
-        padding: '20px 28px',
-        backgroundColor: `${BASE02}e6`,
-        borderRadius: '12px',
-        border: `1px solid ${BASE1}20`,
-        gap: '8px',
-      },
-      span(
-        { fontFamily: 'Schibsted Grotesk', fontSize: '16px', color: BASE0 },
-        'Input Networks'
-      ),
-      ...inputs.slice(0, 6).map(net =>
-        span(
-          { fontFamily: 'Martian Mono', fontSize: '20px', color: BASE1 },
-          net
-        )
-      ),
-      ...(inputs.length > 6 ? [
-        span(
-          { fontFamily: 'Schibsted Grotesk', fontSize: '16px', color: BASE0 },
-          `+${inputs.length - 6} more...`
-        ),
-      ] : []),
-    ),
-    // Result
-    ...(resultCidr ? [
-      div(
-        { display: 'flex', alignItems: 'center', gap: '16px', marginTop: 'auto' },
-        span(
-          { fontFamily: 'Schibsted Grotesk', fontSize: '20px', color: BASE0 },
-          'Aggregated Result:'
-        ),
-        span(
-          { fontFamily: 'Martian Mono', fontSize: '32px', color: CYAN },
-          resultCidr
-        ),
-      ),
-    ] : []),
+    `<div style="display:flex;align-items:center;gap:16px;margin-top:32px">
+      <span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:44px;color:${BASE1}">Supernet Calculator</span>
+    </div>`,
+    `<div style="display:flex;flex-direction:column;margin-top:24px;padding:20px 28px;background-color:${BASE02}e6;border-radius:12px;border:1px solid ${BASE1}20;gap:8px">
+      <span style="font-family:'Schibsted Grotesk';font-size:16px;color:${BASE0}">Input Networks</span>
+      ${inputs.slice(0, 6).map(net => `<span style="font-family:'Martian Mono';font-size:20px;color:${BASE1}">${escapeHtml(net)}</span>`).join('')}
+      ${inputs.length > 6 ? `<span style="font-family:'Schibsted Grotesk';font-size:16px;color:${BASE0}">+${inputs.length - 6} more...</span>` : ''}
+    </div>`,
   )
 }
 
 /** Designer template */
-export function designerTemplate(bgBase64: string | null): SatoriNode {
+export function designerTemplate(): string {
+  const providerPills = [
+    { label: 'AWS', color: ORANGE },
+    { label: 'Azure', color: BLUE },
+    { label: 'GCP', color: VIOLET },
+  ]
+
   return rootContainer(
-    bgBase64,
     logoAndBrand(),
-    div(
-      { display: 'flex', flexDirection: 'column', marginTop: '48px', gap: '16px' },
-      span(
-        { fontFamily: 'Schibsted Grotesk', fontWeight: 700, fontSize: '52px', color: BASE1 },
-        'Network Designer'
-      ),
-      span(
-        { fontFamily: 'Schibsted Grotesk', fontSize: '24px', color: BASE0 },
-        'Visual cloud architecture diagrams with AWS, Azure & GCP support'
-      ),
-    ),
-    div(
-      { display: 'flex', marginTop: 'auto', gap: '16px' },
-      ...['AWS', 'Azure', 'GCP'].map((label, i) => {
-        const colors = [ORANGE, BLUE, VIOLET]
-        return div(
-          {
-            display: 'flex',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            backgroundColor: `${colors[i]}20`,
-            border: `2px solid ${colors[i]}40`,
-          },
-          span(
-            { fontFamily: 'Schibsted Grotesk', fontWeight: 600, fontSize: '20px', color: colors[i] },
-            label
-          ),
-        )
-      }),
-    ),
+    `<div style="display:flex;flex-direction:column;margin-top:48px;gap:16px">
+      <span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:52px;color:${BASE1}">Network Designer</span>
+      <span style="font-family:'Schibsted Grotesk';font-size:24px;color:${BASE0}">Visual cloud architecture diagrams with AWS, Azure &amp; GCP support</span>
+    </div>`,
+    `<div style="display:flex;margin-top:auto;gap:16px">
+      ${providerPills.map(p => `<div style="display:flex;padding:10px 20px;border-radius:8px;background-color:${p.color}20;border:2px solid ${p.color}40">
+        <span style="font-family:'Schibsted Grotesk';font-weight:600;font-size:20px;color:${p.color}">${p.label}</span>
+      </div>`).join('')}
+    </div>`,
   )
 }
 
 /** Build the appropriate template for a URL state */
 export function buildTemplate(
-  bgBase64: string | null,
   state: UrlState | null,
   cidrResult: CidrResult | null,
-): SatoriNode {
-  // Designer
-  // (handled separately in og-image.ts based on path)
-
+): string {
   if (!state) {
-    return homepageTemplate(bgBase64)
+    return homepageTemplate()
   }
 
   if (state.mode === 'supernet') {
     const inputs = state.supernetInputs ?? []
-    // We can't easily compute supernet result without more complex logic,
-    // so just show inputs
-    return supernetTemplate(bgBase64, inputs, null)
+    return supernetTemplate(inputs)
   }
 
-  // Network mode
   if (!cidrResult) {
-    return homepageTemplate(bgBase64)
+    return homepageTemplate()
   }
 
   if (state.splits && state.splits.length > 0) {
@@ -424,8 +193,8 @@ export function buildTemplate(
       const hosts = prefix >= 31 ? (prefix === 32 ? 1 : 2) : Math.pow(2, 32 - prefix) - 2
       return { prefix, label, hosts }
     })
-    return splitterTemplate(bgBase64, cidrResult.input, splits)
+    return splitterTemplate(cidrResult.input, splits)
   }
 
-  return cidrTemplate(bgBase64, cidrResult)
+  return cidrTemplate(cidrResult)
 }

@@ -12,11 +12,6 @@
       "type": "Data",
       "globs": ["**/*.ttf"],
       "fallthrough": false
-    },
-    {
-      "type": "CompiledWasm",
-      "globs": ["**/*.wasm"],
-      "fallthrough": false
     }
   ]
 }
