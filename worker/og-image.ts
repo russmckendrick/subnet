@@ -1,35 +1,19 @@
 import satori from 'satori'
-import { Resvg, initWasm } from '@resvg/resvg-wasm'
-// @ts-expect-error -- wasm binary import handled by wrangler CompiledWasm rule
-import resvgWasm from './resvg.wasm'
+// @ts-expect-error -- @cf-wasm/resvg/workerd handles WASM init for Cloudflare Workers
+import { Resvg } from '@cf-wasm/resvg/workerd'
 import { getFonts } from './fonts'
 import { parseCidr } from '../src/lib/cidr'
 import { decodeState } from '../src/lib/url-codec'
 import { buildTemplate, homepageTemplate, designerTemplate } from './og-template'
 
-let wasmInitialized = false
-let wasmFailed = false
 let cachedBgBase64: string | null = null
 
 const WIDTH = 1200
 const HEIGHT = 630
 
-async function ensureWasm(): Promise<void> {
-  if (wasmInitialized) return
-  if (wasmFailed) throw new Error('WASM previously failed to initialize')
-
-  try {
-    await initWasm(resvgWasm)
-    wasmInitialized = true
-  } catch (e) {
-    wasmFailed = true
-    throw e
-  }
-}
-
 /** Render an SVG string to PNG buffer using resvg */
-function svgToPng(svg: string): Uint8Array {
-  const resvg = new Resvg(svg, {
+async function svgToPng(svg: string): Promise<Uint8Array> {
+  const resvg = await Resvg.async(svg, {
     fitTo: { mode: 'width', value: WIDTH },
   })
   const rendered = resvg.render()
@@ -45,7 +29,7 @@ async function getBackgroundBase64(env: Env): Promise<string | null> {
     if (!res.ok) return null
 
     const svgText = await res.text()
-    const bgResvg = new Resvg(svgText, {
+    const bgResvg = await Resvg.async(svgText, {
       fitTo: { mode: 'width', value: WIDTH },
       background: '#002b36',
     })
@@ -79,16 +63,6 @@ export async function handleOgImage(
   env: Env,
 ): Promise<Response> {
   try {
-    await ensureWasm()
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e)
-    return new Response(`OG image generation failed: WASM init error: ${msg}`, {
-      status: 500,
-      headers: { 'Content-Type': 'text/plain' },
-    })
-  }
-
-  try {
     const url = new URL(request.url)
     const ogPath = url.pathname.replace(/^\/og\/?/, '/')
     const search = url.search
@@ -115,7 +89,7 @@ export async function handleOgImage(
       fonts,
     })
 
-    const png = svgToPng(svg)
+    const png = await svgToPng(svg)
 
     return new Response(png, {
       headers: {
