@@ -212,7 +212,7 @@ There is no router library. The app uses **path-based URL encoding** for state s
 
 The `useUrlSync` hook migrates legacy hash URLs on mount, reads the current path to restore state, and writes URL changes on state updates using `history.replaceState()` (no navigation events).
 
-Navigation between calculator and designer is bidirectional and state-preserving. When navigating Calculator → Designer, the Header link and command palette build `/designer?from=&split=` URLs from calculator store state. When navigating Designer → Calculator, the `useCalculatorHref()` hook extracts CIDR and splits from diagram nodes via `extractDesignerState()` and encodes them into a calculator URL using `encodeState()`.
+Navigation between calculator and designer is bidirectional and state-preserving. When navigating Calculator → Designer, the Header link and command palette build `/designer?from=&split=` URLs from calculator store state, but only when no saved diagram exists in localStorage (to avoid overwriting user-added resources); the SplitterToolbar always carries params as an explicit "generate new diagram" action. When navigating Designer → Calculator, the `useCalculatorHref()` hook extracts CIDR and splits from diagram nodes via `extractDesignerState()` and encodes them into a calculator URL using `encodeState()`.
 
 See [URL Sharing](url-sharing.md) for the full specification.
 

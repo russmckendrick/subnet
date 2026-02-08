@@ -84,8 +84,8 @@ When URL parameters are present, they take precedence over any saved localStorag
 Navigation between the calculator and designer preserves state in both directions using URL parameters:
 
 **Calculator → Designer:**
-- The Header "Designer" link and command palette "Open Designer" command build `/designer?from={cidr}&split={prefix~label,...}` from calculator store state (`rawInput`, `result`, `splits`)
-- The SplitterToolbar "Open in Designer" button uses the same pattern
+- The Header "Designer" link and command palette "Open Designer" command build `/designer?from={cidr}&split={prefix~label,...}` from calculator store state — but only when no saved diagram exists in localStorage. If a saved diagram exists, they link to bare `/designer` so persistence restores the full state (including any resources the user added)
+- The SplitterToolbar "Open in Designer" button always carries params as an explicit "generate new diagram" action
 - Falls back to bare `/designer` when no CIDR is loaded
 
 **Designer → Calculator:**

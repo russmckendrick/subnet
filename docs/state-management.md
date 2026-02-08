@@ -214,7 +214,9 @@ State is preserved when navigating between the calculator and designer views:
 
 **Calculator → Designer:**
 - `Header.tsx` and `CommandPalette.tsx` read `rawInput`, `result`, and `splits` from `calculator-store`
-- Build `/designer?from={cidr}&split={prefix~label,...}` URL
+- Build `/designer?from={cidr}&split={prefix~label,...}` URL — but only when no saved diagram exists in localStorage (checked via `localStorage.getItem('subnet-designer-state')`)
+- If a saved diagram exists, link to bare `/designer` so persistence restores the full state including resources
+- `SplitterToolbar` always carries params as an explicit "generate new diagram" action
 - Falls back to bare `/designer` when no CIDR is loaded
 
 **Designer → Calculator:**

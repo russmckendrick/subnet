@@ -103,7 +103,11 @@ export function CommandPalette() {
     if (action === 'open-supernet') { setActiveDrawer('supernet'); return }
     if (action === 'open-designer') {
       let href = '/designer'
-      if (result && rawInput) {
+      // Only carry calculator state when no saved diagram exists,
+      // so we don't overwrite resources the user added in the designer.
+      let hasSavedDiagram = false
+      try { hasSavedDiagram = !!localStorage.getItem('subnet-designer-state') } catch { /* noop */ }
+      if (!hasSavedDiagram && result && rawInput) {
         const params: string[] = [`from=${encodeURIComponent(rawInput)}`]
         if (splits.length > 0) {
           params.push(`split=${splits.map((s) => `${s.prefixLength}~${encodeURIComponent(s.label)}`).join(',')}`)
