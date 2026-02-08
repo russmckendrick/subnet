@@ -19,13 +19,9 @@ function formatNumber(n: number): string {
   return n.toLocaleString('en-US')
 }
 
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-}
-
 function accentBar(): string {
   const colors = [CYAN, BLUE, VIOLET, MAGENTA, ORANGE]
-  return `<div style="display:flex;width:100%;height:5px">
+  return `<div style="display:flex;width:100%;height:5px;margin-bottom:16px">
     ${colors.map(c => `<div style="flex:1;background-color:${c}"></div>`).join('')}
   </div>`
 }
@@ -38,18 +34,16 @@ function logoAndBrand(): string {
 }
 
 function ctaFooter(text: string): string {
-  return `<div style="display:flex;margin-top:auto;padding:16px 28px;background-color:${BASE02};border-radius:10px;align-items:center;justify-content:space-between">
+  return `<div style="display:flex;margin-top:auto;width:100%;padding:16px 28px;background-color:${BASE02};border-radius:10px;align-items:center;justify-content:space-between">
     <span style="font-family:'Schibsted Grotesk';font-size:20px;color:${BASE0}">${text}</span>
     <span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:22px;color:${CYAN}">subnet.fit →</span>
   </div>`
 }
 
 function rootContainer(...children: string[]): string {
-  return `<div style="display:flex;flex-direction:column;width:1200px;height:630px;background-color:${BASE03}">
+  return `<div style="display:flex;flex-direction:column;width:1200px;height:630px;padding:40px 48px 36px;background-color:${BASE03}">
     ${accentBar()}
-    <div style="display:flex;flex-direction:column;flex:1;padding:28px 48px 36px">
-      ${children.join('')}
-    </div>
+    ${children.join('')}
   </div>`
 }
 
@@ -65,7 +59,7 @@ export function homepageTemplate(): string {
   return rootContainer(
     logoAndBrand(),
     `<div style="display:flex;flex-direction:column;margin-top:40px;gap:12px">
-      <span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:52px;color:${BASE1}">CIDR Calculator &amp;</span>
+      <span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:52px;color:${BASE1}">CIDR Calculator &</span>
       <span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:52px;color:${CYAN}">Network Planner</span>
     </div>`,
     `<div style="display:flex;margin-top:24px;gap:16px">
@@ -89,20 +83,21 @@ export function cidrTemplate(result: CidrResult): string {
     ['Last Host', result.lastHost],
   ]
 
-  const rfcBadge = result.rfcType
+  const rfcLabel = result.rfcType ? (result.rfcType.split(' — ')[1] || result.rfcType) : ''
+  const rfcBadge = rfcLabel
     ? `<div style="display:flex;padding:4px 12px;border-radius:6px;background-color:${GREEN}30">
-        <span style="font-family:'Schibsted Grotesk';font-size:16px;color:${GREEN}">${escapeHtml(result.rfcType.split(' — ')[1] || result.rfcType)}</span>
+        <span style="font-family:'Schibsted Grotesk';font-size:16px;color:${GREEN}">${rfcLabel}</span>
       </div>`
     : ''
 
   return rootContainer(
     logoAndBrand(),
-    `<div style="display:flex;align-items:baseline;margin-top:24px">
-      <span style="font-family:'Martian Mono';font-weight:400;font-size:56px;color:${BASE1}">${escapeHtml(ipAddr)}</span>
-      <span style="font-family:'Martian Mono';font-weight:400;font-size:56px;color:${CYAN}">/${escapeHtml(prefix)}</span>
+    `<div style="display:flex;align-items:baseline;margin-top:20px">
+      <span style="font-family:'Martian Mono';font-weight:400;font-size:56px;color:${BASE1}">${ipAddr}</span>
+      <span style="font-family:'Martian Mono';font-weight:400;font-size:56px;color:${CYAN}">/${prefix}</span>
     </div>`,
-    `<div style="display:flex;flex-direction:column;margin-top:20px;padding:20px 28px;background-color:${BASE02}e6;border-radius:12px;border:1px solid ${BASE1}20;gap:10px">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+    `<div style="display:flex;flex-direction:column;width:100%;margin-top:20px;padding:20px 28px;background-color:${BASE02}e6;border-radius:12px;border:1px solid ${BASE1}20;gap:10px">
+      <div style="display:flex;width:100%;align-items:center;gap:12px;margin-bottom:4px">
         <span style="font-family:'Martian Mono';font-size:32px;color:${CYAN}">${formatNumber(result.usableHosts)}</span>
         <span style="font-family:'Schibsted Grotesk';font-size:22px;color:${BASE0}">usable hosts</span>
         <div style="display:flex;margin-left:auto;gap:8px">
@@ -112,9 +107,9 @@ export function cidrTemplate(result: CidrResult): string {
           ${rfcBadge}
         </div>
       </div>
-      ${detailRows.map(([label, value]) => `<div style="display:flex;justify-content:space-between;align-items:center">
+      ${detailRows.map(([label, value]) => `<div style="display:flex;width:100%;justify-content:space-between;align-items:center">
         <span style="font-family:'Schibsted Grotesk';font-size:18px;color:${BASE0}">${label}</span>
-        <span style="font-family:'Martian Mono';font-size:18px;color:${BASE1}">${escapeHtml(value)}</span>
+        <span style="font-family:'Martian Mono';font-size:18px;color:${BASE1}">${value}</span>
       </div>`).join('')}
     </div>`,
     ctaFooter('Calculate, split & visualize any subnet'),
@@ -136,19 +131,19 @@ export function splitterTemplate(
     logoAndBrand(),
     `<div style="display:flex;align-items:center;gap:16px;margin-top:20px">
       <div style="display:flex;align-items:baseline">
-        <span style="font-family:'Martian Mono';font-weight:400;font-size:42px;color:${BASE1}">${escapeHtml(ipAddr)}</span>
-        <span style="font-family:'Martian Mono';font-weight:400;font-size:42px;color:${CYAN}">/${escapeHtml(prefix)}</span>
+        <span style="font-family:'Martian Mono';font-weight:400;font-size:42px;color:${BASE1}">${ipAddr}</span>
+        <span style="font-family:'Martian Mono';font-weight:400;font-size:42px;color:${CYAN}">/${prefix}</span>
       </div>
       <div style="display:flex;padding:6px 16px;border-radius:6px;background-color:${VIOLET}30">
         <span style="font-family:'Schibsted Grotesk';font-size:18px;color:${VIOLET}">Subnet Splitter</span>
       </div>
     </div>`,
-    `<div style="display:flex;flex-direction:column;margin-top:20px;padding:18px 28px;background-color:${BASE02}e6;border-radius:12px;border:1px solid ${BASE1}20;gap:10px">
+    `<div style="display:flex;flex-direction:column;width:100%;margin-top:20px;padding:18px 28px;background-color:${BASE02}e6;border-radius:12px;border:1px solid ${BASE1}20;gap:10px">
       ${displaySplits.map((s, i) => {
         const color = colors[i % colors.length]
-        return `<div style="display:flex;align-items:center;gap:12px">
+        return `<div style="display:flex;width:100%;align-items:center;gap:12px">
           <div style="display:flex;width:12px;height:12px;border-radius:50%;background-color:${color}"></div>
-          <span style="font-family:'Schibsted Grotesk';font-size:20px;color:${BASE1};flex:1">${escapeHtml(s.label)}</span>
+          <span style="font-family:'Schibsted Grotesk';font-size:20px;color:${BASE1};flex:1">${s.label}</span>
           <span style="font-family:'Martian Mono';font-size:18px;color:${BASE0}">/${s.prefix}</span>
           <span style="font-family:'Martian Mono';font-size:16px;color:${CYAN}">${formatNumber(s.hosts)} hosts</span>
         </div>`
@@ -166,9 +161,9 @@ export function supernetTemplate(inputs: string[]): string {
     `<div style="display:flex;align-items:center;gap:16px;margin-top:28px">
       <span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:44px;color:${BASE1}">Supernet Calculator</span>
     </div>`,
-    `<div style="display:flex;flex-direction:column;margin-top:20px;padding:20px 28px;background-color:${BASE02}e6;border-radius:12px;border:1px solid ${BASE1}20;gap:8px">
+    `<div style="display:flex;flex-direction:column;width:100%;margin-top:20px;padding:20px 28px;background-color:${BASE02}e6;border-radius:12px;border:1px solid ${BASE1}20;gap:8px">
       <span style="font-family:'Schibsted Grotesk';font-size:16px;color:${BASE0}">Input Networks</span>
-      ${inputs.slice(0, 6).map(net => `<span style="font-family:'Martian Mono';font-size:20px;color:${BASE1}">${escapeHtml(net)}</span>`).join('')}
+      ${inputs.slice(0, 6).map(net => `<span style="font-family:'Martian Mono';font-size:20px;color:${BASE1}">${net}</span>`).join('')}
       ${inputs.length > 6 ? `<span style="font-family:'Schibsted Grotesk';font-size:16px;color:${BASE0}">+${inputs.length - 6} more...</span>` : ''}
     </div>`,
     ctaFooter('Aggregate networks into the smallest CIDR'),
@@ -187,7 +182,7 @@ export function designerTemplate(): string {
     logoAndBrand(),
     `<div style="display:flex;flex-direction:column;margin-top:40px;gap:12px">
       <span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:52px;color:${BASE1}">Network Designer</span>
-      <span style="font-family:'Schibsted Grotesk';font-size:24px;color:${BASE0}">Visual cloud architecture diagrams with AWS, Azure &amp; GCP support</span>
+      <span style="font-family:'Schibsted Grotesk';font-size:24px;color:${BASE0}">Visual cloud architecture diagrams with AWS, Azure & GCP support</span>
     </div>`,
     `<div style="display:flex;margin-top:24px;gap:16px">
       ${providerPills.map(p => `<div style="display:flex;padding:10px 20px;border-radius:8px;background-color:${p.color}20;border:2px solid ${p.color}40">
