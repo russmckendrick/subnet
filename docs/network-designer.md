@@ -233,17 +233,20 @@ Generates `resourceNode` entries for the Internet Gateway and VPC, `subnetNode` 
 |----------|--------|--------|
 | `diagramToPng(element, isDark)` | PNG Blob | `html-to-image` `toPng()` with 2x pixel ratio |
 | `diagramToSvg(element, isDark)` | SVG Blob | `html-to-image` `toSvg()` |
-| `diagramToJson(nodes, edges)` | JSON string | `JSON.stringify({ nodes, edges, version: 1 }, null, 2)` |
-| `diagramToDrawio(nodes, edges)` | XML string | Builds `<mxfile>` structure with `<mxCell>` elements |
+| `diagramToJson(nodes, edges)` | JSON string | `JSON.stringify({ nodes, edges, version: 2 }, null, 2)` |
+| `diagramToDrawio(nodes, edges)` | XML string | Builds `<mxfile>` with rich HTML labels and embedded SVG icons |
 
 PNG/SVG exports use the `backgroundColor` from the current theme (`#002b36` dark, `#fdf6e3` light). The element passed is the `.react-flow` DOM node.
 
 ### draw.io XML Format
 
-The draw.io export generates valid `<mxfile>` XML:
-- SubnetNodes → rounded rectangles with `fillColor` from the node's color, value = `label\nCIDR`
-- ResourceNodes → shape mapped by resourceType (ellipse for gateway, cloud for cloud/vpc, hexagon for router/switch, trapezoid for firewall, rectangle for server/db)
-- Edges → orthogonal edge style with `strokeColor=#2aa198`
+The draw.io export generates high-fidelity `<mxfile>` XML that closely mirrors the designer view:
+- **VPC containers** → `html=1` rich labels with provider badge (e.g. "VNET"), label, and CIDR. Provider-specific border colors/styles (Azure solid, others dashed)
+- **Subnet containers** → `html=1` labels with colored dot indicator, label, CIDR, and hosts badge. Dotted borders
+- **Cloud resources** → Embedded SVG icons via `shape=image` with data URIs from `drawio-icons.ts`. Falls back to styled rectangles
+- **Legacy nodes** → Shape-mapped by resourceType or embedded generic SVG icons
+- **Edges** → Curved routing with `orthogonalLoop=1;jettySize=auto;curved=1` and `strokeColor=#2aa198`
+- **Background** → `background="#002b36"` dark theme on the graph model
 - All text values are XML-escaped
 
 ### DiagramExportModal (`src/components/designer/DiagramExportModal.tsx`)

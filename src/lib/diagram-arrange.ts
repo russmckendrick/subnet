@@ -383,6 +383,20 @@ export function distributeNodes<T extends Node>(nodes: T[], selectedIds: string[
 
 export type ResizeMode = 'width' | 'height' | 'both'
 
+// Read effective node width/height — NodeResizer sets top-level node.width/height
+// via applyNodeChanges (setAttributes), which takes precedence over style.width/height.
+function getNodeWidth(n: Node): number | undefined {
+  return n.width ?? (n.style?.width as number | undefined)
+}
+
+function getNodeHeight(n: Node): number | undefined {
+  return n.height ?? (n.style?.height as number | undefined)
+}
+
+function hasExplicitDimensions(n: Node): boolean {
+  return getNodeWidth(n) !== undefined || getNodeHeight(n) !== undefined
+}
+
 /**
  * Resize selected container nodes to match the largest selected node's dimensions.
  */
@@ -397,22 +411,29 @@ export function resizeToMatch<T extends Node>(
   const selected = nodes.filter((n) => selectedSet.has(n.id))
 
   // Only resize nodes that have explicit dimensions (containers)
-  const resizable = selected.filter(
-    (n) => n.style?.width !== undefined || n.style?.height !== undefined,
-  )
+  const resizable = selected.filter(hasExplicitDimensions)
   if (resizable.length < 2) return nodes
 
-  const maxWidth = Math.max(...resizable.map((n) => (n.style?.width as number) || 0))
-  const maxHeight = Math.max(...resizable.map((n) => (n.style?.height as number) || 0))
+  const maxWidth = Math.max(...resizable.map((n) => getNodeWidth(n) || 0))
+  const maxHeight = Math.max(...resizable.map((n) => getNodeHeight(n) || 0))
 
   return nodes.map((n) => {
     if (!selectedSet.has(n.id)) return n
-    if (n.style?.width === undefined && n.style?.height === undefined) return n
+    if (!hasExplicitDimensions(n)) return n
 
     const newStyle = { ...n.style }
-    if (mode === 'width' || mode === 'both') newStyle.width = maxWidth
-    if (mode === 'height' || mode === 'both') newStyle.height = maxHeight
+    const updates: Partial<T> = { style: newStyle } as Partial<T>
 
-    return { ...n, style: newStyle }
+    if (mode === 'width' || mode === 'both') {
+      newStyle.width = maxWidth
+      // Also set top-level width so React Flow picks it up immediately
+      ;(updates as Record<string, unknown>).width = maxWidth
+    }
+    if (mode === 'height' || mode === 'both') {
+      newStyle.height = maxHeight
+      ;(updates as Record<string, unknown>).height = maxHeight
+    }
+
+    return { ...n, ...updates }
   })
 }

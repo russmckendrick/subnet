@@ -209,7 +209,7 @@ Export the diagram in four formats via the export modal (header button, floating
 - **PNG** — High-resolution (2x pixel ratio) raster image with theme-appropriate background
 - **SVG** — Vector image
 - **JSON** — Structured data with all node positions, data, and edge connections
-- **draw.io** — XML file compatible with draw.io / diagrams.net, preserving shapes, colors, labels, and connections
+- **draw.io** — High-fidelity XML file compatible with draw.io / diagrams.net, with rich HTML labels (provider badges, CIDR, host counts), embedded SVG cloud resource icons, and provider-specific container styling
 
 ### Persistence
 
