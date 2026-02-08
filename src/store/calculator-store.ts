@@ -44,10 +44,16 @@ interface CalculatorState {
 }
 
 function recalcSplits(parentCidr: string, prefixes: number[], labels: string[]) {
-  const splits = allocateSubnets(parentCidr, prefixes, labels)
+  // Sort largest-first (ascending prefix = larger subnet) for optimal VLSM packing
+  const indices = prefixes.map((_, i) => i)
+  indices.sort((a, b) => prefixes[a] - prefixes[b])
+  const sortedPrefixes = indices.map((i) => prefixes[i])
+  const sortedLabels = indices.map((i) => labels[i])
+
+  const splits = allocateSubnets(parentCidr, sortedPrefixes, sortedLabels)
   const remaining = splits ? getRemainingSpace(parentCidr, splits) : 0
   const available = getAvailablePrefixes(parentCidr, splits ?? [])
-  return { splits: splits ?? [], remainingSpace: remaining, availablePrefixes: available }
+  return { splitPrefixes: sortedPrefixes, splitLabels: sortedLabels, splits: splits ?? [], remainingSpace: remaining, availablePrefixes: available }
 }
 
 const initialSplitCalc = recalcSplits(config.defaultCidr, [], [])
@@ -80,7 +86,7 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
       }
       // Incompatible — clear splits
       const freshCalc = recalcSplits(input, [], [])
-      set({ rawInput: input, result, splitPrefixes: [], splitLabels: [], ...freshCalc })
+      set({ rawInput: input, result, ...freshCalc })
       return
     }
 
@@ -100,7 +106,7 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
     const newPrefixes = [...splitPrefixes, prefix]
     const newLabels = [...splitLabels, `Subnet ${newPrefixes.length}`]
     const calc = recalcSplits(rawInput, newPrefixes, newLabels)
-    set({ splitPrefixes: newPrefixes, splitLabels: newLabels, ...calc })
+    set(calc)
   },
 
   removeSplit: (index) => {
@@ -108,7 +114,7 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
     const newPrefixes = splitPrefixes.filter((_, i) => i !== index)
     const newLabels = splitLabels.filter((_, i) => i !== index)
     const calc = recalcSplits(rawInput, newPrefixes, newLabels)
-    set({ splitPrefixes: newPrefixes, splitLabels: newLabels, ...calc })
+    set(calc)
   },
 
   updateSplitLabel: (index, label) => {
@@ -128,7 +134,7 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   resetSplits: () => {
     const { rawInput } = get()
     const calc = recalcSplits(rawInput, [], [])
-    set({ splitPrefixes: [], splitLabels: [], ...calc })
+    set(calc)
   },
 
   setSupernetInputs: (inputs) => {
@@ -150,9 +156,8 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
       result,
     }
     if (splits && splits.length > 0) {
-      state.splitPrefixes = splits
-      state.splitLabels = labels ?? splits.map((_, i) => `Subnet ${i + 1}`)
-      const calc = recalcSplits(cidr, splits, state.splitLabels!)
+      const splitLabels = labels ?? splits.map((_, i) => `Subnet ${i + 1}`)
+      const calc = recalcSplits(cidr, splits, splitLabels)
       Object.assign(state, calc)
     } else if (result) {
       const calc = recalcSplits(cidr, [], [])
