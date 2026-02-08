@@ -218,10 +218,18 @@ See [URL Sharing](url-sharing.md) for the full specification.
 
 ## Deployment
 
-Deployed to **Cloudflare Workers** via GitHub Actions (`.github/workflows/deploy.yml`). The Worker (`worker/index.ts`) handles three concerns:
+Deployed to **Cloudflare Workers** via GitHub Actions (`.github/workflows/deploy.yml`). The Worker (`worker/index.ts`) handles four concerns:
 
-1. **Static assets** — requests with file extensions pass through to `env.ASSETS.fetch()`
-2. **OG image generation** — `/og/*` routes render dynamic PNG images using `satori` (SVG) + `@resvg/resvg-wasm` (PNG), with 7-day cache headers
-3. **SPA routing + meta tags** — all other paths serve `index.html` via `env.ASSETS.fetch()`, with `HTMLRewriter` injecting dynamic `og:*` and `twitter:*` meta tags based on the URL (CIDR, splitter, supernet, designer)
+1. **OG image generation** — `/og/*` routes render dynamic PNG images using `satori` (SVG) + `@resvg/resvg-wasm` (PNG), with 7-day cache headers
+2. **XML Sitemaps** — `/sitemap.xml` (index), `/sitemap-pages.xml`, `/sitemap-cidr.xml` (~14k RFC 1918 CIDR URLs), `/sitemap-splitter.xml` (~25 curated split examples), `/sitemap-supernet.xml` (~20 aggregation examples). Generated dynamically in `worker/sitemap.ts` with 24h cache headers.
+3. **Static assets** — requests with file extensions pass through to `env.ASSETS.fetch()`
+4. **SPA routing + meta tags** — all other paths serve `index.html` via `env.ASSETS.fetch()`, with `HTMLRewriter` injecting dynamic `og:*`/`twitter:*` meta tags, `<link rel="canonical">` URLs (normalized to network address), and `<script type="application/ld+json">` structured data (WebApplication + FAQPage schemas) based on the URL (CIDR, splitter, supernet, designer)
+
+### SEO Infrastructure
+
+- **`public/robots.txt`** — allows all crawlers, points to sitemap
+- **`worker/sitemap.ts`** — generates tiered XML sitemaps for all RFC 1918 CIDR pages
+- **`worker/json-ld.ts`** — computes JSON-LD structured data per page type (WebApplication, FAQPage)
+- **`worker/meta-tags.ts`** — computes and injects `<title>`, `<meta>`, `<link rel="canonical">`, and JSON-LD via HTMLRewriter
 
 The `wrangler.jsonc` config uses Worker+Assets hybrid mode (`main` + `assets.binding: "ASSETS"`). Module rules bundle TTF fonts as `Data` and WASM as `CompiledWasm`.

@@ -1,5 +1,6 @@
 import { handleOgImage } from './og-image'
 import { injectMetaTags } from './meta-tags'
+import { handleSitemap } from './sitemap'
 
 interface Env {
   ASSETS: {
@@ -22,12 +23,17 @@ export default {
       return handleOgImage(request, env)
     }
 
-    // 2. Static assets — pass through to Cloudflare Assets
+    // 2. Sitemaps
+    if (pathname === '/sitemap.xml' || pathname.startsWith('/sitemap-')) {
+      return handleSitemap(pathname)
+    }
+
+    // 3. Static assets — pass through to Cloudflare Assets
     if (isStaticAsset(pathname)) {
       return env.ASSETS.fetch(request)
     }
 
-    // 3. SPA routes — serve index.html with dynamic meta tags
+    // 4. SPA routes — serve index.html with dynamic meta tags
     //    This replicates the "single-page-application" not_found_handling
     const indexRequest = new Request(new URL('/', request.url), request)
     const response = await env.ASSETS.fetch(indexRequest)

@@ -28,7 +28,7 @@ See the [`docs/`](docs/) folder for detailed documentation:
 
 ## Architecture
 
-subnet.fit is a CIDR/subnet calculator. All core computation happens in the browser — there is no backend. The only external API call is the optional RDAP lookup against `rdap.org` for public IP registration data. A Cloudflare Worker handles SPA routing, dynamic OpenGraph meta tag injection via `HTMLRewriter`, and on-the-fly OG image generation using `satori` + `@resvg/resvg-wasm`.
+subnet.fit is a CIDR/subnet calculator. All core computation happens in the browser — there is no backend. The only external API call is the optional RDAP lookup against `rdap.org` for public IP registration data. A Cloudflare Worker handles SPA routing, dynamic OpenGraph meta tag injection via `HTMLRewriter`, on-the-fly OG image generation using `satori` + `@resvg/resvg-wasm`, XML sitemap generation, canonical URL injection, and JSON-LD structured data.
 
 ### Layers
 
@@ -36,7 +36,7 @@ subnet.fit is a CIDR/subnet calculator. All core computation happens in the brow
 - **`src/store/`** — Zustand stores. `calculator-store.ts` holds all app state (active tab, calculator result, splitter allocations, supernet inputs, input mode, command palette open state). `designer-store.ts` holds diagram state (nodes, edges, palette, selection, multi-selection, export modal, node color updates, localStorage persistence, cloud provider, `activeLayer` for layer filtering, `pendingDrop` for touch tap-to-place). Node data types: `SubnetNodeData`, `ResourceNodeData` (legacy flat), `VpcContainerNodeData`, `SubnetContainerNodeData`, `CloudResourceNodeData` (cloud containment). `theme-store.ts` persists dark/light mode to localStorage. Calculator and theme stores read defaults from `config.ts`.
 - **`src/hooks/`** — Side-effect hooks. `use-url-sync.ts` syncs store ↔ URL path bidirectionally (with legacy hash migration). `use-designer-url-sync.ts` reads `?from=`, `&split=`, and `&provider=` params on `/designer` route; merges new subnets into existing saved diagrams (same VPC CIDR) or generates fresh layouts. `use-calculator-href.ts` returns a calculator URL from designer state via `extractDesignerState()` and `encodeState()`, enabling state-preserving back-navigation from designer to calculator. `use-keyboard-shortcuts.ts` handles `/` to open command palette, arrows to adjust prefix when input focused. `use-clipboard.ts` wraps clipboard API with feedback state. `use-rdap-lookup.ts` fetches RDAP data for public IPs with debounce, abort, and caching. `use-diagram-persistence.ts` auto-saves/loads designer state to/from localStorage with 1s debounce, runs migration from v1→v2 on load. `use-designer-shortcuts.ts` handles Escape (deselect/close), Cmd+E (export modal), Cmd+S (manual save), 1/2/3 (layer switching) in designer. `use-touch-detect.ts` detects touch devices for tap-to-place mode. `use-document-title.ts` updates `document.title` dynamically based on calculator state (CIDR loaded, splitter mode, supernet).
 - **`src/components/`** — UI organized by feature domain: `calculator/`, `splitter/`, `designer/`, `visual-map/`, `cloud/`, `whois/`, `tools/`, `export/`, `command-palette/`, `shared/`, `layout/`.
-- **`worker/`** — Cloudflare Worker for edge routing, OG image generation, and meta tag injection. `index.ts` routes requests (static assets → ASSETS passthrough, `/og/*` → PNG generation, SPA routes → `index.html` + `HTMLRewriter`). `og-image.ts` renders satori SVG templates to PNG via `@resvg/resvg-wasm`. `og-template.ts` defines satori virtual DOM templates for each page type (homepage, CIDR, splitter, supernet, designer). `meta-tags.ts` computes and injects dynamic `og:*`/`twitter:*` meta tags. `fonts.ts` bundles TTF font data. `logo.ts` exports the logo as a data URI. Imports pure functions from `src/lib/cidr.ts` and `src/lib/url-codec.ts` for URL parsing and CIDR calculations.
+- **`worker/`** — Cloudflare Worker for edge routing, OG image generation, SEO, and meta tag injection. `index.ts` routes requests (`/og/*` → PNG generation, `/sitemap*.xml` → XML sitemaps, static assets → ASSETS passthrough, SPA routes → `index.html` + `HTMLRewriter`). `og-image.ts` renders satori SVG templates to PNG via `@resvg/resvg-wasm`. `og-template.ts` defines satori virtual DOM templates for each page type (homepage, CIDR, splitter, supernet, designer). `meta-tags.ts` computes and injects dynamic `og:*`/`twitter:*` meta tags, `<link rel="canonical">` (normalized to network address), and JSON-LD structured data via `HTMLRewriter`. `json-ld.ts` generates schema.org structured data per page type (WebApplication, FAQPage with 7 Q&As). `sitemap.ts` generates tiered XML sitemaps: sitemap index + pages, CIDR (~14k RFC 1918 URLs across 3 priority tiers), splitter (~25 examples), supernet (~20 examples). `fonts.ts` bundles TTF font data. `logo.ts` exports the logo as a data URI. Imports pure functions from `src/lib/cidr.ts`, `src/lib/ipv4.ts`, and `src/lib/url-codec.ts`.
 
 ### Routing
 
@@ -45,6 +45,7 @@ No router library. The app uses **path-based URL encoding** for state and sharea
 - Splitter: `/10.0.0.0/16?split=24~Web,25~API`
 - Supernet: `/super?nets=10.0.0.0/24,10.0.1.0/24`
 - Designer: `/designer` or `/designer?from=10.0.0.0/16&split=24~Web,25~API&provider=aws`
+- Sitemaps: `/sitemap.xml` (index), `/sitemap-pages.xml`, `/sitemap-cidr.xml`, `/sitemap-splitter.xml`, `/sitemap-supernet.xml`
 
 Encoding/decoding is in `src/lib/url-codec.ts`. The `useUrlSync` hook migrates legacy hash URLs on mount, reads the path, and writes it on state changes via `history.replaceState()`. The designer route is detected in `App.tsx` via `pathname.startsWith('/designer')` and renders `<DesignerPage>` instead of the calculator layout.
 
@@ -113,6 +114,7 @@ The `dark` class is toggled on `<html>` by the theme store. The visual design us
 - `DiagramJsonData` (in `src/lib/export-diagram.ts`) — Validated JSON import structure: `{ nodes, edges, version, cloudProvider? }`.
 - `SaveEntry` (in `src/lib/diagram-saves.ts`) — Named save manifest entry: id, name, createdAt, updatedAt, nodeCount, cloudProvider.
 - `ExtractedDesignerState` (in `src/lib/designer-state-extract.ts`) — Extracted CIDR, splits (prefix + label), and cloud provider from designer diagram nodes.
+- `MetaTags` (in `worker/meta-tags.ts`) — Worker-side meta tag data: title, description, ogImage, ogUrl, canonical, jsonLd.
 
 ### Command Palette
 
@@ -147,7 +149,7 @@ The designer at `/designer` uses **nested containment** to produce cloud-native 
 
 ### Deployment
 
-Deployed to **Cloudflare Workers** via GitHub Actions (`.github/workflows/deploy.yml`). The Worker (`worker/index.ts`) handles SPA routing (replacing the previous `not_found_handling: single-page-application`), OG image generation at `/og/*`, and dynamic meta tag injection via `HTMLRewriter`. Configuration in `wrangler.jsonc` uses Worker+Assets hybrid mode (`main` + `assets.binding: "ASSETS"`). `rules` configure `Data` (TTF fonts) and `CompiledWasm` (resvg WASM) imports. Triggers on pushes to `main` and pull requests. Requires `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` GitHub secrets.
+Deployed to **Cloudflare Workers** via GitHub Actions (`.github/workflows/deploy.yml`). The Worker (`worker/index.ts`) handles SPA routing, OG image generation at `/og/*`, XML sitemap generation at `/sitemap*.xml`, dynamic meta tag injection (title, description, OG, canonical URL, JSON-LD structured data) via `HTMLRewriter`. Configuration in `wrangler.jsonc` uses Worker+Assets hybrid mode (`main` + `assets.binding: "ASSETS"`). `rules` configure `Data` (TTF fonts) and `CompiledWasm` (resvg WASM) imports. Triggers on pushes to `main` and pull requests. Requires `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` GitHub secrets.
 
 ## Post-Change Checklist
 
