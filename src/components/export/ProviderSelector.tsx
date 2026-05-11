@@ -24,11 +24,13 @@ interface ProviderSelectorProps {
 
 export function ProviderSelector({ selected, onChange }: ProviderSelectorProps) {
   return (
-    <div className="flex gap-1.5">
+    <div className="flex gap-1.5" role="group" aria-label="Cloud provider">
       {PROVIDERS.map((p) => (
         <button
+          type="button"
           key={p.id}
           onClick={() => onChange(p.id)}
+          aria-pressed={selected === p.id}
           className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors border flex items-center gap-1.5 ${
             selected === p.id
               ? 'border-current/20'

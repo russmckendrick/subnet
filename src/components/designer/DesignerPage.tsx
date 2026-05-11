@@ -21,7 +21,9 @@ function DesignerContent() {
     document.title = 'Network Designer — subnet.fit'
   }, [])
 
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  )
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -58,22 +60,20 @@ function DesignerContent() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-[#fdf6e3] dark:bg-[#002b36]">
-      <DesignerHeader />
-      <div className="flex flex-1 overflow-hidden">
-        <ResourcePalette />
-        <DesignerCanvas />
-        <PropertiesPanel />
+    <ReactFlowProvider>
+      <div className="h-screen flex flex-col bg-[#fdf6e3] dark:bg-[#002b36]">
+        <DesignerHeader />
+        <div className="flex flex-1 min-h-0 overflow-hidden">
+          <ResourcePalette />
+          <DesignerCanvas />
+          <PropertiesPanel />
+        </div>
+        <DiagramExportModal />
       </div>
-      <DiagramExportModal />
-    </div>
+    </ReactFlowProvider>
   )
 }
 
 export function DesignerPage() {
-  return (
-    <ReactFlowProvider>
-      <DesignerContent />
-    </ReactFlowProvider>
-  )
+  return <DesignerContent />
 }

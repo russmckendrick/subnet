@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 
 interface DrawerProps {
@@ -10,6 +10,8 @@ interface DrawerProps {
 
 export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null)
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null)
+  const titleId = useId()
 
   // Escape key closes
   useEffect(() => {
@@ -24,7 +26,13 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
   // Focus trap: focus drawer when opened
   useEffect(() => {
     if (isOpen && drawerRef.current) {
+      previouslyFocusedRef.current = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null
       drawerRef.current.focus()
+    } else {
+      previouslyFocusedRef.current?.focus()
+      previouslyFocusedRef.current = null
     }
   }, [isOpen])
 
@@ -50,28 +58,34 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
             transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/30 z-40"
             onClick={onClose}
+            aria-hidden="true"
           />
 
           {/* Panel — right on desktop, bottom on mobile */}
           <motion.div
             ref={drawerRef}
             tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             className="fixed top-0 right-0 h-full w-full sm:w-[480px] z-50 outline-none
               bg-[#fdf6e3] dark:bg-[#002b36] border-l border-[#93a1a1]/20 dark:border-[#586e75]/20
-              shadow-2xl flex flex-col"
+              shadow-2xl flex flex-col overscroll-contain"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#93a1a1]/20 dark:border-[#586e75]/20">
-              <h2 className="text-sm font-semibold text-[#586e75] dark:text-[#93a1a1] uppercase tracking-wider">
+              <h2 id={titleId} className="text-sm font-semibold text-[#586e75] dark:text-[#93a1a1] uppercase tracking-wider">
                 {title}
               </h2>
               <button
+                type="button"
                 onClick={onClose}
                 className="p-1.5 rounded-lg hover:bg-[#eee8d5] dark:hover:bg-[#073642] text-[#93a1a1] dark:text-[#586e75] transition-colors"
+                aria-label={`Close ${title}`}
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

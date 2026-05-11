@@ -15,8 +15,9 @@ interface Env {
 
 export async function handleOgImage(
   request: Request,
-  _env: Env,
+  _env?: Env,
 ): Promise<Response> {
+  void _env
   try {
     const url = new URL(request.url)
     const ogPath = url.pathname.replace(/^\/og\/?/, '/')

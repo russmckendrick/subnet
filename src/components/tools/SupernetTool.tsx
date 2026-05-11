@@ -8,9 +8,13 @@ const EXAMPLE_CIDRS = '10.0.0.0/24\n10.0.1.0/24\n10.0.2.0/24'
 export function SupernetTool() {
   const { supernetInputs, setSupernetInputs, supernetResult, setRawInput, setActiveDrawer } = useCalculatorStore()
 
-  const lines = supernetInputs.split('\n').map((l) => l.trim()).filter(Boolean)
-  const parsedLines = lines.map((l) => ({ input: l, valid: parseCidr(l) !== null }))
+  const lines = supernetInputs
+    .split('\n')
+    .map((line, index) => ({ input: line.trim(), lineNumber: index + 1 }))
+    .filter((line) => line.input)
+  const parsedLines = lines.map((line) => ({ ...line, valid: parseCidr(line.input) !== null }))
   const hasEnoughInputs = parsedLines.filter(l => l.valid).length >= 2
+  const invalidLines = parsedLines.filter((line) => !line.valid)
 
   return (
     <div className="space-y-4">
@@ -26,6 +30,8 @@ export function SupernetTool() {
           value={supernetInputs}
           onChange={(e) => setSupernetInputs(e.target.value)}
           placeholder={'10.0.0.0/24\n10.0.1.0/24\n10.0.2.0/24'}
+          aria-label="CIDRs to aggregate"
+          name="supernet-cidrs"
           rows={6}
           className="w-full bg-[#fdf6e3] dark:bg-[#002b36] rounded-lg px-4 py-3 font-mono text-sm
             text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40
@@ -51,6 +57,12 @@ export function SupernetTool() {
           </div>
         )}
 
+        {invalidLines.length > 0 && (
+          <p className="mt-2 text-xs text-[#dc322f]" aria-live="polite">
+            Fix {invalidLines.length} invalid CIDR{invalidLines.length === 1 ? '' : 's'} before aggregation: {invalidLines.map((line) => `line ${line.lineNumber}: ${line.input}`).join(', ')}
+          </p>
+        )}
+
         {/* Example state when no valid input */}
         {!hasEnoughInputs && lines.length === 0 && (
           <div className="mt-4 pt-4 border-t border-[#586e75]/20">
@@ -70,6 +82,7 @@ export function SupernetTool() {
                 </span>
               ))}
               <button
+                type="button"
                 onClick={() => setSupernetInputs(EXAMPLE_CIDRS)}
                 className="text-xs font-medium text-[#2aa198] hover:text-[#2aa198]/80 transition-colors px-2.5 py-1 rounded-lg hover:bg-[#2aa198]/5"
               >
@@ -118,6 +131,7 @@ export function SupernetTool() {
           {/* View details: closes drawer and updates input */}
           <div className="mt-3 pt-3 border-t border-[#586e75]/20 flex justify-end">
             <button
+              type="button"
               onClick={() => {
                 setRawInput(supernetResult)
                 setActiveDrawer('none')

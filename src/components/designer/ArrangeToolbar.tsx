@@ -41,8 +41,12 @@ export function ArrangeToolbar() {
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
         className="flex items-center gap-1.5 text-xs text-[#586e75] bg-[#eee8d5] dark:bg-[#073642] px-2.5 py-1.5 rounded-lg hover:bg-[#eee8d5]/80 dark:hover:bg-[#073642]/80 transition-colors"
+        aria-label="Open arrange tools"
       >
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
@@ -51,10 +55,12 @@ export function ArrangeToolbar() {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-1 w-56 bg-[#fdf6e3] dark:bg-[#002b36] border border-[#93a1a1]/20 dark:border-[#586e75]/20 rounded-lg shadow-lg z-50 p-3 space-y-3">
+        <div className="absolute top-full right-0 mt-1 w-56 bg-[#fdf6e3] dark:bg-[#002b36] border border-[#93a1a1]/20 dark:border-[#586e75]/20 rounded-lg shadow-lg z-50 p-3 space-y-3" role="menu">
           {/* Auto Layout */}
           <button
+            type="button"
             onClick={handleAutoLayout}
+            role="menuitem"
             className="w-full flex items-center gap-2 text-xs text-[#586e75] dark:text-[#93a1a1] hover:text-[#2aa198] px-2 py-1.5 rounded-lg hover:bg-[#eee8d5] dark:hover:bg-[#073642] transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -80,9 +86,11 @@ export function ArrangeToolbar() {
                 { dir: 'bottom' as AlignDirection, label: 'Bottom', path: 'M4 20h16M8 4v12M16 8v8' },
               ]).map(({ dir, label, path }) => (
                 <button
+                  type="button"
                   key={dir}
                   onClick={() => handleAlign(dir)}
                   disabled={!hasSelection}
+                  aria-label={`Align ${label}`}
                   className="p-1.5 rounded hover:bg-[#eee8d5] dark:hover:bg-[#073642] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   title={`Align ${label}`}
                 >
@@ -103,8 +111,10 @@ export function ArrangeToolbar() {
             </span>
             <div className="flex gap-1">
               <button
+                type="button"
                 onClick={() => handleDistribute('horizontal')}
                 disabled={!hasDistribute}
+                aria-label="Distribute horizontally"
                 className="flex-1 flex items-center justify-center gap-1.5 text-[10px] text-[#586e75] dark:text-[#93a1a1] px-2 py-1.5 rounded hover:bg-[#eee8d5] dark:hover:bg-[#073642] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -113,8 +123,10 @@ export function ArrangeToolbar() {
                 Horizontal
               </button>
               <button
+                type="button"
                 onClick={() => handleDistribute('vertical')}
                 disabled={!hasDistribute}
+                aria-label="Distribute vertically"
                 className="flex-1 flex items-center justify-center gap-1.5 text-[10px] text-[#586e75] dark:text-[#93a1a1] px-2 py-1.5 rounded hover:bg-[#eee8d5] dark:hover:bg-[#073642] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -134,8 +146,10 @@ export function ArrangeToolbar() {
             </span>
             <div className="flex gap-1">
               <button
+                type="button"
                 onClick={() => handleResize('width')}
                 disabled={!hasSelection}
+                aria-label="Match selected node widths"
                 className="flex-1 flex items-center justify-center gap-1.5 text-[10px] text-[#586e75] dark:text-[#93a1a1] px-2 py-1.5 rounded hover:bg-[#eee8d5] dark:hover:bg-[#073642] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 title="Match width to largest"
               >
@@ -145,8 +159,10 @@ export function ArrangeToolbar() {
                 Width
               </button>
               <button
+                type="button"
                 onClick={() => handleResize('height')}
                 disabled={!hasSelection}
+                aria-label="Match selected node heights"
                 className="flex-1 flex items-center justify-center gap-1.5 text-[10px] text-[#586e75] dark:text-[#93a1a1] px-2 py-1.5 rounded hover:bg-[#eee8d5] dark:hover:bg-[#073642] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 title="Match height to largest"
               >
@@ -156,8 +172,10 @@ export function ArrangeToolbar() {
                 Height
               </button>
               <button
+                type="button"
                 onClick={() => handleResize('both')}
                 disabled={!hasSelection}
+                aria-label="Match selected node width and height"
                 className="flex-1 flex items-center justify-center gap-1.5 text-[10px] text-[#586e75] dark:text-[#93a1a1] px-2 py-1.5 rounded hover:bg-[#eee8d5] dark:hover:bg-[#073642] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 title="Match width and height to largest"
               >

@@ -67,7 +67,7 @@ export function QuickReference() {
                   type="text"
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
-                  placeholder="Filter by prefix, addresses, or netmask..."
+                  placeholder="Filter by prefix, addresses, or netmask…"
                   className="w-full bg-[#fdf6e3] dark:bg-[#002b36] rounded-lg px-3 py-2 text-sm font-mono
                     text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40
                     border border-[#93a1a1]/20 dark:border-[#586e75]/30 focus:outline-none focus:border-[#2aa198]/40"

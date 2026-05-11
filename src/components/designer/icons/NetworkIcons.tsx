@@ -148,19 +148,3 @@ export function CdnIcon({ className, color = '#6c71c4' }: IconProps) {
     </svg>
   )
 }
-
-export const RESOURCE_ICONS: Record<string, React.ComponentType<IconProps>> = {
-  router: RouterIcon,
-  switch: SwitchIcon,
-  firewall: FirewallIcon,
-  server: ServerIcon,
-  database: DatabaseIcon,
-  'load-balancer': LoadBalancerIcon,
-  'internet-gateway': InternetGatewayIcon,
-  'nat-gateway': NatGatewayIcon,
-  dns: DnsIcon,
-  cdn: CdnIcon,
-  cloud: CloudIcon,
-  vpc: VpcIcon,
-  subnet: SubnetIcon,
-}

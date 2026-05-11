@@ -100,7 +100,7 @@ const XML_RULES: TokenRule[] = [
   [/^"(?:[^"\\]|\\.)*"/, 'string'],
   [/^'(?:[^'\\]|\\.)*'/, 'string'],
   [/^-?\d+(\.\d+)?/, 'number'],
-  [/^[<>\/=]/, 'punctuation'],
+  [/^[<>/=]/, 'punctuation'],
 ]
 
 function getRules(language: Language): TokenRule[] {

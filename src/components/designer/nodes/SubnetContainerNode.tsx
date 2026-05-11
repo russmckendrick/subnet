@@ -31,8 +31,8 @@ export function SubnetContainerNode({ id, data, selected }: SubnetContainerNodeP
       />
 
       {/* Header row */}
-      <div className="flex items-center justify-between px-3 py-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           <div
             className="w-2 h-2 rounded-full shrink-0"
             style={{ backgroundColor: data.color }}
@@ -40,10 +40,10 @@ export function SubnetContainerNode({ id, data, selected }: SubnetContainerNodeP
           <NodeLabel
             nodeId={id}
             label={data.label}
-            className="text-xs font-semibold text-[#586e75] dark:text-[#93a1a1]"
+            className="truncate text-xs font-semibold text-[#586e75] dark:text-[#93a1a1]"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <span className="font-mono text-[10px] text-[#93a1a1] dark:text-[#586e75]">
             {data.cidr}
           </span>

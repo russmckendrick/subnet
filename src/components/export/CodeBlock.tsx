@@ -17,6 +17,7 @@ export function CodeBlock({ code, language, copyKey }: CodeBlockProps) {
   return (
     <div className="relative group">
       <motion.button
+        type="button"
         whileTap={{ scale: 0.95 }}
         onClick={() => copy(code, copyKey)}
         className={`absolute top-2 right-2 z-10 text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
@@ -24,6 +25,7 @@ export function CodeBlock({ code, language, copyKey }: CodeBlockProps) {
             ? 'bg-[#859900]/20 text-[#859900]'
             : 'bg-[#eee8d5] dark:bg-[#073642] text-[#93a1a1] dark:text-[#586e75] hover:text-[#586e75] dark:hover:text-[#93a1a1] opacity-0 group-hover:opacity-100'
         }`}
+        aria-label={isCopied(copyKey) ? 'Copied code' : 'Copy code'}
       >
         {isCopied(copyKey) ? 'Copied!' : 'Copy'}
       </motion.button>

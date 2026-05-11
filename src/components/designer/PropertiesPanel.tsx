@@ -32,6 +32,7 @@ export function PropertiesPanel() {
                 Properties
               </span>
               <button
+                type="button"
                 onClick={() => setSelectedNodeId(null)}
                 className="p-1 rounded hover:bg-[#eee8d5] dark:hover:bg-[#073642] transition-colors"
                 aria-label="Close properties"
@@ -64,6 +65,7 @@ export function PropertiesPanel() {
             {/* Footer — Delete button */}
             <div className="px-3 py-2.5 border-t border-[#93a1a1]/15 dark:border-[#586e75]/20">
               <button
+                type="button"
                 onClick={() => {
                   if (selectedNodeId) {
                     removeNode(selectedNodeId)

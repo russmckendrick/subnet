@@ -16,7 +16,7 @@ interface CalculatorState {
   activeTab: AppTab
 
   // Calculator
-  rawInput: string           // Current text in the CIDR input field
+  rawInput: string           // Last valid calculator CIDR/IP committed to the store
   result: CidrResult | null  // Parsed result (null if input is invalid)
 
   // Splitter
@@ -239,6 +239,7 @@ The `useUrlSync` hook in `src/hooks/use-url-sync.ts` provides bidirectional sync
 **Changes (store → URL):**
 1. `useEffect` watches `rawInput`, `splitPrefixes`, `splitLabels`, `supernetInputs`, and `activeDrawer`
 2. On change, calls `updateUrl()` which encodes the current state as a path + query string
-3. Uses `history.replaceState()` — no browser navigation events are triggered
+3. Invalid direct CIDR drafts are held in `CidrInput` component state until they parse, so `rawInput` and the URL stay on the last valid value
+4. Uses `history.replaceState()` — no browser navigation events are triggered
 
 See [URL Sharing](url-sharing.md) for the URL format specification.

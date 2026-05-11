@@ -11,9 +11,16 @@ interface CopyButtonProps {
 export function CopyButton({ text, label, copyKey, className = '' }: CopyButtonProps) {
   const { copy, isCopied } = useClipboard()
   const copied = isCopied(copyKey)
+  const actionLabel = label?.toLowerCase().startsWith('copy')
+    ? label
+    : `Copy ${label ?? 'value'}`
+  const copiedLabel = label?.toLowerCase().startsWith('copy')
+    ? label.replace(/^copy/i, 'Copied')
+    : `Copied ${label ?? 'value'}`
 
   return (
     <motion.button
+      type="button"
       whileTap={{ scale: 0.9 }}
       onClick={() => copy(text, copyKey)}
       className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors
@@ -22,7 +29,8 @@ export function CopyButton({ text, label, copyKey, className = '' }: CopyButtonP
           : 'bg-[#eee8d5] hover:bg-[#eee8d5]/80 text-[#93a1a1] hover:text-[#586e75] dark:bg-[#002b36] dark:hover:bg-[#002b36]/80 dark:text-[#586e75] dark:hover:text-[#93a1a1]'
         }
         ${className}`}
-      title={`Copy ${label ?? 'value'}`}
+      title={actionLabel}
+      aria-label={copied ? copiedLabel : actionLabel}
     >
       <AnimatePresence mode="wait">
         {copied ? (
@@ -57,6 +65,9 @@ export function CopyButton({ text, label, copyKey, className = '' }: CopyButtonP
         )}
       </AnimatePresence>
       {label && <span>{copied ? 'Copied!' : label}</span>}
+      <span className="sr-only" aria-live="polite">
+        {copied ? `Copied ${label ?? 'value'} to clipboard` : ''}
+      </span>
     </motion.button>
   )
 }

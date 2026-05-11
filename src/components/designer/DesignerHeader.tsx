@@ -18,6 +18,7 @@ export function DesignerHeader() {
         <a
           href={calculatorHref}
           className="flex items-center gap-2 text-[#586e75] hover:text-[#2aa198] transition-colors"
+          aria-label="Back to calculator"
         >
           <img
             src={theme === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'}
@@ -49,6 +50,7 @@ export function DesignerHeader() {
         {/* Export */}
         {nodes.length > 0 && (
           <button
+            type="button"
             onClick={() => setExportOpen(true)}
             className="flex items-center gap-1.5 text-xs text-[#586e75] bg-[#eee8d5] dark:bg-[#073642] px-2.5 py-1.5 rounded-lg hover:bg-[#eee8d5]/80 dark:hover:bg-[#073642]/80 transition-colors"
           >
@@ -60,6 +62,7 @@ export function DesignerHeader() {
         {/* Delete selected node */}
         {selectedNodeId && (
           <button
+            type="button"
             onClick={() => removeNode(selectedNodeId)}
             className="flex items-center gap-1.5 text-xs text-[#cb4b16] bg-[#eee8d5] dark:bg-[#073642] px-2.5 py-1.5 rounded-lg hover:bg-[#cb4b16]/10 transition-colors"
           >
@@ -73,6 +76,7 @@ export function DesignerHeader() {
         {/* Clear diagram */}
         {nodes.length > 0 && (
           <button
+            type="button"
             onClick={clearDiagram}
             className="flex items-center gap-1.5 text-xs text-[#dc322f] bg-[#eee8d5] dark:bg-[#073642] px-2.5 py-1.5 rounded-lg hover:bg-[#dc322f]/10 transition-colors"
           >
@@ -85,6 +89,7 @@ export function DesignerHeader() {
         <a
           href={calculatorHref}
           className="flex items-center gap-1.5 text-xs text-[#586e75] bg-[#eee8d5] dark:bg-[#073642] px-2.5 py-1.5 rounded-lg hover:bg-[#eee8d5]/80 dark:hover:bg-[#073642]/80 transition-colors"
+          aria-label="Back to calculator"
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -94,6 +99,7 @@ export function DesignerHeader() {
 
         {/* Theme toggle */}
         <button
+          type="button"
           onClick={toggleTheme}
           className="p-2 rounded-lg bg-[#eee8d5] dark:bg-[#073642] hover:bg-[#eee8d5]/80 dark:hover:bg-[#073642]/80 transition-colors"
           aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}

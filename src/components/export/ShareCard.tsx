@@ -108,6 +108,7 @@ export function ShareCard() {
 
       {/* Copy button */}
       <motion.button
+        type="button"
         whileTap={{ scale: 0.95 }}
         onClick={() => copy(url, 'share-url')}
         className={`w-full text-sm px-4 py-2.5 rounded-lg font-medium transition-colors ${
@@ -115,6 +116,7 @@ export function ShareCard() {
             ? 'bg-[#859900]/20 text-[#859900]'
             : 'bg-[#2aa198]/10 text-[#2aa198] hover:bg-[#2aa198]/20'
         }`}
+        aria-label={isCopied('share-url') ? 'Copied share URL' : 'Copy share URL'}
       >
         {isCopied('share-url') ? 'Copied to clipboard!' : 'Copy share URL'}
       </motion.button>

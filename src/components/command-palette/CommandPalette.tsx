@@ -19,11 +19,8 @@ export function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
-  // Reset state when opened
   useEffect(() => {
     if (commandPaletteOpen) {
-      setSearch('')
-      setActiveIndex(0)
       // Focus input after animation starts
       requestAnimationFrame(() => inputRef.current?.focus())
     }
@@ -59,11 +56,6 @@ export function CommandPalette() {
     return base
   }, [search, hasResult, cidrDetection])
 
-  // Reset active index when filtered list changes
-  useEffect(() => {
-    setActiveIndex(0)
-  }, [filtered.length, search])
-
   // Build a flat list of items with group headers for rendering
   const groupedItems = useMemo(() => {
     const result: Array<{ type: 'group'; category: string } | { type: 'command'; command: Command; flatIndex: number }> = []
@@ -81,8 +73,14 @@ export function CommandPalette() {
     return result
   }, [filtered])
 
-  const executeCommand = useCallback((action: string) => {
+  const closePalette = useCallback(() => {
     setCommandPaletteOpen(false)
+    setSearch('')
+    setActiveIndex(0)
+  }, [setCommandPaletteOpen])
+
+  const executeCommand = useCallback((action: string) => {
+    closePalette()
 
     if (action === 'focus-input') {
       requestAnimationFrame(() => {
@@ -139,7 +137,12 @@ export function CommandPalette() {
       }
       if (content) navigator.clipboard.writeText(content)
     }
-  }, [result, splits, rawInput, setRawInput, setActiveDrawer, resetSplits, setInputMode, toggleTheme, setCommandPaletteOpen])
+  }, [result, splits, rawInput, setRawInput, setActiveDrawer, resetSplits, setInputMode, toggleTheme, closePalette])
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearch(value)
+    setActiveIndex(0)
+  }, [])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
@@ -150,15 +153,16 @@ export function CommandPalette() {
       setActiveIndex((i) => (i - 1 + filtered.length) % Math.max(filtered.length, 1))
     } else if (e.key === 'Enter') {
       e.preventDefault()
-      const cmd = filtered[activeIndex]
+      const cmd = filtered[Math.min(activeIndex, filtered.length - 1)]
       if (cmd) executeCommand(cmd.action)
     } else if (e.key === 'Escape') {
       e.preventDefault()
-      setCommandPaletteOpen(false)
+      closePalette()
     }
-  }, [filtered, activeIndex, executeCommand, setCommandPaletteOpen])
+  }, [filtered, activeIndex, executeCommand, closePalette])
 
-  const activeItemId = filtered[activeIndex] ? `cmd-${filtered[activeIndex].id}` : undefined
+  const safeActiveIndex = filtered[activeIndex] ? activeIndex : 0
+  const activeItemId = filtered[safeActiveIndex] ? `cmd-${filtered[safeActiveIndex].id}` : undefined
 
   return (
     <AnimatePresence>
@@ -171,7 +175,8 @@ export function CommandPalette() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/30 z-50"
-            onClick={() => setCommandPaletteOpen(false)}
+            onClick={closePalette}
+            aria-hidden="true"
           />
 
           {/* Modal */}
@@ -199,9 +204,10 @@ export function CommandPalette() {
                 <input
                   ref={inputRef}
                   type="text"
+                  name="command-search"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Type a command or CIDR..."
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  placeholder="Type a command or CIDR…"
                   className="flex-1 bg-transparent text-base font-mono text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40 focus:outline-none"
                   role="combobox"
                   aria-expanded="true"
@@ -233,7 +239,7 @@ export function CommandPalette() {
                         key={item.command.id}
                         id={`cmd-${item.command.id}`}
                         command={item.command}
-                        isActive={item.flatIndex === activeIndex}
+                        isActive={item.flatIndex === safeActiveIndex}
                         onSelect={() => executeCommand(item.command.action)}
                         onMouseEnter={() => setActiveIndex(item.flatIndex)}
                       />

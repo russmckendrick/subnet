@@ -55,15 +55,14 @@ export function DesignerCanvas() {
   const colorMode: ColorMode = theme === 'dark' ? 'dark' : 'light'
 
   // Apply layer dimming via className
-  const INFRA_TYPES = new Set(['vpcContainerNode', 'subnetContainerNode'])
-  const RESOURCE_TYPES = new Set(['cloudResourceNode', 'resourceNode', 'subnetNode'])
-
   const layeredNodes = useMemo(() => {
+    const infraTypes = new Set(['vpcContainerNode', 'subnetContainerNode'])
+    const resourceTypes = new Set(['cloudResourceNode', 'resourceNode', 'subnetNode'])
     if (activeLayer === 'all') return nodes
     return nodes.map((node) => {
       const isDimmed =
-        (activeLayer === 'infrastructure' && RESOURCE_TYPES.has(node.type ?? '')) ||
-        (activeLayer === 'resources' && INFRA_TYPES.has(node.type ?? ''))
+        (activeLayer === 'infrastructure' && resourceTypes.has(node.type ?? '')) ||
+        (activeLayer === 'resources' && infraTypes.has(node.type ?? ''))
       if (!isDimmed) return node
       return {
         ...node,
@@ -217,7 +216,7 @@ export function DesignerCanvas() {
   )
 
   return (
-    <div ref={reactFlowWrapper} className="relative flex-1 h-full">
+    <div ref={reactFlowWrapper} className="relative h-full min-w-0 flex-1">
       <ReactFlow
         nodes={layeredNodes}
         edges={edges}

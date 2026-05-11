@@ -93,7 +93,7 @@ export function splitterTemplate(
     `<div style="display:flex;flex-direction:column;width:100%;margin-top:20px;padding:18px 28px;background-color:${BASE02}e6;border-radius:12px;border:1px solid ${BASE1}20;gap:10px">${displaySplits.map((s, i) => {
       const color = colors[i % colors.length]
       return `<div style="display:flex;width:100%;align-items:center;gap:12px"><div style="display:flex;width:12px;height:12px;border-radius:6px;background-color:${color}"></div><span style="font-family:'Schibsted Grotesk';font-size:20px;color:${BASE1};flex:1">${s.label}</span><span style="font-family:'Martian Mono';font-size:18px;color:${BASE0}">/${s.prefix}</span><span style="font-family:'Martian Mono';font-size:16px;color:${CYAN}">${formatNumber(s.hosts)} hosts</span></div>`
-    }).join('')}${remaining > 0 ? `<span style="font-family:'Schibsted Grotesk';font-size:18px;color:${BASE0}">+${remaining} more subnet${remaining > 1 ? 's' : ''}...</span>` : ''}</div>`,
+    }).join('')}${remaining > 0 ? `<span style="font-family:'Schibsted Grotesk';font-size:18px;color:${BASE0}">+${remaining} more subnet${remaining > 1 ? 's' : ''}…</span>` : ''}</div>`,
     ctaText('Split any network into custom subnets'),
   )
 }
@@ -103,7 +103,7 @@ export function supernetTemplate(inputs: string[]): string {
   return rootContainer(
     logoAndBrand(),
     `<div style="display:flex;align-items:center;gap:16px;margin-top:28px"><span style="font-family:'Schibsted Grotesk';font-weight:700;font-size:44px;color:${BASE1}">Supernet Calculator</span></div>`,
-    `<div style="display:flex;flex-direction:column;width:100%;margin-top:20px;padding:20px 28px;background-color:${BASE02}e6;border-radius:12px;border:1px solid ${BASE1}20;gap:8px"><span style="font-family:'Schibsted Grotesk';font-size:16px;color:${BASE0}">Input Networks</span>${inputs.slice(0, 6).map(net => `<span style="font-family:'Martian Mono';font-size:20px;color:${BASE1}">${net}</span>`).join('')}${inputs.length > 6 ? `<span style="font-family:'Schibsted Grotesk';font-size:16px;color:${BASE0}">+${inputs.length - 6} more...</span>` : ''}</div>`,
+    `<div style="display:flex;flex-direction:column;width:100%;margin-top:20px;padding:20px 28px;background-color:${BASE02}e6;border-radius:12px;border:1px solid ${BASE1}20;gap:8px"><span style="font-family:'Schibsted Grotesk';font-size:16px;color:${BASE0}">Input Networks</span>${inputs.slice(0, 6).map(net => `<span style="font-family:'Martian Mono';font-size:20px;color:${BASE1}">${net}</span>`).join('')}${inputs.length > 6 ? `<span style="font-family:'Schibsted Grotesk';font-size:16px;color:${BASE0}">+${inputs.length - 6} more…</span>` : ''}</div>`,
     ctaText('Aggregate networks into the smallest CIDR'),
   )
 }

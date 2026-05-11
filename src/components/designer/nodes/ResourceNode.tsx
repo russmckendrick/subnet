@@ -1,7 +1,7 @@
 import { Handle, Position } from '@xyflow/react'
 import type { NodeProps, Node } from '@xyflow/react'
 import type { ResourceNodeData } from '@/store/designer-store'
-import { RESOURCE_ICONS } from '../icons/NetworkIcons'
+import { RESOURCE_ICONS } from '../icons/NetworkIconRegistry'
 import { NodeLabel } from './NodeLabel'
 
 type ResourceNodeProps = NodeProps<Node<ResourceNodeData>>

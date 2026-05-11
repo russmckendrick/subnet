@@ -12,6 +12,8 @@ subnet.fit encodes application state in the URL path and query string, making ev
 
 The CIDR notation is used directly as the path.
 
+When a user is editing direct CIDR input, invalid drafts remain local to the input control. The browser URL is updated only after the CIDR parses successfully, so invalid states such as `/10.0.0.0/33` are not written to history or share links.
+
 **Examples:**
 - `/10.0.0.0/16`
 - `/192.168.1.0/24`
@@ -94,7 +96,7 @@ Navigation between the calculator and designer preserves state in both direction
 - Collects all `subnet-container` nodes for split prefixes and labels
 - Encodes the result as a calculator URL via `encodeState()` (e.g. `/10.0.0.0/16?split=24~Web,25~API`)
 - Falls back to `/` when no VPC container exists in the diagram
-- Used by `DesignerHeader` logo/back button and `DesignerPage` mobile fallback
+- Used by `DesignerHeader` logo/back button and `DesignerPage` mobile fallback. The mobile fallback does not mount React Flow; it still uses the extracted calculator URL so state is preserved on small screens.
 
 ## UrlState Type
 
@@ -208,6 +210,7 @@ sequenceDiagram
         Hook->>Codec: updateUrl({ mode: 'supernet', ... })
     else Network
         Note over Hook: If rawInput is a bare IP (no /),<br/>append inferred prefix via inferDefaultPrefix()
+        Note over Hook: If rawInput is invalid CIDR,<br/>leave the existing URL untouched
         Hook->>Codec: updateUrl({ mode: 'network', cidr, ... })
     end
 

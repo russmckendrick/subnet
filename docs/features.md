@@ -143,7 +143,7 @@ Find the smallest CIDR that contains all provided networks.
 
 ### Input
 
-Enter one CIDR per line (minimum two). Each line is validated independently — invalid entries show per-line errors.
+Enter one CIDR per line (minimum two). Each line is validated independently — invalid entries show inline errors with line numbers.
 
 ### Result
 

@@ -102,11 +102,13 @@ export function SubnetSplittingSection() {
               const pctLabel = pct >= 1 ? `${pct.toFixed(0)}%` : `${pct.toFixed(1)}%`
               return (
                 <motion.button
+                  type="button"
                   key={p}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.04 }}
                   onClick={() => addSplit(p)}
+                  aria-label={`Add /${p} subnet`}
                   className="group relative text-left rounded-lg border border-[#586e75]/15 bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 p-3 hover:border-[#2aa198]/40 hover:bg-[#2aa198]/5 transition-colors"
                 >
                   <div className="flex items-baseline justify-between mb-2">
@@ -181,13 +183,16 @@ export function SubnetSplittingSection() {
                               value={split.color}
                               onChange={(e) => updateSplitColor(i, e.target.value)}
                               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                              aria-label={`Choose color for ${split.label}`}
                             />
                           </label>
                           <div className="relative">
                             <input
                               type="text"
                               value={split.label}
+                              name={`split-label-${i}`}
                               onChange={(e) => updateSplitLabel(i, e.target.value)}
+                              aria-label={`Label for ${split.cidr}`}
                               className="bg-transparent text-sm text-[#586e75] dark:text-[#93a1a1] focus:outline-none
                                 border-b border-transparent hover:border-[#586e75]/20 focus:border-[#2aa198]/40 w-28 sm:w-36 transition-colors"
                             />
@@ -215,8 +220,10 @@ export function SubnetSplittingSection() {
                       </td>
                       <td className="py-2 text-right">
                         <button
+                          type="button"
                           onClick={() => removeSplit(i)}
                           className="p-1.5 rounded-lg hover:bg-[#dc322f]/10 text-[#93a1a1] hover:text-[#dc322f] transition-colors"
+                          aria-label={`Remove ${split.label}`}
                         >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

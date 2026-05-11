@@ -1,6 +1,6 @@
 import { useDesignerStore, type ResourceNodeData } from '@/store/designer-store'
 import { RESOURCE_TYPE_LABELS } from '@/lib/resource-labels'
-import { RESOURCE_ICONS } from '../icons/NetworkIcons'
+import { RESOURCE_ICONS } from '../icons/NetworkIconRegistry'
 
 interface ResourcePropertiesProps {
   nodeId: string

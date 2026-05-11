@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useId } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useDesignerStore } from '@/store/designer-store'
 import { useThemeStore } from '@/store/theme-store'
@@ -89,6 +89,7 @@ export function DiagramExportModal() {
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const backdropRef = useRef<HTMLDivElement>(null)
+  const titleId = useId()
 
   const handleClose = useCallback(() => {
     setExportOpen(false)
@@ -198,6 +199,7 @@ export function DiagramExportModal() {
             transition={{ duration: 0.15 }}
             className="fixed inset-0 bg-black/40 z-50"
             onClick={handleClose}
+            aria-hidden="true"
           />
 
           {/* Modal */}
@@ -209,17 +211,22 @@ export function DiagramExportModal() {
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >
             <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={titleId}
               className="bg-[#eee8d5] dark:bg-[#073642] border border-[#93a1a1]/20 dark:border-[#586e75]/20 rounded-lg shadow-2xl w-full max-w-xl pointer-events-auto max-h-[80vh] flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-3 border-b border-[#93a1a1]/15 dark:border-[#586e75]/20 shrink-0">
-                <h2 className="text-sm font-semibold text-[#586e75] dark:text-[#93a1a1]">
+                <h2 id={titleId} className="text-sm font-semibold text-[#586e75] dark:text-[#93a1a1]">
                   Export / Import
                 </h2>
                 <button
+                  type="button"
                   onClick={handleClose}
                   className="p-1.5 rounded-lg hover:bg-[#fdf6e3] dark:hover:bg-[#002b36] text-[#93a1a1] dark:text-[#586e75] transition-colors"
+                  aria-label="Close export dialog"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -228,11 +235,14 @@ export function DiagramExportModal() {
               </div>
 
               {/* Category tabs */}
-              <div className="flex gap-1.5 px-5 pt-4 pb-3 shrink-0">
+              <div className="flex gap-1.5 px-5 pt-4 pb-3 shrink-0" role="tablist" aria-label="Diagram export category">
                 {CATEGORIES.map((cat) => (
                   <button
+                    type="button"
                     key={cat.id}
                     onClick={() => setCategory(cat.id)}
+                    role="tab"
+                    aria-selected={category === cat.id}
                     className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors border ${
                       category === cat.id
                         ? 'bg-[#2aa198]/10 text-[#2aa198] border-[#2aa198]/20'
@@ -262,6 +272,7 @@ export function DiagramExportModal() {
                         </p>
                         <div className="flex gap-2">
                           <button
+                            type="button"
                             onClick={handleExportPng}
                             disabled={isExporting}
                             className={btnBase}
@@ -272,6 +283,7 @@ export function DiagramExportModal() {
                             Download PNG
                           </button>
                           <button
+                            type="button"
                             onClick={handleExportSvg}
                             disabled={isExporting}
                             className={btnBase}
@@ -292,6 +304,7 @@ export function DiagramExportModal() {
                             Download or import diagram data as JSON.
                           </p>
                           <button
+                            type="button"
                             onClick={() => copy(jsonCode, 'diagram-json')}
                             className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
                               isCopied('diagram-json')
@@ -306,6 +319,7 @@ export function DiagramExportModal() {
                         {/* JSON download + import buttons */}
                         <div className="flex gap-2">
                           <button
+                            type="button"
                             onClick={() => downloadText(jsonCode, 'network-diagram.json', 'application/json')}
                             className={btnBase}
                           >
@@ -315,6 +329,7 @@ export function DiagramExportModal() {
                             Download JSON
                           </button>
                           <button
+                            type="button"
                             onClick={() => fileInputRef.current?.click()}
                             className={btnBase}
                           >
@@ -348,13 +363,15 @@ export function DiagramExportModal() {
                           <div className="flex gap-2 mb-2">
                             <input
                               type="text"
+                              name="diagram-save-name"
                               value={saveName}
                               onChange={(e) => setSaveName(e.target.value)}
                               onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                              placeholder="Name this diagram..."
+                              placeholder="Name this diagram…"
                               className="flex-1 text-xs bg-[#fdf6e3] dark:bg-[#002b36] text-[#586e75] dark:text-[#93a1a1] px-3 py-2 rounded-lg border border-[#93a1a1]/20 dark:border-[#586e75]/20 placeholder:text-[#93a1a1]/50 dark:placeholder:text-[#586e75]/50 focus:outline-none focus:border-[#2aa198]/40"
                             />
                             <button
+                              type="button"
                               onClick={handleSave}
                               disabled={!saveName.trim()}
                               className="text-xs font-medium text-[#fdf6e3] bg-[#2aa198] px-4 py-2 rounded-lg hover:bg-[#2aa198]/80 transition-colors disabled:opacity-40"
@@ -381,12 +398,14 @@ export function DiagramExportModal() {
                                   </div>
                                   <div className="flex gap-1 shrink-0">
                                     <button
+                                      type="button"
                                       onClick={() => handleLoadSave(save.id)}
                                       className="text-[10px] font-medium text-[#2aa198] px-2 py-1 rounded hover:bg-[#2aa198]/10 transition-colors"
                                     >
                                       Load
                                     </button>
                                     <button
+                                      type="button"
                                       onClick={() => handleDeleteSave(save.id)}
                                       className={`text-[10px] font-medium px-2 py-1 rounded transition-colors ${
                                         confirmDeleteId === save.id
@@ -416,6 +435,7 @@ export function DiagramExportModal() {
                             Compatible with Diagrams.net.
                           </p>
                           <button
+                            type="button"
                             onClick={() => copy(drawioCode, 'diagram-drawio')}
                             className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
                               isCopied('diagram-drawio')
@@ -428,6 +448,7 @@ export function DiagramExportModal() {
                         </div>
                         <div className="flex gap-2">
                           <button
+                            type="button"
                             onClick={() => downloadText(drawioCode, 'network-diagram.drawio', 'application/xml')}
                             className={btnBase}
                           >
@@ -437,6 +458,7 @@ export function DiagramExportModal() {
                             Download .drawio
                           </button>
                           <button
+                            type="button"
                             onClick={() => window.open(getDiagramsNetUrl(drawioCode), '_blank')}
                             className={btnBase}
                           >
@@ -457,6 +479,7 @@ export function DiagramExportModal() {
                         </p>
                         {!shareUrl ? (
                           <button
+                            type="button"
                             onClick={handleGenerateShareUrl}
                             className={btnBase}
                           >
@@ -468,11 +491,13 @@ export function DiagramExportModal() {
                             <div className="flex gap-2">
                               <input
                                 type="text"
+                                name="diagram-share-url"
                                 readOnly
                                 value={shareUrl}
                                 className="flex-1 text-xs font-mono bg-[#fdf6e3] dark:bg-[#002b36] text-[#586e75] dark:text-[#93a1a1] px-3 py-2 rounded-lg border border-[#93a1a1]/20 dark:border-[#586e75]/20 focus:outline-none"
                               />
                               <button
+                                type="button"
                                 onClick={() => copy(shareUrl, 'share-url')}
                                 className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors shrink-0 ${
                                   isCopied('share-url')

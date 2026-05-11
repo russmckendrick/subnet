@@ -1,5 +1,5 @@
 import { useDesignerStore } from '@/store/designer-store'
-import { RESOURCE_ICONS } from './icons/NetworkIcons'
+import { RESOURCE_ICONS } from './icons/NetworkIconRegistry'
 import { CLOUD_ICON_MAPS } from './icons/cloud-icon-registry'
 import { useTouchDetect } from '@/hooks/use-touch-detect'
 

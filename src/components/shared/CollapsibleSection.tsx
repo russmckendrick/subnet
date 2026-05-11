@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { AnimatedCard } from './AnimatedCard'
 
@@ -11,13 +11,16 @@ interface CollapsibleSectionProps {
 
 export function CollapsibleSection({ title, children, defaultOpen = true, delay = 0 }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
+  const contentId = useId()
 
   return (
-    <AnimatedCard delay={delay} className="p-3 sm:p-4 mt-2">
+    <AnimatedCard delay={delay} className="p-3 sm:p-4 mt-3">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
-        className="w-full flex items-center justify-between group cursor-pointer"
+        aria-controls={contentId}
+        className="w-full flex items-center justify-between group cursor-pointer rounded-md"
       >
         <h3 className="text-xs font-medium text-[#586e75] dark:text-[#586e75] uppercase tracking-wider">
           {title}
@@ -37,6 +40,7 @@ export function CollapsibleSection({ title, children, defaultOpen = true, delay 
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
+            id={contentId}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}

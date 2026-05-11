@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { readUrl, updateUrl, migrateHashUrl } from '@/lib/url-codec'
 import { parseIPv4, inferDefaultPrefix } from '@/lib/ipv4'
+import { parseCidr } from '@/lib/cidr'
 
 export function useUrlSync() {
   const { rawInput, splitPrefixes, splitLabels, supernetInputs, activeDrawer, initFromUrl, setSupernetInputs } =
@@ -51,6 +52,7 @@ export function useUrlSync() {
           cidr = `${cidr.trim()}/${inferDefaultPrefix(ip)}`
         }
       }
+      if (!parseCidr(cidr)) return
       if (splitPrefixes.length > 0) {
         updateUrl({ mode: 'network', cidr, splits: splitPrefixes, splitLabels })
       } else {

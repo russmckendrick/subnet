@@ -2,7 +2,8 @@ import { useRef, useEffect, useState, useCallback } from 'react'
 import { motion } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
-import { ipv4ToString, parseIPv4, inferDefaultPrefix } from '@/lib/ipv4'
+import { parseCidr } from '@/lib/cidr'
+import { ipv4ToString, parseIPv4 } from '@/lib/ipv4'
 
 const PREFIX_OPTIONS = Array.from({ length: 33 }, (_, i) => {
   const mask = i === 0 ? 0 : (~0 << (32 - i)) >>> 0
@@ -27,7 +28,7 @@ function extractIp(raw: string): string {
 
 export function CidrInput() {
   const inputRef = useRef<HTMLInputElement>(null)
-  const { rawInput, setRawInput, result, inputMode, setInputMode } = useCalculatorStore()
+  const { rawInput, setRawInput, inputMode, setInputMode } = useCalculatorStore()
   useKeyboardShortcuts(inputRef)
 
   const advancedMode = inputMode === 'cidr'
@@ -35,6 +36,7 @@ export function CidrInput() {
   // For the split mode, we keep a local IP string so user can type partial IPs.
   const [splitIp, setSplitIp] = useState(() => extractIp(rawInput))
   const [splitIpSource, setSplitIpSource] = useState<'local' | 'store'>('store')
+  const [cidrDraft, setCidrDraft] = useState<{ value: string; baseRawInput: string } | null>(null)
 
   // Track mobile breakpoint for responsive prefix dropdown text
   const [isMobile, setIsMobile] = useState(() =>
@@ -57,8 +59,13 @@ export function CidrInput() {
     setSplitIp(storeIp)
   }
 
-  const isValid = result !== null
-  const hasInput = rawInput.trim().length > 0
+  const visibleCidrInput = cidrDraft?.baseRawInput === rawInput ? cidrDraft.value : rawInput
+  const trimmedCidrInput = visibleCidrInput.trim()
+  const trimmedSplitIp = splitIp.trim()
+  const localIsValid = advancedMode
+    ? trimmedCidrInput.length > 0 && parseCidr(trimmedCidrInput) !== null
+    : trimmedSplitIp.length > 0 && parseIPv4(trimmedSplitIp) !== null
+  const hasInput = advancedMode ? trimmedCidrInput.length > 0 : trimmedSplitIp.length > 0
 
   useEffect(() => {
     inputRef.current?.focus()
@@ -67,10 +74,12 @@ export function CidrInput() {
   const handleIpChange = useCallback((newIp: string) => {
     setSplitIp(newIp)
     setSplitIpSource('local')
-    if (newIp.trim()) {
-      const parsed = parseIPv4(newIp.trim())
-      const prefix = parsed !== null ? inferDefaultPrefix(parsed) : currentPrefix
-      setRawInput(`${newIp}/${prefix}`)
+    const trimmed = newIp.trim()
+    if (trimmed) {
+      const parsed = parseIPv4(trimmed)
+      if (parsed !== null) {
+        setRawInput(`${trimmed}/${currentPrefix}`)
+      }
     } else {
       setRawInput('')
     }
@@ -78,26 +87,45 @@ export function CidrInput() {
   }, [currentPrefix, setRawInput])
 
   const handlePrefixChange = useCallback((newPrefix: number) => {
-    if (splitIp.trim()) {
-      setRawInput(`${splitIp}/${newPrefix}`)
+    const trimmed = splitIp.trim()
+    if (trimmed && parseIPv4(trimmed) !== null) {
+      setRawInput(`${trimmed}/${newPrefix}`)
     }
   }, [splitIp, setRawInput])
+
+  const handleCidrChange = useCallback((nextValue: string) => {
+    const trimmed = nextValue.trim()
+    if (!trimmed) {
+      setCidrDraft(null)
+      setRawInput('')
+      return
+    }
+
+    if (parseCidr(trimmed)) {
+      setCidrDraft(null)
+      setRawInput(trimmed)
+    } else {
+      setCidrDraft({ value: nextValue, baseRawInput: rawInput })
+    }
+  }, [rawInput, setRawInput])
 
   const handleClear = useCallback(() => {
     setSplitIp('')
     setSplitIpSource('store')
+    setCidrDraft(null)
     setRawInput('')
   }, [setRawInput])
 
-  const borderClass = hasInput && isValid
+  const borderClass = hasInput && localIsValid
     ? 'border-[#859900]/40'
-    : hasInput && !isValid
+    : hasInput && !localIsValid
     ? 'border-[#dc322f]/40'
     : 'border-[#93a1a1]/20 dark:border-[#586e75]/30'
 
   const modeToggleButtons = (
     <div className="flex gap-0.5 shrink-0">
       <button
+        type="button"
         onClick={() => setInputMode('guided')}
         className={`text-[11px] px-2 py-0.5 rounded-md font-medium transition-colors ${
           !advancedMode
@@ -108,6 +136,7 @@ export function CidrInput() {
         Guided
       </button>
       <button
+        type="button"
         onClick={() => setInputMode('cidr')}
         className={`text-[11px] px-2 py-0.5 rounded-md font-medium transition-colors ${
           advancedMode
@@ -137,10 +166,12 @@ export function CidrInput() {
 
   const clearButton = hasInput && (
     <motion.button
+      type="button"
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
       onClick={handleClear}
       className="p-1.5 rounded-lg hover:bg-[#fdf6e3] dark:hover:bg-[#002b36] text-[#93a1a1] transition-colors shrink-0"
+      aria-label="Clear CIDR input"
     >
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -165,9 +196,10 @@ export function CidrInput() {
               <input
                 ref={inputRef}
                 type="text"
-                value={rawInput}
-                onChange={(e) => setRawInput(e.target.value)}
-                placeholder="Enter CIDR notation... (e.g. 10.0.0.0/16)"
+                name="cidr"
+                value={visibleCidrInput}
+                onChange={(e) => handleCidrChange(e.target.value)}
+                placeholder="Enter CIDR notation… e.g. 10.0.0.0/16"
                 className="flex-1 bg-transparent text-xl font-mono font-medium text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40 focus:outline-none"
                 spellCheck={false}
                 autoComplete="off"
@@ -187,9 +219,10 @@ export function CidrInput() {
               <input
                 ref={inputRef}
                 type="text"
+                name="ip-address"
                 value={splitIp}
                 onChange={(e) => handleIpChange(e.target.value)}
-                placeholder="IP address (e.g. 10.0.0.0)"
+                placeholder="IP address… e.g. 10.0.0.0"
                 className="flex-1 min-w-0 bg-transparent text-xl font-mono font-medium text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40 focus:outline-none"
                 spellCheck={false}
                 autoComplete="off"
@@ -200,6 +233,8 @@ export function CidrInput() {
                 <select
                   value={currentPrefix}
                   onChange={(e) => handlePrefixChange(Number(e.target.value))}
+                  name="prefix-length"
+                  aria-label="Prefix length"
                   className="bg-[#fdf6e3] dark:bg-[#002b36] text-[#586e75] dark:text-[#93a1a1] text-sm font-mono font-medium rounded-lg px-2 py-1.5 border border-[#93a1a1]/20 dark:border-[#586e75]/30 focus:outline-none focus:ring-2 focus:ring-[#2aa198]/30 cursor-pointer appearance-none pr-7"
                   style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23586e75' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.3rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.2em 1.2em' }}
                 >
@@ -219,14 +254,16 @@ export function CidrInput() {
           </div>
         )}
 
-        {hasInput && !isValid && (
+        {hasInput && !localIsValid && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             className="px-4 pb-2.5 overflow-hidden"
           >
             <p className="text-sm text-[#dc322f]">
-              Invalid {advancedMode ? 'CIDR notation. Use format: 192.168.1.0/24' : 'IP address. Use format: 192.168.1.0'}
+              {advancedMode
+                ? 'Enter CIDR notation like 192.168.1.0/24. The current calculation is unchanged until the CIDR is valid.'
+                : 'Enter an IPv4 address like 192.168.1.0. The selected prefix is preserved.'}
             </p>
           </motion.div>
         )}

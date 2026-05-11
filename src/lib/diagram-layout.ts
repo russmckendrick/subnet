@@ -11,10 +11,10 @@ import type {
   DesignerNodeData,
 } from '@/store/designer-store'
 
-export const SUBNET_CONTAINER_WIDTH = 260
-export const SUBNET_CONTAINER_HEIGHT = 160
+export const SUBNET_CONTAINER_WIDTH = 380
+export const SUBNET_CONTAINER_HEIGHT = 170
 export const SUBNET_GAP = 20
-export const SUBNET_COLUMNS = 3
+export const SUBNET_COLUMNS = 2
 export const VPC_PADDING = 30
 export const VPC_HEADER_HEIGHT = 40
 const IGW_OFFSET_Y = 80

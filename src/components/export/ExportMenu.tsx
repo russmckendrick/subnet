@@ -91,11 +91,14 @@ function ExportMenuInner() {
   return (
     <div>
       {/* Category tabs */}
-      <div className="flex flex-wrap gap-1.5 mb-3">
+      <div className="flex flex-wrap gap-1.5 mb-3 rounded-lg border border-[#586e75]/10 bg-[#fdf6e3]/35 p-1 dark:bg-[#002b36]/25" role="tablist" aria-label="Export category">
         {CATEGORIES.map((cat) => (
           <button
+            type="button"
             key={cat.id}
             onClick={() => setCategory(cat.id)}
+            role="tab"
+            aria-selected={category === cat.id}
             className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors border inline-flex items-center gap-1.5 ${
               category === cat.id
                 ? 'bg-[#2aa198]/10 text-[#2aa198] border-[#2aa198]/20'
@@ -110,11 +113,13 @@ function ExportMenuInner() {
 
       {/* Second row — contextual controls */}
       {category === 'data' && (
-        <div className="flex gap-1.5 mb-3">
+        <div className="flex gap-1.5 mb-3" role="group" aria-label="Data export format">
           {(['json', 'csv'] as DataFormat[]).map((fmt) => (
             <button
+              type="button"
               key={fmt}
               onClick={() => setDataFormat(fmt)}
+              aria-pressed={dataFormat === fmt}
               className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors border ${
                 dataFormat === fmt
                   ? 'bg-[#2aa198]/10 text-[#2aa198] border-[#2aa198]/20'

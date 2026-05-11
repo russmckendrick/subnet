@@ -1,5 +1,5 @@
 import type { CloudProvider } from '@/lib/cloud-theme'
-import { RESOURCE_ICONS } from './NetworkIcons'
+import { RESOURCE_ICONS } from './NetworkIconRegistry'
 import { AWS_ICON_MAP } from './aws'
 import { AZURE_ICON_MAP } from './azure'
 import { GCP_ICON_MAP } from './gcp'
