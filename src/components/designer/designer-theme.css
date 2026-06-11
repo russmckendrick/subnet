@@ -3,19 +3,11 @@
 /* Import React Flow base styles */
 @import '@xyflow/react/dist/style.css';
 
-/* Light mode — React Flow default (no .dark class on container) */
-.react-flow {
-  --xy-background-color: #fdf6e3;
-  --xy-edge-stroke: #93a1a1;
-  --xy-edge-stroke-selected: #2aa198;
-  --xy-node-border-radius: 8px;
-  --xy-attribution-background: transparent;
-}
-
-/* Dark mode — React Flow adds .dark to its own container via colorMode prop */
+/* Both modes — semantic vars from index.css flip with html.dark */
+.react-flow,
 .react-flow.dark {
-  --xy-background-color: #002b36;
-  --xy-edge-stroke: #586e75;
+  --xy-background-color: var(--canvas);
+  --xy-edge-stroke: var(--line);
   --xy-edge-stroke-selected: #2aa198;
   --xy-node-border-radius: 8px;
   --xy-attribution-background: transparent;

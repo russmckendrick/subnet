@@ -1,5 +1,6 @@
 import { Layout } from '@/components/layout/Layout'
 import { CidrInput } from '@/components/calculator/CidrInput'
+import { ExampleChips } from '@/components/calculator/ExampleChips'
 import { ResultsPanel } from '@/components/calculator/ResultsPanel'
 import { AddressSpaceSection } from '@/components/calculator/DetailsSection'
 import { DetailsSection } from '@/components/calculator/DetailsSection'
@@ -8,6 +9,7 @@ import { QuickReference } from '@/components/calculator/QuickReference'
 import { SupernetTool } from '@/components/tools/SupernetTool'
 import { Drawer } from '@/components/shared/Drawer'
 import { CommandPalette } from '@/components/command-palette/CommandPalette'
+import { ExportModal } from '@/components/export/ExportModal'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { useUrlSync } from '@/hooks/use-url-sync'
 import { useDocumentTitle } from '@/hooks/use-document-title'
@@ -22,6 +24,7 @@ function Calculator() {
     <Layout>
       <div className="py-4">
         <CidrInput />
+        <ExampleChips />
         {result && <ResultsPanel />}
         {result && <AddressSpaceSection />}
         {result && <SubnetSplittingSection />}
@@ -45,6 +48,7 @@ function Calculator() {
       </Drawer>
 
       <CommandPalette />
+      <ExportModal />
     </Layout>
   )
 }

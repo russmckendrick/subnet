@@ -20,6 +20,15 @@ Both modes support:
 - `/` from anywhere to focus the input
 - The default input mode is configurable via `config.defaultInputMode`
 
+### Example Chips
+
+On the untouched default view (default CIDR, no splits), a discovery strip (`ExampleChips`) appears under the input with:
+- Example networks to try (`192.168.1.0/24`, `10.0.0.0/16`, `172.16.0.0/12`)
+- "Browse reference" and "Aggregate routes" shortcuts that open the corresponding drawers
+- A `/` hint that opens the command palette
+
+The strip disappears as soon as the user loads a different CIDR or adds splits.
+
 ### Results Panel
 
 Displays eight information cards:
@@ -47,7 +56,7 @@ Bits are grouped into four octets separated by dots, matching dotted-decimal not
 
 ### RDAP / WHOIS Lookup
 
-For public IP addresses, an expandable RDAP section queries the `rdap.org` bootstrap server to display registration data:
+For public IP addresses, a "Registration (WHOIS / RDAP)" block in the results panel — with a one-line explainer ("Who this range is registered to — fetched from the regional internet registry for public IPs") — queries the `rdap.org` bootstrap server to display registration data:
 
 - **RIR** — Which Regional Internet Registry manages the allocation (ARIN, RIPE NCC, APNIC, LACNIC, AFRINIC)
 - **Country** — Country code of the allocation
@@ -77,9 +86,12 @@ A proportional visual map of the subnet showing address space distribution. Disp
 
 This section is only visible when no subnet splits are allocated — when splits exist, the visualization is integrated directly into the Subnet Splitting section below to avoid duplication.
 
-### Export Menu
+### Export & Share Modal
 
-Generate infrastructure-as-code and data exports:
+Generate infrastructure-as-code and data exports. The export UI lives in a modal (`ExportModal`, built on the shared `Modal`) opened from:
+- The "Export & Share" trigger card in the details area
+- The `open-export` command in the command palette
+- The `Cmd/Ctrl+E` keyboard shortcut (matching the designer)
 
 Two-tier navigation organizes exports into four categories:
 
@@ -149,9 +161,15 @@ Enter one CIDR per line (minimum two). Each line is validated independently — 
 
 Displays the smallest single CIDR block that encompasses all input CIDRs. Useful for route aggregation and summarization.
 
+### View Details Handoff
+
+The "View details" button loads the supernet result into the calculator via `loadSupernetResult()`. The calculator records the previous CIDR in a `handoff`, and the input shows a dismissible "Loaded supernet result · Undo" notice — Undo (`restoreHandoff()`) restores the previous network, the close button (`dismissHandoff()`) dismisses it, and any manual edit clears it automatically.
+
 ## Reference Tab
 
-A collapsible lookup table covering every prefix length from /0 to /32.
+A collapsible lookup table covering prefix lengths from /8 to /32, with a filter box.
+
+The table is anchored to the network currently being viewed — the header reads "Based on {network address}" and clicking a row loads that prefix against the current network address (falling back to `10.0.0.0` when no result is loaded).
 
 Each row shows:
 - Prefix length (e.g. `/24`)
@@ -205,7 +223,7 @@ The "Arrange" dropdown in the header provides:
 
 ### Export
 
-Export the diagram in four formats via the export modal (header button, floating toolbar, or `Cmd/Ctrl+E`):
+The designer export modal is built on the shared `Modal` with a `SegmentedControl` tab bar (Data | Image | Diagrams.net | Share), matching the calculator's export dialog. Export the diagram in four formats via the export modal (header button, floating toolbar, or `Cmd/Ctrl+E`):
 - **PNG** — High-resolution (2x pixel ratio) raster image with theme-appropriate background
 - **SVG** — Vector image
 - **JSON** — Structured data with all node positions, data, and edge connections
@@ -214,6 +232,12 @@ Export the diagram in four formats via the export modal (header button, floating
 ### Persistence
 
 Diagrams are auto-saved to localStorage with a 1-second debounce. On return to `/designer` (without URL parameters), the last saved diagram is restored automatically. Manual save is available via `Cmd/Ctrl+S` or the floating toolbar save button.
+
+The URL is kept canonical alongside the saved state: every debounced save (and every load from localStorage) rewrites the address bar to `/designer?from=&split=&provider=` via `buildDesignerUrl()`, so refreshing or bookmarking the page keeps the diagram context.
+
+### Tablet & Touch Support
+
+The designer no longer blocks small screens. Below 768px the resource palette becomes a slide-in sheet opened by a floating "Add" button (sheet items always tap-to-place), and the properties panel opens as an overlay drawer instead of an inline sidebar. Below 480px a dismissible soft banner (remembered per session) notes that the designer works best on a larger screen.
 
 ### Auto-Generation from Splitter
 
@@ -229,7 +253,7 @@ URL parameters take precedence over localStorage.
 All navigation links between the calculator and designer preserve state, enabling seamless round-trips:
 
 - **Calculator → Designer**: The "Designer" link in the Header, the "Open Designer" command in the command palette, and the "Open in Designer" button in the SplitterToolbar always carry the current CIDR and splits as `?from=` and `&split=` URL parameters. When a saved diagram exists with the same VPC CIDR, `useDesignerUrlSync` **merges** new subnets into the existing diagram — preserving all existing nodes, resources, positions, and edges. If no saved diagram exists or the CIDR differs, a fresh layout is generated.
-- **Designer → Calculator**: The logo, "Calculator" button, and mobile fallback link all extract the current CIDR from the VPC container node and subnet splits from subnet container nodes, encoding them into a calculator URL (e.g. `/10.0.0.0/16?split=24~Web,25~API`).
+- **Designer → Calculator**: The logo in the designer header is the single state-preserving back link — it extracts the current CIDR from the VPC container node and subnet splits from subnet container nodes, encoding them into a calculator URL (e.g. `/10.0.0.0/16?split=24~Web,25~API`).
 - **Empty state**: When no CIDR is loaded in the calculator, the designer link goes to bare `/designer`. When the designer has no VPC node, the back link goes to bare `/`.
 
 ### Floating Toolbar
@@ -246,7 +270,8 @@ A compact bar at the bottom-center of the canvas with:
 
 | Key | Context | Action |
 |-----|---------|--------|
-| `/` | Anywhere (not in an input) | Focus the CIDR input and select all text |
+| `/` | Anywhere (not in an input) | Open the command palette |
+| `Cmd/Ctrl+E` | CIDR loaded | Toggle the Export & Share modal |
 | `↑` | CIDR input focused | Increment prefix length by 1 (max 32) |
 | `↓` | CIDR input focused | Decrement prefix length by 1 (min 0) |
 | `Escape` | CIDR input focused | Blur the input |

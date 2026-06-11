@@ -25,8 +25,8 @@ export function CopyButton({ text, label, copyKey, className = '' }: CopyButtonP
       onClick={() => copy(text, copyKey)}
       className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors
         ${copied
-          ? 'bg-[#859900]/15 text-[#859900]'
-          : 'bg-[#eee8d5] hover:bg-[#eee8d5]/80 text-[#93a1a1] hover:text-[#586e75] dark:bg-[#002b36] dark:hover:bg-[#002b36]/80 dark:text-[#586e75] dark:hover:text-[#93a1a1]'
+          ? 'bg-sol-green/15 text-sol-green'
+          : 'bg-well hover:bg-well/80 text-ink-muted hover:text-ink'
         }
         ${className}`}
       title={actionLabel}

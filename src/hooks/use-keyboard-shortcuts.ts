@@ -2,7 +2,7 @@ import { useEffect, useCallback, type RefObject } from 'react'
 import { useCalculatorStore } from '@/store/calculator-store'
 
 export function useKeyboardShortcuts(inputRef: RefObject<HTMLInputElement | null>) {
-  const { rawInput, setRawInput, setCommandPaletteOpen } = useCalculatorStore()
+  const { rawInput, setRawInput, setCommandPaletteOpen, setExportModalOpen, result } = useCalculatorStore()
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -10,6 +10,15 @@ export function useKeyboardShortcuts(inputRef: RefObject<HTMLInputElement | null
       if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
         e.preventDefault()
         setCommandPaletteOpen(true)
+        return
+      }
+
+      // Cmd/Ctrl+E toggles the export modal (matches the designer shortcut)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'e') {
+        e.preventDefault()
+        if (result) {
+          setExportModalOpen(!useCalculatorStore.getState().exportModalOpen)
+        }
         return
       }
 
@@ -38,7 +47,7 @@ export function useKeyboardShortcuts(inputRef: RefObject<HTMLInputElement | null
         inputRef.current?.blur()
       }
     },
-    [rawInput, setRawInput, inputRef, setCommandPaletteOpen],
+    [rawInput, setRawInput, inputRef, setCommandPaletteOpen, setExportModalOpen, result],
   )
 
   useEffect(() => {

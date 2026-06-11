@@ -40,11 +40,11 @@ export function SubnetContainerNode({ id, data, selected }: SubnetContainerNodeP
           <NodeLabel
             nodeId={id}
             label={data.label}
-            className="truncate text-xs font-semibold text-[#586e75] dark:text-[#93a1a1]"
+            className="truncate text-xs font-semibold text-ink"
           />
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="font-mono text-[10px] text-[#93a1a1] dark:text-[#586e75]">
+          <span className="font-mono text-[10px] text-ink-muted">
             {data.cidr}
           </span>
           <span

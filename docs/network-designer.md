@@ -74,12 +74,12 @@ flowchart TD
 
 ### DesignerPage (`src/components/designer/DesignerPage.tsx`)
 
-Top-level component. Wraps everything in `<ReactFlowProvider>`. Detects mobile viewports and shows a "Desktop Recommended" fallback. Renders:
-- `DesignerHeader` — toolbar with arrange, export, delete, clear, navigation, theme toggle
-- `ResourcePalette` — collapsible left sidebar with draggable resource items
+Top-level component. Wraps everything in `<ReactFlowProvider>`. Adapts to viewport width rather than blocking small screens: below 768px the palette becomes an overlay Drawer opened by a floating "Add" button (sheet items always tap-to-place via `forceTap`) and the properties panel renders as an overlay (`variant="overlay"`); below 480px a dismissible, sessionStorage-backed soft banner notes the designer works best on a larger screen. Renders:
+- `DesignerHeader` — composes the shared `HeaderBar`; toolbar with arrange, export, delete, clear, theme toggle. The logo is the single state-preserving back link to the calculator
+- `ResourcePalette` — collapsible left sidebar with draggable resource items (or an overlay sheet below 768px)
 - `DesignerCanvas` — React Flow canvas with nodes, edges, minimap, controls, background, floating toolbar
-- `PropertiesPanel` — right-side Drawer for editing selected nodes
-- `DiagramExportModal` — centered modal for export options
+- `PropertiesPanel` — inline right sidebar (overlay Drawer below 768px) for editing selected nodes
+- `DiagramExportModal` — built on the shared `Modal` with a `SegmentedControl` tab bar (Data | Image | Diagrams.net | Share)
 
 ### DesignerCanvas (`src/components/designer/DesignerCanvas.tsx`)
 
@@ -321,7 +321,7 @@ A compact bar anchored at bottom-center of the canvas. Semi-transparent with bac
 | Save | Manual save to localStorage |
 | Clear | Clears all nodes, edges, and localStorage |
 
-Styling: `bg-[#eee8d5]/90 dark:bg-[#073642]/90 backdrop-blur-sm`, positioned `absolute bottom-6 left-1/2 -translate-x-1/2 z-10`. Hidden when `nodes.length === 0`.
+Styling: `bg-surface/90 backdrop-blur-sm border-line/20` (semantic tokens, flips with the theme), positioned `absolute bottom-6 left-1/2 -translate-x-1/2 z-10`. Hidden when `nodes.length === 0`.
 
 ## State Management
 

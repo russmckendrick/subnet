@@ -1,6 +1,6 @@
 # Styling & Theming
 
-subnet.fit uses a **Solarized**-based design system ("Obsidian"), Tailwind CSS v4 with custom theme tokens, class-based dark mode, and Motion for animations.
+subnet.fit uses a **Solarized**-based design system ("Obsidian"), Tailwind CSS v4 with a semantic token layer, class-based dark mode, shared UI primitives, and Motion for animations.
 
 ## Tailwind CSS v4 Setup
 
@@ -21,6 +21,58 @@ The CSS entry point imports Tailwind directly:
 @import "tailwindcss";
 ```
 
+## Semantic Token Layer
+
+Theming is driven by **semantic CSS custom properties** defined in `src/index.css`. Light values live on `:root`, dark values on `.dark`, and Tailwind's `@theme inline` directive surfaces them as colour utilities that resolve at the use-site:
+
+```css
+:root {
+  --canvas: #fdf6e3;   /* base3  — page background */
+  --surface: #eee8d5;  /* base2  — cards, chips */
+  --well: #fdf6e3;     /* base3  — inputs, inset areas on a surface */
+  --ink: #586e75;      /* base01 — emphasized text */
+  --ink-body: #657b83; /* base00 — body text */
+  --ink-muted: #93a1a1;/* base1  — secondary text */
+  --line: #93a1a1;     /* base1  — borders, dividers */
+}
+
+.dark {
+  --canvas: #002b36;
+  --surface: #073642;
+  --well: #002b36;
+  --ink: #93a1a1;
+  --ink-body: #839496;
+  --ink-muted: #586e75;
+  --line: #586e75;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  /* ...one --color-* entry per token */
+}
+```
+
+The seven semantic tokens:
+
+| Token | Utility examples | Role | Light | Dark |
+|-------|-----------------|------|-------|------|
+| `canvas` | `bg-canvas` | Page background | base3 `#fdf6e3` | base03 `#002b36` |
+| `surface` | `bg-surface` | Cards, chips, modal panels | base2 `#eee8d5` | base02 `#073642` |
+| `well` | `bg-well` | Inputs, inset areas on a surface | base3 `#fdf6e3` | base03 `#002b36` |
+| `ink` | `text-ink` | Emphasized text | base01 `#586e75` | base1 `#93a1a1` |
+| `ink-body` | `text-ink-body` | Body text | base00 `#657b83` | base0 `#839496` |
+| `ink-muted` | `text-ink-muted` | Secondary text | base1 `#93a1a1` | base01 `#586e75` |
+| `line` | `border-line/20` | Borders, dividers | base1 `#93a1a1` | base01 `#586e75` |
+
+Because the underlying custom property flips with the `.dark` class, components write `bg-surface text-ink border-line/20` and theming is automatic — **no `dark:` prefixes and no hardcoded base-tone hex values** like `bg-[#eee8d5] dark:bg-[#073642]`.
+
+Accents are unchanged and mode-invariant: `sol-cyan`, `sol-blue`, `sol-magenta`, `sol-green`, `sol-red`, `sol-yellow`, `sol-violet`, `sol-orange` (plus `network-bit`, `host-bit`, and the cloud provider colours). A mode-invariant `sol-base03` … `sol-base3` scale exists for the rare fixed-colour case — uppercase micro-labels use `text-sol-base01`, which reads as emphasized in light mode and secondary in dark mode by design.
+
+### @layer base Gotcha
+
+Element-level rules in `index.css` (e.g. `text-wrap: balance` on headings) live in `@layer base` so Tailwind utilities such as `whitespace-nowrap` can still override them. Unlayered element selectors would beat utility classes in the cascade.
+
 ## Dark Mode
 
 Dark mode uses a custom variant that targets the `.dark` class on any ancestor:
@@ -29,11 +81,11 @@ Dark mode uses a custom variant that targets the `.dark` class on any ancestor:
 @custom-variant dark (&:where(.dark, .dark *));
 ```
 
-The `dark` class is toggled on `<html>` by the theme store. This enables `dark:` utilities throughout the app (e.g. `dark:bg-[#073642]`, `dark:text-[#93a1a1]`).
+The `dark` class is toggled on `<html>` by the theme store. Most components never need `dark:` utilities — the semantic tokens flip automatically. The variant remains available for the rare case a component genuinely diverges between modes.
 
 ### Toggle Behavior
 
-The Header component renders a sun/moon toggle button. Clicking it calls `toggleTheme()` from the theme store, which:
+The shared `ThemeToggle` component (used by both app headers) renders a sun/moon toggle button. Clicking it calls `toggleTheme()` from the theme store, which:
 1. Flips between `'dark'` and `'light'`
 2. Adds/removes the `dark` class on `<html>`
 3. Persists the choice to `localStorage`
@@ -56,13 +108,13 @@ Configured in `src/index.css`:
 }
 ```
 
-## Custom Theme Tokens
+## Accent & Fixed-Colour Tokens
 
-Defined in `src/index.css` using Tailwind's `@theme` directive:
+Mode-invariant colours are defined in `src/index.css` using a plain `@theme` block (the semantic tokens above use `@theme inline` because their values are CSS variables):
 
 ```css
 @theme {
-  /* Solarized accents */
+  /* Solarized accents (mode-invariant) */
   --color-network-bit: #268bd2;   /* sol blue */
   --color-host-bit: #d33682;      /* sol magenta */
   --color-sol-cyan: #2aa198;
@@ -74,6 +126,16 @@ Defined in `src/index.css` using Tailwind's `@theme` directive:
   --color-sol-violet: #6c71c4;
   --color-sol-orange: #cb4b16;
 
+  /* Solarized base scale (mode-invariant, for the rare fixed-colour case) */
+  --color-sol-base03: #002b36;
+  --color-sol-base02: #073642;
+  --color-sol-base01: #586e75;
+  --color-sol-base00: #657b83;
+  --color-sol-base0: #839496;
+  --color-sol-base1: #93a1a1;
+  --color-sol-base2: #eee8d5;
+  --color-sol-base3: #fdf6e3;
+
   /* Cloud providers - mapped to Solarized */
   --color-aws: #cb4b16;    /* sol orange */
   --color-azure: #268bd2;  /* sol blue */
@@ -81,7 +143,7 @@ Defined in `src/index.css` using Tailwind's `@theme` directive:
 }
 ```
 
-These tokens are available as Tailwind utilities (e.g. `text-network-bit`, `bg-aws`). However, most components use hardcoded Solarized hex values directly in Tailwind classes (e.g. `text-[#2aa198]`) for consistency.
+These tokens are available as Tailwind utilities (e.g. `text-network-bit`, `bg-aws`, `text-sol-cyan`). Components use the semantic tokens for base tones and these named accent utilities for colour — hardcoded hex values in Tailwind classes (e.g. `text-[#2aa198]`) are no longer used.
 
 ## Solarized Color System
 
@@ -128,30 +190,43 @@ These tokens are available as Tailwind utilities (e.g. `text-network-bit`, `bg-a
 
 Subnet splits use a rotating palette of 16 colors defined in `subnet-math.ts`.
 
+## Shared Primitives
+
+`src/components/shared/` provides the building blocks all features compose. Everything is built on the semantic tokens:
+
+| Primitive | Purpose |
+|-----------|---------|
+| `Button` | The app's one button. Variants `soft` / `primary` / `ghost` / `danger` / `outline`, sizes `xs` / `sm` / `md`, an `active` prop for a cyan-tinted pressed/selected state, and renders an `<a>` when given `href`. |
+| `IconButton` | Square icon-only button (`aria-label` required). Variants `soft` / `ghost` / `danger`. |
+| `Input` / `Select` / `Textarea` | Form fields sharing a single focus/border treatment (`bg-well`, `border-line/25`, cyan focus ring, `invalid` and `mono` props). |
+| `SectionLabel` / `LabelValue` | The uppercase micro-label (`text-sol-base01`) and the label-over-value data-display pattern, with optional copy button. |
+| `SegmentedControl` | Pill-style segmented switch for mode toggles, provider pickers, and tab bars (`role` of `radiogroup` or `tablist`). |
+| `Modal` | Shared dialog: backdrop, Escape handling, body scroll lock, focus restore, pop animation. `chrome="default"` renders a titled header bar; `chrome="none"` leaves the chrome to the caller (used by the command palette). |
+| `Drawer` | Right-hand slide-in sheet (Quick Reference, Supernet tool, designer overlay panels). |
+| `ThemeToggle` | Sun/moon theme switch used in both app headers. |
+| `Badge` | Pill badge with colours `green` / `violet` / `yellow` / `cyan` / `red` / `neutral`. |
+| `AnimatedCard` / `CollapsibleSection` | Card entrance animation and expandable card sections. |
+| `CopyButton` | Clipboard copy with feedback state. |
+| `motion.ts` | Shared animation presets (see [Animation Patterns](#animation-patterns)). |
+
 ## Card Styling
 
 The `AnimatedCard` shared component provides solid Solarized surfaces with no glassmorphism:
 
-- **Dark mode:** `bg-[#073642]` background, `border-[#586e75]/30` border, no shadow
-- **Light mode:** `bg-[#eee8d5]` background, `border-[#93a1a1]/30` border, subtle `shadow-sm`
+- **Surface:** `bg-surface` with a `border-line/30` border (both flip with the theme)
+- **Shadows:** subtle `shadow-sm` in light mode, none in dark (`dark:shadow-none`)
 - **Corners:** `rounded-lg` (8px)
 
 ## Background Treatment
 
 ### Dot Grid
 
-The body background uses a subtle CSS dot grid pattern instead of gradient orbs:
+The body background uses a subtle CSS dot grid pattern instead of gradient orbs, built from the semantic variables so it flips with the theme automatically:
 
 ```css
-.dark body {
-  background-color: #002b36;
-  background-image: radial-gradient(circle, #073642 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-:not(.dark) body {
-  background-color: #fdf6e3;
-  background-image: radial-gradient(circle, #eee8d5 1px, transparent 1px);
+body {
+  background-color: var(--canvas);
+  background-image: radial-gradient(circle, var(--surface) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 ```
@@ -160,21 +235,32 @@ The dot grid provides subtle texture without distraction. No fixed-position blur
 
 ## Border Conventions
 
-| Context | Dark mode | Light mode |
-|---------|-----------|------------|
-| Card borders | `border-[#586e75]/30` | `border-[#93a1a1]/30` |
-| Dividers / separators | `border-[#586e75]/20` | `border-[#586e75]/20` |
-| Input borders (default) | `border-[#586e75]/30` | `border-[#93a1a1]/20` |
-| Input borders (valid) | `border-[#859900]/40` | `border-[#859900]/40` |
-| Input borders (invalid) | `border-[#dc322f]/40` | `border-[#dc322f]/40` |
-| Input borders (focus) | `border-[#2aa198]/40` | `border-[#2aa198]/40` |
-| Inline dividers | `bg-[#586e75]/20` | `bg-[#93a1a1]/20` |
+Borders use the `line` semantic token at varying opacities (the token flips between base1 and base01 with the theme):
 
-The CidrInput component uses a transparent background with a single `border` (no shadow), matching the lightweight feel of surrounding content panels.
+| Context | Classes |
+|---------|---------|
+| Card borders | `border-line/30` |
+| Dividers / separators | `border-line/20` or `border-line/15` |
+| Input borders (default) | `border-line/25` |
+| Input borders (invalid) | `border-sol-red/50` |
+| Input borders (focus) | `border-sol-cyan/40` + `ring-sol-cyan/15` |
+| Inline dividers | `bg-line/20` |
+
+The CidrInput component uses a transparent background with a single `border` (no shadow), matching the lightweight feel of surrounding content panels. All other form fields share the single focus treatment baked into the `Input`/`Select`/`Textarea` primitives.
 
 ## Animation Patterns
 
-The app uses the `motion` library (Motion, imported from `motion/react`) for:
+The app uses the `motion` library (Motion, imported from `motion/react`). Shared presets live in `src/components/shared/motion.ts` — pick one instead of inventing new numbers:
+
+| Export | Type | Use |
+|--------|------|-----|
+| `EASE` | Cubic-bezier tuple | The one easing curve for entrances/exits |
+| `DUR` | `{ fast: 0.15, base: 0.25, slow: 0.4 }` | Standard durations |
+| `fadeIn` | Variant props | Simple opacity fade (backdrops, tab content swaps) |
+| `cardEntrance(delay?)` | Variant factory | Card rises from below (used by `AnimatedCard`) |
+| `modalPop` | Variant props | Subtle scale pop for modals/popovers (used by `Modal`) |
+| `collapse` | Variant props | Height collapse for expandable sections (used by `CollapsibleSection`) |
+| `drawerSpring` | `Transition` | Spring used by slide-in drawers (used by `Drawer`) |
 
 ### Staggered Entrances
 
@@ -189,7 +275,7 @@ Components use `initial` / `animate` props for fade-and-slide entrances:
 
 ### Theme Toggle Animation
 
-The sun/moon icon rotates on theme switch:
+The sun/moon icon in `ThemeToggle` rotates on theme switch:
 
 ```tsx
 <motion.div
@@ -210,7 +296,7 @@ A slim custom scrollbar is defined for WebKit browsers:
 
 - 6px width
 - Transparent track
-- Solarized base01 thumb (`rgba(88, 110, 117, 0.4)`) with rounded corners and hover highlight
+- Thumb built from the `--line` token via `color-mix()` (40% opacity, 60% on hover) with rounded corners, so it flips with the theme
 
 ## Selection Color
 

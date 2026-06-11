@@ -1,9 +1,10 @@
 import { useCalculatorStore } from '@/store/calculator-store'
+import { AnimatedCard } from '@/components/shared/AnimatedCard'
+import { Button } from '@/components/shared/Button'
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { SubnetMapContent } from '@/components/visual-map/SubnetMap'
 import { CloudContextContent } from '@/components/cloud/CloudContext'
 import { BinaryBreakdownContent } from '@/components/calculator/BinaryBreakdown'
-import { ExportMenuContent } from '@/components/export/ExportMenu'
 
 export function AddressSpaceSection() {
   const { result, splits } = useCalculatorStore()
@@ -28,7 +29,7 @@ export function AddressSpaceSection() {
 }
 
 export function DetailsSection() {
-  const { result } = useCalculatorStore()
+  const { result, setExportModalOpen } = useCalculatorStore()
 
   if (!result) return null
 
@@ -42,9 +43,24 @@ export function DetailsSection() {
         <BinaryBreakdownContent />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Export" defaultOpen={false} delay={0.35}>
-        <ExportMenuContent />
-      </CollapsibleSection>
+      <AnimatedCard delay={0.35} className="p-3 sm:p-4 mt-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-xs font-medium text-sol-base01 uppercase tracking-wider">
+              Export & Share
+            </h3>
+            <p className="text-xs text-ink-muted mt-0.5">
+              JSON, CSV, Terraform, CLI commands, and share links
+            </p>
+          </div>
+          <Button onClick={() => setExportModalOpen(true)} aria-label="Open export dialog">
+            Open
+            <kbd className="hidden sm:inline font-mono text-[10px] bg-well px-1.5 py-0.5 rounded border border-line/20 ml-1">
+              ⌘E
+            </kbd>
+          </Button>
+        </div>
+      </AnimatedCard>
     </div>
   )
 }

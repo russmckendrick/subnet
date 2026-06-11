@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { CopyButton } from '@/components/shared/CopyButton'
+import { IconButton } from '@/components/shared/Button'
+import { Input } from '@/components/shared/Input'
+import { fadeIn } from '@/components/shared/motion'
 import { AllocationBar } from '@/components/splitter/AllocationBar'
 import { SplitterToolbar } from '@/components/splitter/SplitterToolbar'
 
@@ -57,13 +60,13 @@ export function SubnetSplittingSection() {
       delay={0.1}
     >
       {/* Summary text */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#586e75] mb-4 font-mono">
-        <span className="font-semibold text-[#586e75] dark:text-[#93a1a1]">{rawInput}</span>
-        <span className="text-[#93a1a1] dark:text-[#586e75]">&middot;</span>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-sol-base01 mb-4 font-mono">
+        <span className="font-semibold text-ink">{rawInput}</span>
+        <span className="text-ink-muted">&middot;</span>
         <span>{totalSize.toLocaleString()} total</span>
-        <span className="text-[#93a1a1] dark:text-[#586e75]">&middot;</span>
+        <span className="text-ink-muted">&middot;</span>
         <span>{usedSize.toLocaleString()} allocated ({allocatedPercent}%)</span>
-        <span className="text-[#93a1a1] dark:text-[#586e75]">&middot;</span>
+        <span className="text-ink-muted">&middot;</span>
         <span>{remainingSpace.toLocaleString()} remaining</span>
       </div>
 
@@ -86,10 +89,10 @@ export function SubnetSplittingSection() {
       {splits.length === 0 ? (
         <div className="py-6">
           <div className="text-center mb-5">
-            <p className="text-sm font-medium text-[#586e75] dark:text-[#93a1a1] mb-1">
+            <p className="text-sm font-medium text-ink mb-1">
               Split this network into subnets
             </p>
-            <p className="text-xs text-[#93a1a1] dark:text-[#586e75]">
+            <p className="text-xs text-ink-muted">
               Choose a prefix size to allocate your first subnet
             </p>
           </div>
@@ -109,22 +112,22 @@ export function SubnetSplittingSection() {
                   transition={{ delay: i * 0.04 }}
                   onClick={() => addSplit(p)}
                   aria-label={`Add /${p} subnet`}
-                  className="group relative text-left rounded-lg border border-[#586e75]/15 bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 p-3 hover:border-[#2aa198]/40 hover:bg-[#2aa198]/5 transition-colors"
+                  className="group relative text-left rounded-lg border border-line/15 bg-well/50 p-3 hover:border-sol-cyan/40 hover:bg-sol-cyan/5 transition-colors"
                 >
                   <div className="flex items-baseline justify-between mb-2">
-                    <span className="text-base font-mono font-bold text-[#2aa198]">/{p}</span>
-                    <span className="text-[10px] font-mono text-[#93a1a1] dark:text-[#586e75]">{pctLabel}</span>
+                    <span className="text-base font-mono font-bold text-sol-cyan">/{p}</span>
+                    <span className="text-[10px] font-mono text-ink-muted">{pctLabel}</span>
                   </div>
-                  <div className="text-[11px] text-[#586e75] dark:text-[#93a1a1] font-mono">
+                  <div className="text-[11px] text-ink font-mono">
                     {size.toLocaleString()} addr
                   </div>
-                  <div className="text-[10px] text-[#93a1a1] dark:text-[#586e75]">
+                  <div className="text-[10px] text-ink-muted">
                     {usable.toLocaleString()} usable
                   </div>
                   {/* Allocation preview bar */}
-                  <div className="mt-2 h-1 rounded-full bg-[#586e75]/10 overflow-hidden">
+                  <div className="mt-2 h-1 rounded-full bg-line/10 overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-[#2aa198]/30 group-hover:bg-[#2aa198]/50 transition-colors"
+                      className="h-full rounded-full bg-sol-cyan/30 group-hover:bg-sol-cyan/50 transition-colors"
                       style={{ width: `${Math.min(100, pct)}%` }}
                     />
                   </div>
@@ -138,15 +141,12 @@ export function SubnetSplittingSection() {
           {viewMode === 'table' ? (
             <motion.div
               key="table"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              {...fadeIn}
               className="overflow-x-auto"
             >
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-xs text-[#586e75] uppercase tracking-wider border-b-2 border-[#586e75]/20">
+                  <tr className="text-xs text-sol-base01 uppercase tracking-wider border-b-2 border-line/20">
                     <th className="text-left py-2 pr-3 font-medium">Label</th>
                     <th className="text-left py-2 pr-3 font-medium">CIDR</th>
                     <th className="text-left py-2 pr-3 font-medium hidden sm:table-cell">Range</th>
@@ -162,10 +162,10 @@ export function SubnetSplittingSection() {
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      className={`border-b border-[#586e75]/10 transition-colors group ${
+                      className={`border-b border-line/10 transition-colors group ${
                         hoveredIndex === i
-                          ? 'bg-[#fdf6e3]/50 dark:bg-[#002b36]/30'
-                          : 'hover:bg-[#fdf6e3]/30 dark:hover:bg-[#002b36]/20'
+                          ? 'bg-well/50'
+                          : 'hover:bg-well/30'
                       }`}
                       onMouseEnter={() => setHoveredIndex(i)}
                       onMouseLeave={() => setHoveredIndex(null)}
@@ -186,49 +186,42 @@ export function SubnetSplittingSection() {
                               aria-label={`Choose color for ${split.label}`}
                             />
                           </label>
-                          <div className="relative">
-                            <input
-                              type="text"
-                              value={split.label}
-                              name={`split-label-${i}`}
-                              onChange={(e) => updateSplitLabel(i, e.target.value)}
-                              aria-label={`Label for ${split.cidr}`}
-                              className="bg-transparent text-sm text-[#586e75] dark:text-[#93a1a1] focus:outline-none
-                                border-b border-transparent hover:border-[#586e75]/20 focus:border-[#2aa198]/40 w-28 sm:w-36 transition-colors"
-                            />
-                            {/* Pencil icon on hover */}
-                            <svg className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 text-[#93a1a1]/0 group-hover:text-[#93a1a1]/40 transition-colors pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
-                            </svg>
-                          </div>
+                          <Input
+                            type="text"
+                            value={split.label}
+                            name={`split-label-${i}`}
+                            onChange={(e) => updateSplitLabel(i, e.target.value)}
+                            aria-label={`Label for ${split.cidr}`}
+                            className="w-28 sm:w-36 !px-2 !py-1"
+                          />
                         </div>
                       </td>
-                      <td className="py-2 pr-3 font-mono text-xs text-[#586e75] dark:text-[#839496]">
+                      <td className="py-2 pr-3 font-mono text-xs text-ink-body">
                         <div className="flex items-center gap-1">
                           {split.cidr}
                           <CopyButton text={split.cidr} copyKey={`split-${i}`} />
                         </div>
                       </td>
-                      <td className="py-2 pr-3 font-mono text-xs text-[#93a1a1] dark:text-[#586e75] hidden sm:table-cell">
+                      <td className="py-2 pr-3 font-mono text-xs text-ink-muted hidden sm:table-cell">
                         {split.firstHost} - {split.lastHost}
                       </td>
-                      <td className="py-2 pr-3 text-right font-mono text-xs text-[#657b83] dark:text-[#839496]">
+                      <td className="py-2 pr-3 text-right font-mono text-xs text-ink-body">
                         {split.size.toLocaleString()}
                       </td>
-                      <td className="py-2 pr-3 text-right font-mono text-xs text-[#657b83] dark:text-[#839496]">
+                      <td className="py-2 pr-3 text-right font-mono text-xs text-ink-body">
                         {split.usableHosts.toLocaleString()}
                       </td>
                       <td className="py-2 text-right">
-                        <button
-                          type="button"
+                        <IconButton
+                          size="sm"
+                          variant="danger"
                           onClick={() => removeSplit(i)}
-                          className="p-1.5 rounded-lg hover:bg-[#dc322f]/10 text-[#93a1a1] hover:text-[#dc322f] transition-colors"
                           aria-label={`Remove ${split.label}`}
                         >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                           </svg>
-                        </button>
+                        </IconButton>
                       </td>
                     </motion.tr>
                   ))}
@@ -236,9 +229,9 @@ export function SubnetSplittingSection() {
               </table>
 
               {remainingSpace > 0 && (
-                <div className="flex justify-between items-center mt-3 pt-3 border-t border-[#586e75]/20">
-                  <span className="text-xs text-[#586e75]">Remaining</span>
-                  <span className="text-xs font-mono font-semibold text-[#586e75] dark:text-[#93a1a1]">
+                <div className="flex justify-between items-center mt-3 pt-3 border-t border-line/20">
+                  <span className="text-xs text-sol-base01">Remaining</span>
+                  <span className="text-xs font-mono font-semibold text-ink">
                     {remainingSpace.toLocaleString()} addresses
                   </span>
                 </div>
@@ -247,10 +240,7 @@ export function SubnetSplittingSection() {
           ) : (
             <motion.div
               key="cards"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              {...fadeIn}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2"
             >
               {splits.map((split, i) => (
@@ -259,38 +249,38 @@ export function SubnetSplittingSection() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className={`flex items-center gap-2.5 rounded-lg border px-3 py-2 bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 transition-colors cursor-default ${
+                  className={`flex items-center gap-2.5 rounded-lg border px-3 py-2 bg-well/50 transition-colors cursor-default ${
                     hoveredIndex === i
-                      ? 'border-[#586e75]/30'
-                      : 'border-[#586e75]/10 hover:border-[#586e75]/20'
+                      ? 'border-line/30'
+                      : 'border-line/10 hover:border-line/20'
                   }`}
                   onMouseEnter={() => setHoveredIndex(i)}
                   onMouseLeave={() => setHoveredIndex(null)}
                 >
                   <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: split.color }} />
                   <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-semibold text-[#586e75] dark:text-[#93a1a1] truncate">
+                    <div className="text-[11px] font-semibold text-ink truncate">
                       {split.label}
                     </div>
-                    <div className="text-[10px] font-mono text-[#93a1a1] dark:text-[#586e75]">
+                    <div className="text-[10px] font-mono text-ink-muted">
                       {split.cidr} · {split.usableHosts.toLocaleString()} hosts
                     </div>
                   </div>
-                  <div className="text-[10px] font-mono font-semibold text-[#93a1a1] dark:text-[#586e75] shrink-0">
+                  <div className="text-[10px] font-mono font-semibold text-ink-muted shrink-0">
                     {((split.size / totalSize) * 100).toFixed(1)}%
                   </div>
                 </motion.div>
               ))}
               {remainingSpace > 0 && (
-                <div className="flex items-center gap-2.5 rounded-lg border border-dashed border-[#586e75]/20 px-3 py-2">
-                  <div className="w-3 h-3 rounded-sm bg-[#93a1a1] dark:bg-[#586e75] shrink-0" />
+                <div className="flex items-center gap-2.5 rounded-lg border border-dashed border-line/20 px-3 py-2">
+                  <div className="w-3 h-3 rounded-sm bg-line shrink-0" />
                   <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-semibold text-[#93a1a1] dark:text-[#586e75]">Unallocated</div>
-                    <div className="text-[10px] font-mono text-[#93a1a1] dark:text-[#586e75]">
+                    <div className="text-[11px] font-semibold text-ink-muted">Unallocated</div>
+                    <div className="text-[10px] font-mono text-ink-muted">
                       {remainingSpace.toLocaleString()} addresses
                     </div>
                   </div>
-                  <div className="text-[10px] font-mono font-semibold text-[#93a1a1] dark:text-[#586e75] shrink-0">
+                  <div className="text-[10px] font-mono font-semibold text-ink-muted shrink-0">
                     {((remainingSpace / totalSize) * 100).toFixed(1)}%
                   </div>
                 </div>

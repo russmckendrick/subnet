@@ -14,8 +14,8 @@ export function CloudResourceNode({ id, data, selected }: CloudResourceNodeProps
     <div
       className={`flex flex-col items-center rounded-lg border px-3 py-2 min-w-[80px] transition-shadow ${
         selected
-          ? 'border-[#2aa198] shadow-lg shadow-[#2aa198]/20'
-          : 'border-[#93a1a1]/20 dark:border-[#586e75]/30'
+          ? 'border-sol-cyan shadow-lg shadow-sol-cyan/20'
+          : 'border-line/20'
       }`}
       style={{
         backgroundColor: isDark ? '#073642' : '#eee8d5',
@@ -30,33 +30,33 @@ export function CloudResourceNode({ id, data, selected }: CloudResourceNodeProps
       <NodeLabel
         nodeId={id}
         label={data.label}
-        className="text-[10px] font-semibold text-[#586e75] dark:text-[#93a1a1] max-w-[100px] text-center"
+        className="text-[10px] font-semibold text-ink max-w-[100px] text-center"
       />
 
       <Handle
         type="target"
         position={Position.Top}
-        className="!w-3 !h-3 !bg-[#2aa198] !border-2"
+        className="!w-3 !h-3 !bg-sol-cyan !border-2"
         style={{ borderColor: isDark ? '#073642' : '#eee8d5' }}
       />
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!w-3 !h-3 !bg-[#2aa198] !border-2"
+        className="!w-3 !h-3 !bg-sol-cyan !border-2"
         style={{ borderColor: isDark ? '#073642' : '#eee8d5' }}
       />
       <Handle
         type="source"
         position={Position.Left}
         id="left"
-        className="!w-3 !h-3 !bg-[#2aa198] !border-2"
+        className="!w-3 !h-3 !bg-sol-cyan !border-2"
         style={{ borderColor: isDark ? '#073642' : '#eee8d5' }}
       />
       <Handle
         type="source"
         position={Position.Right}
         id="right"
-        className="!w-3 !h-3 !bg-[#2aa198] !border-2"
+        className="!w-3 !h-3 !bg-sol-cyan !border-2"
         style={{ borderColor: isDark ? '#073642' : '#eee8d5' }}
       />
     </div>

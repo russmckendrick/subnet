@@ -11,10 +11,10 @@ export function ResourceNode({ id, data, selected }: ResourceNodeProps) {
 
   return (
     <div
-      className={`flex flex-col items-center rounded-lg border bg-[#eee8d5] dark:bg-[#073642] px-4 py-3 min-w-[120px] transition-shadow ${
+      className={`flex flex-col items-center rounded-lg border bg-surface px-4 py-3 min-w-[120px] transition-shadow ${
         selected
-          ? 'border-[#2aa198] shadow-lg shadow-[#2aa198]/20'
-          : 'border-[#93a1a1]/20 dark:border-[#586e75]/30'
+          ? 'border-sol-cyan shadow-lg shadow-sol-cyan/20'
+          : 'border-line/20'
       }`}
     >
       {IconComponent && (
@@ -26,30 +26,30 @@ export function ResourceNode({ id, data, selected }: ResourceNodeProps) {
       <NodeLabel
         nodeId={id}
         label={data.label}
-        className="text-xs font-semibold text-[#586e75] dark:text-[#93a1a1] max-w-[140px]"
+        className="text-xs font-semibold text-ink max-w-[140px]"
       />
 
       <Handle
         type="target"
         position={Position.Top}
-        className="!w-3 !h-3 !bg-[#2aa198] !border-2 !border-[#eee8d5] dark:!border-[#073642]"
+        className="!w-3 !h-3 !bg-sol-cyan !border-2 !border-surface"
       />
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!w-3 !h-3 !bg-[#2aa198] !border-2 !border-[#eee8d5] dark:!border-[#073642]"
+        className="!w-3 !h-3 !bg-sol-cyan !border-2 !border-surface"
       />
       <Handle
         type="source"
         position={Position.Left}
         id="left"
-        className="!w-3 !h-3 !bg-[#2aa198] !border-2 !border-[#eee8d5] dark:!border-[#073642]"
+        className="!w-3 !h-3 !bg-sol-cyan !border-2 !border-surface"
       />
       <Handle
         type="source"
         position={Position.Right}
         id="right"
-        className="!w-3 !h-3 !bg-[#2aa198] !border-2 !border-[#eee8d5] dark:!border-[#073642]"
+        className="!w-3 !h-3 !bg-sol-cyan !border-2 !border-surface"
       />
     </div>
   )

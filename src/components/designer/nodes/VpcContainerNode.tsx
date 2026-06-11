@@ -40,10 +40,10 @@ export function VpcContainerNode({ id, data, selected }: VpcContainerNodeProps) 
           <NodeLabel
             nodeId={id}
             label={data.label}
-            className="text-xs font-semibold text-[#586e75] dark:text-[#93a1a1]"
+            className="text-xs font-semibold text-ink"
           />
         </div>
-        <span className="font-mono text-[10px] text-[#93a1a1] dark:text-[#586e75]">
+        <span className="font-mono text-[10px] text-ink-muted">
           {data.cidr}
         </span>
       </div>

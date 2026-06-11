@@ -21,7 +21,7 @@ export function ProviderCard({ data, prefix }: ProviderCardProps) {
   return (
     <div
       className="rounded-lg border p-4 transition-colors
-        bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 border-[#586e75]/15
+        bg-well/50 border-line/15
         hover:border-[color:var(--provider-color)] hover:border-opacity-30"
       style={{ '--provider-color': provider.color } as React.CSSProperties}
     >
@@ -34,11 +34,11 @@ export function ProviderCard({ data, prefix }: ProviderCardProps) {
             style={{ backgroundColor: provider.color }}
           />
         )}
-        <span className="text-sm font-semibold text-[#586e75] dark:text-[#93a1a1]">
+        <span className="text-sm font-semibold text-ink">
           {provider.shortName}
         </span>
         {!isValidSubnet && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#dc322f]/10 text-[#dc322f] font-medium ml-auto">
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-sol-red/10 text-sol-red font-medium ml-auto">
             {tooSmall ? 'Too small' : tooLarge ? 'Too large' : 'Invalid'}
           </span>
         )}
@@ -47,31 +47,31 @@ export function ProviderCard({ data, prefix }: ProviderCardProps) {
       {isValidSubnet ? (
         <div className="space-y-2">
           <div className="flex justify-between text-xs">
-            <span className="text-[#586e75]">Usable hosts</span>
-            <span className="font-mono font-semibold text-[#586e75] dark:text-[#93a1a1]">
+            <span className="text-sol-base01">Usable hosts</span>
+            <span className="font-mono font-semibold text-ink">
               {usableHosts.toLocaleString()}
             </span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-[#586e75]">Reserved</span>
-            <span className="font-mono text-[#586e75] dark:text-[#93a1a1]">
+            <span className="text-sol-base01">Reserved</span>
+            <span className="font-mono text-ink">
               {provider.reservedAddresses} per subnet
             </span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-[#586e75]">Prefix range</span>
-            <span className="font-mono text-[#586e75] dark:text-[#93a1a1]">
+            <span className="text-sol-base01">Prefix range</span>
+            <span className="font-mono text-ink">
               /{provider.minPrefix} to /{provider.maxPrefix}
             </span>
           </div>
         </div>
       ) : (
-        <div className="text-xs text-[#586e75]">
+        <div className="text-xs text-sol-base01">
           {tooSmall
             ? `Minimum subnet size: /${provider.maxPrefix}`
             : `Maximum VPC/VNet size: /${provider.minPrefix}`
           }
-          <p className="mt-1 text-[#93a1a1] dark:text-[#586e75]">
+          <p className="mt-1 text-ink-muted">
             Current: /{prefix}
           </p>
         </div>
@@ -79,12 +79,12 @@ export function ProviderCard({ data, prefix }: ProviderCardProps) {
 
       {isValidSubnet && (
         <details className="mt-3">
-          <summary className="text-[10px] text-[#93a1a1] dark:text-[#586e75] cursor-pointer hover:text-[#586e75] dark:hover:text-[#93a1a1] transition-colors">
+          <summary className="text-[10px] text-ink-muted cursor-pointer hover:text-ink transition-colors">
             Reserved addresses
           </summary>
           <ul className="mt-1.5 space-y-0.5">
             {provider.reservedDescription.map((desc, i) => (
-              <li key={i} className="text-[10px] text-[#93a1a1] dark:text-[#586e75] font-mono">
+              <li key={i} className="text-[10px] text-ink-muted font-mono">
                 {desc}
               </li>
             ))}

@@ -12,6 +12,29 @@ export interface ExtractedDesignerState {
  * Extract CIDR and subnet splits from designer nodes.
  * Reads VPC container for parent CIDR and subnet containers for splits.
  */
+/**
+ * Build the canonical shareable designer URL (`/designer?from=&split=&provider=`)
+ * for the current diagram. Falls back to plain `/designer` when no VPC exists.
+ */
+export function buildDesignerUrl(
+  nodes: Node<DesignerNodeData>[],
+  cloudProvider: CloudProvider,
+): string {
+  const extracted = extractDesignerState(nodes, cloudProvider)
+  if (!extracted.cidr) return '/designer'
+
+  const params: string[] = [`from=${encodeURIComponent(extracted.cidr)}`]
+  if (extracted.splits.length > 0) {
+    params.push(
+      `split=${extracted.splits.map((s) => `${s.prefix}~${encodeURIComponent(s.label)}`).join(',')}`,
+    )
+  }
+  if (cloudProvider !== 'generic') {
+    params.push(`provider=${cloudProvider}`)
+  }
+  return `/designer?${params.join('&')}`
+}
+
 export function extractDesignerState(
   nodes: Node<DesignerNodeData>[],
   cloudProvider: CloudProvider,

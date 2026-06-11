@@ -108,6 +108,16 @@ export const commands: Command[] = [
 
   // Export (require result)
   {
+    id: 'open-export',
+    label: 'Open Export Dialog',
+    description: 'Export & share — JSON, CSV, Terraform, CLI',
+    category: 'Export',
+    keywords: ['export', 'share', 'dialog', 'modal', 'download'],
+    icon: 'file',
+    requiresResult: true,
+    action: 'open-export',
+  },
+  {
     id: 'export:json',
     label: 'Export JSON',
     description: 'Copy subnet data as JSON',

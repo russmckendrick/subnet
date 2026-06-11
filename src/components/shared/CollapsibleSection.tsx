@@ -1,6 +1,7 @@
 import { useId, useState, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { AnimatedCard } from './AnimatedCard'
+import { collapse } from './motion'
 
 interface CollapsibleSectionProps {
   title: string
@@ -22,13 +23,13 @@ export function CollapsibleSection({ title, children, defaultOpen = true, delay 
         aria-controls={contentId}
         className="w-full flex items-center justify-between group cursor-pointer rounded-md"
       >
-        <h3 className="text-xs font-medium text-[#586e75] dark:text-[#586e75] uppercase tracking-wider">
+        <h3 className="text-xs font-medium text-sol-base01 uppercase tracking-wider">
           {title}
         </h3>
         <motion.svg
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          className="w-4 h-4 text-[#93a1a1] dark:text-[#586e75] group-hover:text-[#586e75] dark:group-hover:text-[#93a1a1] transition-colors"
+          className="w-4 h-4 text-ink-muted group-hover:text-ink transition-colors"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -39,14 +40,7 @@ export function CollapsibleSection({ title, children, defaultOpen = true, delay 
       </button>
       <AnimatePresence initial={false}>
         {isOpen && (
-          <motion.div
-            id={contentId}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="overflow-hidden"
-          >
+          <motion.div id={contentId} {...collapse} className="overflow-hidden">
             <div className="pt-4">
               {children}
             </div>

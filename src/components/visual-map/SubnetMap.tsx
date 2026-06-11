@@ -1,6 +1,7 @@
 import { motion } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
+import { EASE } from '@/components/shared/motion'
 import { ipv4ToString } from '@/lib/ipv4'
 
 function SubnetMapInner() {
@@ -27,23 +28,23 @@ function SubnetMapInner() {
   return (
     <div className="space-y-3">
       {/* Compact proportional bar showing the address range */}
-      <div className="relative h-10 rounded-lg overflow-hidden border border-[#586e75]/20">
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#268bd2] z-10" />
+      <div className="relative h-10 rounded-lg overflow-hidden border border-line/20">
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-network-bit z-10" />
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: '100%' }}
-          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="absolute inset-0 bg-gradient-to-r from-[#268bd2]/20 via-[#268bd2]/10 to-[#d33682]/20"
+          transition={{ duration: 0.6, ease: EASE }}
+          className="absolute inset-0 bg-gradient-to-r from-network-bit/20 via-network-bit/10 to-host-bit/20"
         />
-        <div className="absolute right-0 top-0 bottom-0 w-1 bg-[#d33682] z-10" />
+        <div className="absolute right-0 top-0 bottom-0 w-1 bg-host-bit z-10" />
         <div className="absolute inset-0 flex items-center justify-between px-3">
-          <span className="text-[10px] font-mono text-[#268bd2] font-semibold">
+          <span className="text-[10px] font-mono text-network-bit font-semibold">
             {result.networkAddress}
           </span>
-          <span className="text-xs font-mono text-[#586e75] dark:text-[#93a1a1] font-bold">
+          <span className="text-xs font-mono text-ink font-bold">
             /{result.prefixLength}
           </span>
-          <span className="text-[10px] font-mono text-[#d33682] font-semibold">
+          <span className="text-[10px] font-mono text-host-bit font-semibold">
             {result.broadcastAddress}
           </span>
         </div>
@@ -74,7 +75,7 @@ function SubnetMapInner() {
             }}
           >
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-              <div className="bg-[#002b36] text-[#93a1a1] text-[10px] font-mono rounded px-2 py-1 whitespace-nowrap shadow-lg">
+              <div className="bg-sol-base03 text-sol-base1 text-[10px] font-mono rounded px-2 py-1 whitespace-nowrap shadow-lg">
                 {block.startAddr}
               </div>
             </div>
@@ -83,22 +84,22 @@ function SubnetMapInner() {
       </div>
 
       {/* Stats summary */}
-      <div className="flex items-center justify-between text-[11px] text-[#586e75]">
+      <div className="flex items-center justify-between text-[11px] text-sol-base01">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-[#268bd2]" />
+            <span className="w-2 h-2 rounded-full bg-network-bit" />
             Network
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-[#268bd2]/20 border border-[#268bd2]/30" />
+            <span className="w-2 h-2 rounded-full bg-network-bit/20 border border-network-bit/30" />
             {result.usableHosts.toLocaleString()} usable hosts
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-[#d33682]" />
+            <span className="w-2 h-2 rounded-full bg-host-bit" />
             Broadcast
           </span>
         </div>
-        <span className="font-mono text-[#93a1a1] dark:text-[#586e75]">
+        <span className="font-mono text-ink-muted">
           {result.totalAddresses.toLocaleString()} total
         </span>
       </div>

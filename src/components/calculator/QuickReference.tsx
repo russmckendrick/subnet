@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { SUBNET_REFERENCE_TABLE } from '@/lib/constants'
 import { AnimatedCard } from '@/components/shared/AnimatedCard'
+import { Input } from '@/components/shared/Input'
+import { EASE } from '@/components/shared/motion'
 import { useCalculatorStore } from '@/store/calculator-store'
 
 export function QuickReference() {
@@ -10,6 +12,8 @@ export function QuickReference() {
   const { result, setRawInput, setActiveDrawer } = useCalculatorStore()
 
   const currentPrefix = result?.prefixLength ?? null
+  // Anchor the reference to the network being viewed, not a fixed example
+  const baseIp = result?.networkAddress ?? '10.0.0.0'
 
   const filteredRows = SUBNET_REFERENCE_TABLE.filter((r) => {
     if (r.prefix < 8) return false
@@ -25,7 +29,7 @@ export function QuickReference() {
   })
 
   const handleRowClick = (prefix: number) => {
-    setRawInput(`10.0.0.0/${prefix}`)
+    setRawInput(`${baseIp}/${prefix}`)
     setActiveDrawer('none')
   }
 
@@ -33,15 +37,20 @@ export function QuickReference() {
     <AnimatedCard delay={0.5} className="mt-3 overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 text-left hover:bg-[#fdf6e3]/50 dark:hover:bg-[#002b36]/30 transition-colors"
+        className="w-full flex items-center justify-between p-4 text-left hover:bg-well/50 transition-colors"
       >
-        <h3 className="text-xs font-medium text-[#586e75] dark:text-[#586e75] uppercase tracking-wider">
-          CIDR Quick Reference
-        </h3>
+        <div>
+          <h3 className="text-xs font-medium text-sol-base01 uppercase tracking-wider">
+            CIDR Quick Reference
+          </h3>
+          <p className="text-[10px] text-ink-muted mt-0.5">
+            Based on <span className="font-mono text-sol-cyan">{baseIp}</span> — click a row to load it
+          </p>
+        </div>
         <motion.svg
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          className="w-4 h-4 text-[#93a1a1] dark:text-[#586e75]"
+          className="w-4 h-4 text-ink-muted"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -57,27 +66,25 @@ export function QuickReference() {
             initial={{ height: 0 }}
             animate={{ height: 'auto' }}
             exit={{ height: 0 }}
-            transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+            transition={{ duration: 0.3, ease: EASE }}
             className="overflow-hidden"
           >
             <div className="px-4 pb-4">
               {/* Filter input */}
               <div className="mb-3">
-                <input
+                <Input
                   type="text"
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                   placeholder="Filter by prefix, addresses, or netmask…"
-                  className="w-full bg-[#fdf6e3] dark:bg-[#002b36] rounded-lg px-3 py-2 text-sm font-mono
-                    text-[#586e75] dark:text-[#93a1a1] placeholder:text-[#93a1a1]/40 dark:placeholder:text-[#586e75]/40
-                    border border-[#93a1a1]/20 dark:border-[#586e75]/30 focus:outline-none focus:border-[#2aa198]/40"
+                  mono
                 />
               </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-xs text-[#586e75] uppercase tracking-wider border-b border-[#586e75]/20">
+                    <tr className="text-xs text-sol-base01 uppercase tracking-wider border-b border-line/20">
                       <th className="text-left py-2 pr-4 font-medium">Prefix</th>
                       <th className="text-left py-2 pr-4 font-medium">Netmask</th>
                       <th className="text-right py-2 pr-4 font-medium">Addresses</th>
@@ -92,23 +99,23 @@ export function QuickReference() {
                         <tr
                           key={row.prefix}
                           onClick={() => handleRowClick(row.prefix)}
-                          className={`border-b border-[#586e75]/10 cursor-pointer transition-colors hover:bg-[#2aa198]/5 ${
-                            isActive ? 'bg-[#2aa198]/5' : ''
+                          className={`border-b border-line/10 cursor-pointer transition-colors hover:bg-sol-cyan/5 ${
+                            isActive ? 'bg-sol-cyan/5' : ''
                           }`}
                         >
-                          <td className="py-1.5 pr-4 font-semibold text-[#2aa198]">
+                          <td className="py-1.5 pr-4 font-semibold text-sol-cyan">
                             <div className="flex items-center gap-1.5">
                               {isActive && (
-                                <div className="w-0.5 h-4 bg-[#2aa198] rounded-full" />
+                                <div className="w-0.5 h-4 bg-sol-cyan rounded-full" />
                               )}
                               /{row.prefix}
                             </div>
                           </td>
-                          <td className="py-1.5 pr-4 text-[#657b83] dark:text-[#839496]">{row.netmask}</td>
-                          <td className="py-1.5 pr-4 text-right text-[#657b83] dark:text-[#839496]">{row.totalAddresses.toLocaleString()}</td>
-                          <td className="py-1.5 pr-2 text-right text-[#657b83] dark:text-[#839496]">{row.usableHosts.toLocaleString()}</td>
+                          <td className="py-1.5 pr-4 text-ink-body">{row.netmask}</td>
+                          <td className="py-1.5 pr-4 text-right text-ink-body">{row.totalAddresses.toLocaleString()}</td>
+                          <td className="py-1.5 pr-2 text-right text-ink-body">{row.usableHosts.toLocaleString()}</td>
                           <td className="py-1.5 text-right">
-                            <svg className="w-3 h-3 text-[#93a1a1] dark:text-[#586e75]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <svg className="w-3 h-3 text-ink-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                             </svg>
                           </td>

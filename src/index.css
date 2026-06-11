@@ -2,11 +2,47 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * Semantic Solarized palette.
+ * Light values live on :root, dark values on .dark — utilities built from
+ * the @theme inline block below resolve at the use-site, so components
+ * write `bg-surface text-ink border-line/20` with no dark: prefixes.
+ */
+:root {
+  --canvas: #fdf6e3;   /* base3  — page background */
+  --surface: #eee8d5;  /* base2  — cards, chips */
+  --well: #fdf6e3;     /* base3  — inputs, inset areas on a surface */
+  --ink: #586e75;      /* base01 — emphasized text */
+  --ink-body: #657b83; /* base00 — body text */
+  --ink-muted: #93a1a1;/* base1  — secondary text */
+  --line: #93a1a1;     /* base1  — borders, dividers */
+}
+
+.dark {
+  --canvas: #002b36;   /* base03 */
+  --surface: #073642;  /* base02 */
+  --well: #002b36;     /* base03 */
+  --ink: #93a1a1;      /* base1 */
+  --ink-body: #839496; /* base0 */
+  --ink-muted: #586e75;/* base01 */
+  --line: #586e75;     /* base01 */
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-well: var(--well);
+  --color-ink: var(--ink);
+  --color-ink-body: var(--ink-body);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+}
+
 @theme {
   --font-sans: 'Schibsted Grotesk', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Martian Mono', ui-monospace, monospace;
 
-  /* Solarized accents */
+  /* Solarized accents (mode-invariant) */
   --color-network-bit: #268bd2;
   --color-host-bit: #d33682;
   --color-sol-cyan: #2aa198;
@@ -17,6 +53,16 @@
   --color-sol-yellow: #b58900;
   --color-sol-violet: #6c71c4;
   --color-sol-orange: #cb4b16;
+
+  /* Solarized base scale (mode-invariant, for the rare fixed-colour case) */
+  --color-sol-base03: #002b36;
+  --color-sol-base02: #073642;
+  --color-sol-base01: #586e75;
+  --color-sol-base00: #657b83;
+  --color-sol-base0: #839496;
+  --color-sol-base1: #93a1a1;
+  --color-sol-base2: #eee8d5;
+  --color-sol-base3: #fdf6e3;
 
   /* Cloud providers - mapped to Solarized */
   --color-aws: #cb4b16;
@@ -45,17 +91,10 @@ body {
   font-family: var(--font-mono);
 }
 
-/* Dark mode background — Solarized Dark with dot grid */
-.dark body {
-  background-color: #002b36;
-  background-image: radial-gradient(circle, #073642 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* Light mode background — Solarized Light with dot grid */
-:not(.dark) body {
-  background-color: #fdf6e3;
-  background-image: radial-gradient(circle, #eee8d5 1px, transparent 1px);
+/* Page background — Solarized with dot grid, flips via semantic vars */
+body {
+  background-color: var(--canvas);
+  background-image: radial-gradient(circle, var(--surface) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
@@ -69,12 +108,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(88, 110, 117, 0.4);
+  background: color-mix(in srgb, var(--line) 40%, transparent);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(88, 110, 117, 0.6);
+  background: color-mix(in srgb, var(--line) 60%, transparent);
 }
 
 /* Selection color — Solarized cyan tint */
@@ -91,6 +130,9 @@ body {
   touch-action: manipulation;
 }
 
-:where(h1, h2, h3) {
-  text-wrap: balance;
+/* In @layer base so utilities (e.g. whitespace-nowrap) can override it */
+@layer base {
+  :where(h1, h2, h3) {
+    text-wrap: balance;
+  }
 }

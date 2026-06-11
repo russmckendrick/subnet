@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { useThemeStore } from '@/store/theme-store'
 import { useClipboard } from '@/hooks/use-clipboard'
+import { SectionLabel } from '@/components/shared/LabelValue'
 import qrcode from 'qrcode-generator'
 
 function generateQrSvg(url: string, theme: 'dark' | 'light'): string {
@@ -45,18 +46,18 @@ function UrlBreakdown({ url }: { url: string }) {
   const parts = parseUrlParts(url)
 
   if (!parts) {
-    return <span className="font-mono text-xs text-[#657b83] dark:text-[#839496]">{url}</span>
+    return <span className="font-mono text-xs text-ink-body">{url}</span>
   }
 
   return (
     <div className="font-mono text-xs break-all leading-relaxed">
-      <span className="text-[#93a1a1] dark:text-[#586e75]">{parts.protocol}</span>
-      <span className="text-[#93a1a1] dark:text-[#586e75]">{parts.host}</span>
+      <span className="text-ink-muted">{parts.protocol}</span>
+      <span className="text-ink-muted">{parts.host}</span>
       {parts.pathname !== '/' && (
-        <span className="text-[#2aa198]">{parts.pathname}</span>
+        <span className="text-sol-cyan">{parts.pathname}</span>
       )}
       {parts.search && (
-        <span className="text-[#268bd2]">{parts.search}</span>
+        <span className="text-sol-blue">{parts.search}</span>
       )}
     </div>
   )
@@ -84,22 +85,22 @@ export function ShareCard() {
       className="space-y-4"
     >
       {/* URL display */}
-      <div className="bg-[#eee8d5] dark:bg-[#073642] rounded-lg p-4">
+      <div className="bg-surface rounded-lg p-4">
         <UrlBreakdown url={url} />
       </div>
 
       {/* State badges */}
       <div className="flex flex-wrap gap-2">
-        <span className="inline-flex items-center text-xs px-2 py-1 rounded-md bg-[#eee8d5] dark:bg-[#073642] text-[#586e75] dark:text-[#93a1a1] font-medium">
+        <span className="inline-flex items-center text-xs px-2 py-1 rounded-md bg-surface text-ink font-medium">
           {isSupernet ? 'Supernet' : 'Network'}
         </span>
-        <span className="inline-flex items-center text-xs px-2 py-1 rounded-md bg-[#2aa198]/10 text-[#2aa198] font-mono">
+        <span className="inline-flex items-center text-xs px-2 py-1 rounded-md bg-sol-cyan/10 text-sol-cyan font-mono">
           {cidr}
         </span>
         {hasSplits && (
-          <span className="inline-flex items-center text-xs px-2 py-1 rounded-md bg-[#268bd2]/10 text-[#268bd2]">
+          <span className="inline-flex items-center text-xs px-2 py-1 rounded-md bg-sol-blue/10 text-sol-blue">
             {splits.length} subnet{splits.length !== 1 ? 's' : ''}
-            <span className="ml-1 text-[#93a1a1] dark:text-[#586e75] truncate max-w-32">
+            <span className="ml-1 text-ink-muted truncate max-w-32">
               ({splits.map((s) => s.label).join(', ')})
             </span>
           </span>
@@ -113,8 +114,8 @@ export function ShareCard() {
         onClick={() => copy(url, 'share-url')}
         className={`w-full text-sm px-4 py-2.5 rounded-lg font-medium transition-colors ${
           isCopied('share-url')
-            ? 'bg-[#859900]/20 text-[#859900]'
-            : 'bg-[#2aa198]/10 text-[#2aa198] hover:bg-[#2aa198]/20'
+            ? 'bg-sol-green/20 text-sol-green'
+            : 'bg-sol-cyan/10 text-sol-cyan hover:bg-sol-cyan/20'
         }`}
         aria-label={isCopied('share-url') ? 'Copied share URL' : 'Copy share URL'}
       >
@@ -124,13 +125,11 @@ export function ShareCard() {
       {/* QR code */}
       <div className="flex flex-col items-center gap-2 pt-1">
         <div
-          className="rounded-lg overflow-hidden border border-[#93a1a1]/15 dark:border-[#586e75]/20 bg-[#fdf6e3] dark:bg-[#002b36] p-2 [&>svg]:block [&>svg]:w-full [&>svg]:h-full"
+          className="rounded-lg overflow-hidden border border-line/15 bg-well p-2 [&>svg]:block [&>svg]:w-full [&>svg]:h-full"
           dangerouslySetInnerHTML={{ __html: qrSvg }}
           style={{ width: 120, height: 120 }}
         />
-        <span className="text-[10px] text-[#93a1a1] dark:text-[#586e75] uppercase tracking-wider">
-          Scan to open
-        </span>
+        <SectionLabel>Scan to open</SectionLabel>
       </div>
     </motion.div>
   )

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useDesignerStore, type DesignerNodeData } from '@/store/designer-store'
 import { migrateDiagramState, CURRENT_STORAGE_VERSION } from '@/lib/diagram-migration'
+import { buildDesignerUrl } from '@/lib/designer-state-extract'
 import type { Node } from '@xyflow/react'
 
 const STORAGE_KEY = 'subnet-designer-state'
@@ -28,11 +29,14 @@ export function useDiagramPersistence() {
         const parsed = JSON.parse(raw)
         if (parsed && Array.isArray(parsed.nodes) && Array.isArray(parsed.edges) && parsed.nodes.length > 0) {
           const migrated = migrateDiagramState(parsed)
+          const provider = migrated.cloudProvider as 'aws' | 'azure' | 'gcp' | 'generic'
           loadFromStorage({
             nodes: migrated.nodes as Node<DesignerNodeData>[],
             edges: migrated.edges,
-            cloudProvider: migrated.cloudProvider as 'aws' | 'azure' | 'gcp' | 'generic',
+            cloudProvider: provider,
           })
+          // Reflect the loaded diagram in the URL so refresh/bookmark keeps context
+          history.replaceState(null, '', buildDesignerUrl(migrated.nodes as Node<DesignerNodeData>[], provider))
         }
       } catch { /* noop */ }
     }, 100)
@@ -52,6 +56,8 @@ export function useDiagramPersistence() {
       try {
         const state = { nodes, edges, cloudProvider, version: CURRENT_STORAGE_VERSION }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+        // Keep the URL canonical with the diagram so refresh/bookmark keeps context
+        history.replaceState(null, '', buildDesignerUrl(nodes, cloudProvider))
       } catch { /* noop */ }
     }, DEBOUNCE_MS)
 

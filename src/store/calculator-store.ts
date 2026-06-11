@@ -29,8 +29,17 @@ interface CalculatorState {
   // Command palette
   commandPaletteOpen: boolean
 
+  // Export modal
+  exportModalOpen: boolean
+
+  // Supernet → calculator handoff (shows an undo notice in the input)
+  handoff: { previous: string; next: string } | null
+
   // Actions
   setRawInput: (input: string) => void
+  loadSupernetResult: (cidr: string) => void
+  restoreHandoff: () => void
+  dismissHandoff: () => void
   setInputMode: (mode: 'guided' | 'cidr') => void
   addSplit: (prefix: number) => void
   removeSplit: (index: number) => void
@@ -40,6 +49,7 @@ interface CalculatorState {
   setSupernetInputs: (inputs: string) => void
   setActiveDrawer: (drawer: 'none' | 'supernet' | 'reference') => void
   setCommandPaletteOpen: (open: boolean) => void
+  setExportModalOpen: (open: boolean) => void
   initFromUrl: (cidr: string, splits?: number[], labels?: string[]) => void
 }
 
@@ -71,10 +81,17 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   supernetResult: null,
   activeDrawer: 'none',
   commandPaletteOpen: false,
+  exportModalOpen: false,
+  handoff: null,
 
   setRawInput: (input) => {
     const result = parseCidr(input)
-    const { splitPrefixes, splitLabels } = get()
+    const { splitPrefixes, splitLabels, handoff } = get()
+
+    // Manual edits clear any pending supernet-handoff notice
+    if (handoff && input !== handoff.next) {
+      set({ handoff: null })
+    }
 
     // If there are existing splits and the CIDR changed, try to recalculate
     if (splitPrefixes.length > 0 && result) {
@@ -148,6 +165,23 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
 
   setActiveDrawer: (drawer) => set({ activeDrawer: drawer }),
   setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
+  setExportModalOpen: (open) => set({ exportModalOpen: open }),
+
+  loadSupernetResult: (cidr) => {
+    const { rawInput } = get()
+    get().setRawInput(cidr)
+    // Record after setRawInput so its handoff-clearing logic doesn't wipe this
+    set({ handoff: { previous: rawInput, next: cidr } })
+  },
+
+  restoreHandoff: () => {
+    const { handoff } = get()
+    if (!handoff) return
+    set({ handoff: null })
+    get().setRawInput(handoff.previous)
+  },
+
+  dismissHandoff: () => set({ handoff: null }),
 
   initFromUrl: (cidr, splits, labels) => {
     const result = parseCidr(cidr)

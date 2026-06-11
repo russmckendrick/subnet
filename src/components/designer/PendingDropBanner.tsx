@@ -1,4 +1,5 @@
 import { useDesignerStore } from '@/store/designer-store'
+import { Button } from '@/components/shared/Button'
 
 export function PendingDropBanner() {
   const { pendingDrop, setPendingDrop } = useDesignerStore()
@@ -6,16 +7,18 @@ export function PendingDropBanner() {
   if (!pendingDrop) return null
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 px-4 py-2 rounded-lg bg-[#2aa198]/10 border border-[#2aa198]/30 text-[#2aa198]">
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 px-4 py-2 rounded-lg bg-sol-cyan/10 border border-sol-cyan/30 text-sol-cyan">
       <span className="text-xs font-medium">
         Tap canvas to place <span className="font-semibold">{pendingDrop.label}</span>
       </span>
-      <button
+      <Button
+        size="xs"
+        active
         onClick={() => setPendingDrop(null)}
-        className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-[#2aa198]/15 hover:bg-[#2aa198]/25 transition-colors"
+        className="uppercase tracking-wider text-[10px] font-semibold"
       >
         Cancel
-      </button>
+      </Button>
     </div>
   )
 }

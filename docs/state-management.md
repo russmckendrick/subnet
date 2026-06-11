@@ -9,18 +9,13 @@ The primary store holding all application state and actions.
 ### State Shape
 
 ```typescript
-type AppTab = 'calculator' | 'splitter' | 'supernet' | 'reference'
-
 interface CalculatorState {
-  // Active tab
-  activeTab: AppTab
-
   // Calculator
   rawInput: string           // Last valid calculator CIDR/IP committed to the store
   result: CidrResult | null  // Parsed result (null if input is invalid)
+  inputMode: 'guided' | 'cidr'  // CIDR input mode
 
-  // Splitter
-  parentCidr: string         // Parent network CIDR string
+  // Splitter (uses rawInput as the parent CIDR)
   splitPrefixes: number[]    // Ordered list of child prefix lengths
   splitLabels: string[]      // Editable label per split
   splits: SubnetSplit[]      // Computed allocation results
@@ -30,6 +25,14 @@ interface CalculatorState {
   // Supernet
   supernetInputs: string     // Raw textarea content (newline-separated CIDRs)
   supernetResult: string | null  // Computed supernet CIDR or null
+
+  // UI surfaces
+  activeDrawer: 'none' | 'supernet' | 'reference'
+  commandPaletteOpen: boolean
+  exportModalOpen: boolean   // Export & Share modal (trigger card, command palette, Cmd/Ctrl+E)
+
+  // Supernet → calculator handoff (shows an undo notice in the input)
+  handoff: { previous: string; next: string } | null
 }
 ```
 
@@ -37,14 +40,20 @@ interface CalculatorState {
 
 | Action | Signature | Behavior |
 |--------|-----------|----------|
-| `setActiveTab` | `(tab: AppTab) => void` | Switch the active tab. |
-| `setRawInput` | `(input: string) => void` | Update calculator input. Calls `parseCidr()` and stores the result. |
-| `setParentCidr` | `(cidr: string) => void` | Update splitter parent. If valid, resets all splits and recalculates available prefixes. |
+| `setRawInput` | `(input: string) => void` | Update calculator input. Calls `parseCidr()` and stores the result. Recalculates or clears splits as needed, and clears any pending `handoff` on manual edits. |
+| `setInputMode` | `(mode: 'guided' \| 'cidr') => void` | Switch the CIDR input mode. |
 | `addSplit` | `(prefix: number) => void` | Append a new subnet with the given prefix. Auto-generates label "Subnet N". Triggers `recalcSplits`. |
 | `removeSplit` | `(index: number) => void` | Remove a subnet by index. Triggers `recalcSplits`. |
 | `updateSplitLabel` | `(index: number, label: string) => void` | Change a subnet's display label in both `splitLabels` and `splits`. |
+| `updateSplitColor` | `(index: number, color: string) => void` | Change a subnet's colour in `splits`. |
 | `resetSplits` | `() => void` | Clear all splits for the current parent CIDR. Triggers `recalcSplits`. |
 | `setSupernetInputs` | `(inputs: string) => void` | Update supernet textarea. Parses lines and calls `findSmallestContainingCidr()` when >= 2 valid CIDRs are present. |
+| `setActiveDrawer` | `(drawer) => void` | Open/close the Reference or Supernet drawer. |
+| `setCommandPaletteOpen` | `(open: boolean) => void` | Toggle the command palette. |
+| `setExportModalOpen` | `(open: boolean) => void` | Toggle the Export & Share modal. Opened by the trigger card, the `open-export` command, or `Cmd/Ctrl+E` (only when a result is loaded). |
+| `loadSupernetResult` | `(cidr: string) => void` | Load a supernet result into the calculator and record a `handoff` of `{ previous, next }` so the user can undo. Used by the SupernetTool "View details" button. |
+| `restoreHandoff` | `() => void` | Undo a supernet handoff — restores the previous CIDR and clears `handoff`. |
+| `dismissHandoff` | `() => void` | Dismiss the handoff notice without restoring. |
 | `initFromUrl` | `(cidr, splits?, labels?) => void` | Restore full state from URL. Used on mount by `useUrlSync`. |
 
 ### recalcSplits Helper
@@ -60,7 +69,7 @@ function recalcSplits(parentCidr: string, prefixes: number[], labels: string[]) 
 }
 ```
 
-Called by `addSplit`, `removeSplit`, `resetSplits`, `setParentCidr`, and `initFromUrl`.
+Called by `addSplit`, `removeSplit`, `resetSplits`, `setRawInput`, and `initFromUrl`. It sorts prefixes largest-first (ascending prefix length) for optimal VLSM packing before allocating.
 
 ### Initial State
 
@@ -208,6 +217,8 @@ flowchart TD
     CalcHref -->|"calculator URL"| BackLink
 ```
 
+Both `useDesignerUrlSync` (after initialising from `?from=`/`?d=` params) and `useDiagramPersistence` (on every debounced save and on localStorage load) also rewrite the address bar to the canonical `/designer?from=&split=&provider=` URL via `buildDesignerUrl()` from `src/lib/designer-state-extract.ts`, so refresh and bookmarks keep the diagram context.
+
 ### Bidirectional Navigation (Calculator ↔ Designer)
 
 State is preserved when navigating between the calculator and designer views:
@@ -223,7 +234,7 @@ State is preserved when navigating between the calculator and designer views:
 - Calls `extractDesignerState()` to find VPC container CIDR and subnet container splits
 - Calls `encodeState()` to produce a calculator URL (e.g. `/10.0.0.0/16?split=24~Web`)
 - Falls back to `/` when no VPC container exists
-- Used by `DesignerHeader` back links and `DesignerPage` mobile fallback
+- Used by the `DesignerHeader` logo, the single state-preserving back link (the duplicate "Calculator" button was removed)
 
 ### How URL Sync Works
 

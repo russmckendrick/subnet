@@ -72,7 +72,7 @@ Each layer has a strict dependency direction:
 | `lib/` | Pure functions. IPv4 parsing, CIDR math, subnet allocation, binary formatting, cloud provider logic, RFC detection, RDAP response parsing and caching, export formatting (data, IaC, diagram), URL encoding, diagram layout/arrange algorithms, resource type labels (`resource-labels.ts`), and centralised app configuration (`config.ts`). Zero React imports. | None |
 | `store/` | Zustand stores. Holds all application state and actions. `calculator-store` for the main app, `designer-store` for the network diagram, `theme-store` for dark/light mode. Calls `lib/` functions to compute derived values. | `lib/` |
 | `hooks/` | React hooks for side effects. URL synchronization (with bare IP normalization), designer URL sync, calculator href generation from designer state, diagram persistence (localStorage), keyboard shortcuts (calculator and designer), clipboard operations, RDAP lookups. | `store/`, `lib/` |
-| `components/` | React components organized by feature domain. Read from stores, call actions, render UI. | `store/`, `hooks/`, `lib/` |
+| `components/` | React components organized by feature domain. Read from stores, call actions, render UI. `shared/` holds the design-system primitives (`Button`, `IconButton`, `Input`/`Select`/`Textarea`, `SectionLabel`/`LabelValue`, `SegmentedControl`, `Modal`, `Drawer`, `ThemeToggle`, `Badge`, `AnimatedCard`, `CollapsibleSection`, `CopyButton`, and the `motion.ts` animation presets) that all feature components compose. | `store/`, `hooks/`, `lib/` |
 
 ## Data Flow
 
@@ -118,30 +118,34 @@ sequenceDiagram
 
 ### Calculator Layout
 
+Both app shells share the `HeaderBar` chrome in `src/components/layout/HeaderBar.tsx` — the calculator `Header` composes it contained (`max-w-6xl`), the `DesignerHeader` composes it full-width with a bottom border. Logo size, padding, and the actions slot are identical in both.
+
 ```mermaid
 flowchart TD
     App["App.tsx"]
     Layout["Layout"]
     Header["Header"]
+    HeaderBar["HeaderBar<br/>(shared chrome)"]
     Footer["Footer"]
 
     App --> Layout
     Layout --> Header
+    Header --> HeaderBar
     Layout --> Footer
 
     subgraph MainContent["Main Content (always visible)"]
         CidrInput["CidrInput"]
-        ResultsPanel["ResultsPanel"]
+        ExampleChips["ExampleChips<br/>(default view only)"]
+        ResultsPanel["ResultsPanel<br/>(includes RDAP registration block)"]
+        AddressSpace["AddressSpaceSection<br/>(hidden when splits exist)"]
         SubnetSplitting["SubnetSplittingSection<br/>(includes visualization bar + detail cards)"]
         DetailsSection["DetailsSection"]
     end
 
     subgraph DetailsSub["DetailsSection children"]
-        SubnetMap["SubnetMap<br/>(hidden when splits exist)"]
         CloudContext["CloudContext"]
-        RdapSection["RdapSection"]
         BinaryBreakdown["BinaryBreakdown"]
-        ExportMenu["ExportMenu"]
+        ExportTrigger["Export & Share trigger card"]
     end
 
     subgraph Drawers["Drawers"]
@@ -149,13 +153,22 @@ flowchart TD
         SupernetTool["SupernetTool"]
     end
 
+    subgraph Modals["Modals"]
+        CommandPalette["CommandPalette"]
+        ExportModal["ExportModal<br/>(wraps ExportMenuContent)"]
+    end
+
     App --> MainContent
     App --> Drawers
+    App --> Modals
     DetailsSection --> DetailsSub
+    ExportTrigger -.->|opens| ExportModal
 
     CloudContext --> ProviderCard["ProviderCard (x3)"]
     ResultsPanel --> SubnetInfoCard["SubnetInfoCard (x8)"]
 ```
+
+The calculator export lives in a shared `Modal` (`src/components/export/ExportModal.tsx`) with tabs Data / CLI / Terraform / Share, opened from the "Export & Share" trigger card in the details area, the `open-export` command-palette command, or `Cmd/Ctrl+E`. The `CommandPalette` renders inside `Modal chrome="none"` and owns its own chrome.
 
 ### Designer Layout
 
@@ -169,10 +182,10 @@ flowchart TD
     App --> DesignerPage
 
     subgraph DesignerContent["DesignerContent"]
-        DesignerHeader["DesignerHeader"]
+        DesignerHeader["DesignerHeader<br/>(composes HeaderBar)"]
         ResourcePalette["ResourcePalette"]
         DesignerCanvas["DesignerCanvas"]
-        PropertiesPanel["PropertiesPanel<br/>(Drawer)"]
+        PropertiesPanel["PropertiesPanel<br/>(inline sidebar / overlay Drawer)"]
         ExportModal["DiagramExportModal"]
     end
 
@@ -188,6 +201,8 @@ flowchart TD
     PropertiesPanel --> ResourceProps["ResourceProperties"]
 ```
 
+The designer adapts to viewport width rather than blocking small screens. Below `md` (768px) the palette becomes an overlay `Drawer` opened by a floating "Add" button (palette items use tap-to-place), and the properties panel renders as `PropertiesPanel variant="overlay"` inside a `Drawer`. Below 480px a dismissible soft banner (sessionStorage-backed) notes the designer works best on a larger screen.
+
 Cloud provider icons are auto-generated from official SVGs via `scripts/generate-icons.mjs`. Source SVGs live in `icons/{provider}/`; generated TSX components are output to `src/components/designer/icons/{provider}/`. Resource type labels used by properties panels are centralised in `src/lib/resource-labels.ts`.
 
 See the [Network Designer documentation](network-designer.md) for full details.
@@ -196,7 +211,7 @@ See the [Network Designer documentation](network-designer.md) for full details.
 
 Three Zustand stores with no middleware:
 
-- **`calculator-store`** — All calculator/splitter/supernet state: active tab, CIDR input/result, splitter allocations (parent CIDR, prefix list, labels, computed splits, remaining space, available prefixes), supernet inputs/result, command palette, and input mode. Reads default CIDR from `config.ts`.
+- **`calculator-store`** — All calculator/splitter/supernet state: CIDR input/result, splitter allocations (prefix list, labels, computed splits, remaining space, available prefixes), supernet inputs/result, active drawer, command palette, export modal (`exportModalOpen`), the supernet → calculator `handoff` (undo notice), and input mode. Reads default CIDR from `config.ts`.
 - **`designer-store`** — Network diagram state: nodes, edges, selection (single and multi), palette visibility, dirty flag, export modal visibility. Actions for node CRUD, color updates, layout initialization, and localStorage persistence.
 - **`theme-store`** — Dark/light theme with localStorage persistence. Reads default theme preference and storage key from `config.ts`, with support for `'system'` as the default (resolves via `prefers-color-scheme` media query).
 
@@ -212,7 +227,9 @@ There is no router library. The app uses **path-based URL encoding** for state s
 
 The `useUrlSync` hook migrates legacy hash URLs on mount, reads the current path to restore state, and writes URL changes on state updates using `history.replaceState()` (no navigation events).
 
-Navigation between calculator and designer is bidirectional and state-preserving. When navigating Calculator → Designer, the Header link and command palette build `/designer?from=&split=` URLs from calculator store state, but only when no saved diagram exists in localStorage (to avoid overwriting user-added resources); the SplitterToolbar always carries params as an explicit "generate new diagram" action. When navigating Designer → Calculator, the `useCalculatorHref()` hook extracts CIDR and splits from diagram nodes via `extractDesignerState()` and encodes them into a calculator URL using `encodeState()`.
+Navigation between calculator and designer is bidirectional and state-preserving. When navigating Calculator → Designer, the Header link, command palette, and SplitterToolbar build `/designer?from=&split=` URLs from calculator store state; `useDesignerUrlSync` merges new subnets into any saved diagram with the same VPC CIDR (so user-added resources are never overwritten). When navigating Designer → Calculator, the `useCalculatorHref()` hook extracts CIDR and splits from diagram nodes via `extractDesignerState()` and encodes them into a calculator URL using `encodeState()` — in the designer the logo is the single state-preserving back link.
+
+The designer URL is kept canonical: `buildDesignerUrl()` in `src/lib/designer-state-extract.ts` derives `/designer?from=&split=&provider=` from the current diagram, and both `useDesignerUrlSync` (after processing `?from=` or `?d=` share params) and `useDiagramPersistence` (on every debounced save) write it via `history.replaceState()`, so a refresh or bookmark keeps the diagram context.
 
 See [URL Sharing](url-sharing.md) for the full specification.
 

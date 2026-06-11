@@ -79,7 +79,20 @@ Components:
 - `/designer` — Empty canvas (loads from localStorage if available)
 - `/designer?from=10.0.0.0/16&split=24~Web,25~API` — Auto-generates Internet Gateway → VPC → Subnet nodes
 
+Optional extra parameters: `&provider=aws|azure|gcp` sets the cloud provider, and `?d={compressed}` loads a shared diagram (base64url-encoded pako-deflated JSON).
+
 When URL parameters are present, `useDesignerUrlSync` checks for a saved diagram in localStorage. If a saved diagram exists with the same VPC CIDR, new subnets from the URL are **merged** into the existing diagram — preserving all existing nodes, edges, positions, and user-added resources. If no saved diagram exists or the CIDR differs, a fresh layout is generated via `generateInitialLayout()` from `diagram-layout.ts`.
+
+#### Canonical Designer URLs
+
+Designer URL parameters are no longer stripped after load. Instead, the URL is kept **canonical** with the diagram:
+
+- `buildDesignerUrl()` in `src/lib/designer-state-extract.ts` derives `/designer?from=<cidr>&split=<segments>&provider=<provider>` from the current diagram nodes (falling back to plain `/designer` when no VPC exists; `provider` is omitted for `generic`)
+- After `useDesignerUrlSync` initialises from `?from=` params (fresh layout or merge), it writes the canonical URL via `history.replaceState()`
+- After a `?d=` share link loads, the bulky compressed payload is **replaced** by the canonical `?from=&split=&provider=` parameters
+- `useDiagramPersistence` rewrites the canonical URL on every debounced auto-save, and when loading a saved diagram from localStorage
+
+The result: refreshing or bookmarking the designer always keeps the diagram context.
 
 ### Bidirectional Navigation
 
@@ -96,7 +109,7 @@ Navigation between the calculator and designer preserves state in both direction
 - Collects all `subnet-container` nodes for split prefixes and labels
 - Encodes the result as a calculator URL via `encodeState()` (e.g. `/10.0.0.0/16?split=24~Web,25~API`)
 - Falls back to `/` when no VPC container exists in the diagram
-- Used by `DesignerHeader` logo/back button and `DesignerPage` mobile fallback. The mobile fallback does not mount React Flow; it still uses the extracted calculator URL so state is preserved on small screens.
+- Used by the `DesignerHeader` logo — the single state-preserving back link to the calculator
 
 ## UrlState Type
 

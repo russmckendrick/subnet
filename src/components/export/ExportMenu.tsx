@@ -5,7 +5,9 @@ import { HiOutlineCodeBracketSquare, HiOutlineCommandLine, HiOutlineShare } from
 import { useCalculatorStore } from '@/store/calculator-store'
 import { toJSON, toCSV, toTerraformAws, toTerraformAzure, toTerraformGcp } from '@/lib/export'
 import { toAwsCli, toAzureCli, toGcloudCli } from '@/lib/export-cli'
-import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
+import { Button } from '@/components/shared/Button'
+import { SegmentedControl } from '@/components/shared/SegmentedControl'
+import { fadeIn } from '@/components/shared/motion'
 import { CodeBlock } from './CodeBlock'
 import { TerminalFrame } from './TerminalFrame'
 import { ProviderSelector, type CloudProvider } from './ProviderSelector'
@@ -33,7 +35,8 @@ const PROVIDER_LABELS: Record<CloudProvider, { name: string; color: string }> = 
   gcp: { name: 'Google Cloud CLI', color: '#6c71c4' },
 }
 
-function ExportMenuInner() {
+/** Content-only export for use in tabbed panels */
+export function ExportMenuContent() {
   const { result, splits } = useCalculatorStore()
   const [category, setCategory] = useState<Category>('data')
   const [provider, setProvider] = useState<CloudProvider>('aws')
@@ -91,44 +94,34 @@ function ExportMenuInner() {
   return (
     <div>
       {/* Category tabs */}
-      <div className="flex flex-wrap gap-1.5 mb-3 rounded-lg border border-[#586e75]/10 bg-[#fdf6e3]/35 p-1 dark:bg-[#002b36]/25" role="tablist" aria-label="Export category">
+      <div className="flex flex-wrap gap-1.5 mb-3 rounded-lg border border-line/10 bg-well/35 p-1" role="tablist" aria-label="Export category">
         {CATEGORIES.map((cat) => (
-          <button
-            type="button"
+          <Button
             key={cat.id}
+            variant="ghost"
+            active={category === cat.id}
             onClick={() => setCategory(cat.id)}
             role="tab"
             aria-selected={category === cat.id}
-            className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors border inline-flex items-center gap-1.5 ${
-              category === cat.id
-                ? 'bg-[#2aa198]/10 text-[#2aa198] border-[#2aa198]/20'
-                : 'bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 text-[#586e75] border-transparent hover:bg-[#fdf6e3] dark:hover:bg-[#002b36]/50'
-            }`}
+            icon={<span className="opacity-50 flex items-center">{cat.icon}</span>}
           >
-            <span className="opacity-50 flex items-center">{cat.icon}</span>
             {cat.label}
-          </button>
+          </Button>
         ))}
       </div>
 
       {/* Second row — contextual controls */}
       {category === 'data' && (
-        <div className="flex gap-1.5 mb-3" role="group" aria-label="Data export format">
-          {(['json', 'csv'] as DataFormat[]).map((fmt) => (
-            <button
-              type="button"
-              key={fmt}
-              onClick={() => setDataFormat(fmt)}
-              aria-pressed={dataFormat === fmt}
-              className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors border ${
-                dataFormat === fmt
-                  ? 'bg-[#2aa198]/10 text-[#2aa198] border-[#2aa198]/20'
-                  : 'bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 text-[#586e75] border-transparent hover:bg-[#fdf6e3] dark:hover:bg-[#002b36]/50'
-              }`}
-            >
-              {fmt.toUpperCase()}
-            </button>
-          ))}
+        <div className="mb-3">
+          <SegmentedControl
+            options={[
+              { value: 'json' as DataFormat, label: 'JSON' },
+              { value: 'csv' as DataFormat, label: 'CSV' },
+            ]}
+            value={dataFormat}
+            onChange={setDataFormat}
+            ariaLabel="Data export format"
+          />
         </div>
       )}
 
@@ -142,30 +135,11 @@ function ExportMenuInner() {
       <AnimatePresence mode="wait">
         <motion.div
           key={`${category}-${category === 'data' ? dataFormat : ''}-${(category === 'cli' || category === 'terraform') ? provider : ''}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
+          {...fadeIn}
         >
           {renderContent()}
         </motion.div>
       </AnimatePresence>
     </div>
-  )
-}
-
-/** Content-only export for use in tabbed panels */
-export function ExportMenuContent() {
-  return <ExportMenuInner />
-}
-
-export function ExportMenu() {
-  const { result } = useCalculatorStore()
-  if (!result) return null
-
-  return (
-    <CollapsibleSection title="Export" defaultOpen={false} delay={0.45}>
-      <ExportMenuInner />
-    </CollapsibleSection>
   )
 }

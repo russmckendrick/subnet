@@ -175,13 +175,17 @@ subnet/
 │   │   ├── cloud/           CloudContext, ProviderCard
 │   │   ├── whois/           RdapSection
 │   │   ├── tools/           SupernetTool
-│   │   ├── export/          ExportMenu, CodeBlock, TerminalFrame
+│   │   ├── export/          ExportModal, ExportMenuContent, CodeBlock,
+│   │   │                    ProviderSelector, ShareCard, TerminalFrame
 │   │   ├── command-palette/  CommandPalette
-│   │   ├── shared/          AnimatedCard, Badge, CollapsibleSection, CopyButton, Drawer, Tabs
-│   │   └── layout/          Layout, Header, Footer
+│   │   ├── shared/          Button, IconButton, Input/Select/Textarea, Modal,
+│   │   │                    SegmentedControl, SectionLabel/LabelValue, ThemeToggle,
+│   │   │                    AnimatedCard, Badge, CollapsibleSection, CopyButton,
+│   │   │                    Drawer, motion.ts (animation presets)
+│   │   └── layout/          Layout, Header, HeaderBar (shared shell), Footer
 │   ├── App.tsx            Root component with tab routing
 │   ├── main.tsx           Entry point (ReactDOM.createRoot)
-│   └── index.css          Tailwind import, theme tokens, global styles
+│   └── index.css          Tailwind import, semantic token layer, theme tokens, global styles
 ├── index.html             HTML shell
 ├── vite.config.ts         Vite + React + Tailwind plugins
 ├── tsconfig.json          Root tsconfig (references app + node; worker excluded)
@@ -224,9 +228,9 @@ Add new state fields and actions to the `CalculatorState` interface:
 Create a new directory under `components/` for the feature domain:
 - Import from `@/store/calculator-store` to read state and call actions
 - Import from `@/lib/` for any display formatting
-- Use `AnimatedCard` from `shared/` for consistent card styling
-- Use hardcoded Solarized hex values in Tailwind classes (e.g. `text-[#2aa198]`, `bg-[#073642]`) — see [Styling & Theming](../docs/styling.md) for the full palette
-- Use `dark:` variants for theme support
+- Compose the primitives in `shared/` (`AnimatedCard`, `Button`, `Input`, `Modal`, `SectionLabel`/`LabelValue`, etc.) rather than hand-rolling UI
+- Use the semantic tokens for base tones (`bg-canvas`, `bg-surface`, `bg-well`, `text-ink`, `text-ink-body`, `text-ink-muted`, `border-line/20`) and the named accent utilities for colour (`text-sol-cyan`, `bg-sol-green/10`, etc.) — see [Styling & Theming](../docs/styling.md) for the full system
+- Do **not** use hardcoded hex values or `dark:` variants for base tones — the semantic tokens flip with the theme automatically
 
 ### 4. Wire into App.tsx
 

@@ -49,7 +49,7 @@ export function NodeLabel({ nodeId, label, className = '' }: NodeLabelProps) {
             setIsEditing(false)
           }
         }}
-        className={`bg-transparent border-b border-[#2aa198]/40 focus:outline-none text-center w-full ${className}`}
+        className={`bg-transparent border-b border-sol-cyan/40 focus:outline-none text-center w-full ${className}`}
         spellCheck={false}
       />
     )

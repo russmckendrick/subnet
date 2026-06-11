@@ -1,25 +1,15 @@
 import { useCalculatorStore } from '@/store/calculator-store'
 import { useRdapLookup } from '@/hooks/use-rdap-lookup'
-import { CopyButton } from '@/components/shared/CopyButton'
+import { LabelValue } from '@/components/shared/LabelValue'
 import { clearCacheEntry } from '@/lib/rdap-cache'
 import type { RdapResult } from '@/lib/rdap'
 
 function DataField({ label, value, copyKey }: { label: string; value: string | null; copyKey?: string }) {
   if (!value) return null
   return (
-    <div className="space-y-0.5">
-      <div className="text-[10px] text-[#586e75] uppercase tracking-wider font-medium">
-        {label}
-      </div>
-      <div className="flex items-center gap-1.5">
-        <span className="text-sm font-semibold text-[#657b83] dark:text-[#839496] font-mono break-all">
-          {value}
-        </span>
-        {copyKey && (
-          <CopyButton text={value} copyKey={copyKey} />
-        )}
-      </div>
-    </div>
+    <LabelValue label={label} copyText={copyKey ? value : undefined} copyKey={copyKey} mono>
+      {value}
+    </LabelValue>
   )
 }
 
@@ -35,17 +25,17 @@ function RdapData({ data }: { data: RdapResult }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         {data.rir && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#2aa198]/10 text-[#2aa198] font-semibold uppercase tracking-wider">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-sol-cyan/10 text-sol-cyan font-semibold uppercase tracking-wider">
             {data.rir}
           </span>
         )}
         {data.country && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#586e75]/10 text-[#586e75] dark:text-[#93a1a1] font-semibold uppercase tracking-wider">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-sol-base01/10 text-ink font-semibold uppercase tracking-wider">
             {data.country}
           </span>
         )}
         {data.networkName && (
-          <span className="text-sm font-bold font-mono text-[#657b83] dark:text-[#93a1a1]">
+          <span className="text-sm font-bold font-mono text-ink">
             {data.networkName}
           </span>
         )}
@@ -66,7 +56,7 @@ function RdapData({ data }: { data: RdapResult }) {
         href={data.rdapUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 text-xs text-[#2aa198] hover:underline"
+        className="inline-flex items-center gap-1 text-xs text-sol-cyan hover:underline"
       >
         View full RDAP record
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -88,8 +78,8 @@ function RdapSectionInner() {
 
   if (state.status === 'private') {
     return (
-      <div className="flex items-center gap-2 text-xs text-[#586e75]">
-        <svg className="w-4 h-4 text-[#586e75] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <div className="flex items-center gap-2 text-xs text-sol-base01">
+        <svg className="w-4 h-4 text-sol-base01 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
         </svg>
         RDAP lookup not available for reserved addresses
@@ -101,15 +91,15 @@ function RdapSectionInner() {
     return (
       <div className="space-y-3 animate-pulse">
         <div className="flex gap-2">
-          <div className="h-5 w-16 rounded-full bg-[#586e75]/15" />
-          <div className="h-5 w-10 rounded-full bg-[#586e75]/15" />
-          <div className="h-5 w-28 rounded bg-[#586e75]/15" />
+          <div className="h-5 w-16 rounded-full bg-line/15" />
+          <div className="h-5 w-10 rounded-full bg-line/15" />
+          <div className="h-5 w-28 rounded bg-line/15" />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="space-y-1">
-              <div className="h-3 w-16 rounded bg-[#586e75]/10" />
-              <div className="h-4 w-24 rounded bg-[#586e75]/15" />
+              <div className="h-3 w-16 rounded bg-line/10" />
+              <div className="h-4 w-24 rounded bg-line/15" />
             </div>
           ))}
         </div>
@@ -119,8 +109,8 @@ function RdapSectionInner() {
 
   if (state.status === 'error') {
     return (
-      <div className="flex items-center justify-between gap-2 rounded-lg bg-[#b58900]/10 border border-[#b58900]/20 px-3 py-2">
-        <span className="text-xs text-[#b58900]">{state.message}</span>
+      <div className="flex items-center justify-between gap-2 rounded-lg bg-sol-yellow/10 border border-sol-yellow/20 px-3 py-2">
+        <span className="text-xs text-sol-yellow">{state.message}</span>
         <button
           onClick={() => {
             if (result?.networkAddress) {
@@ -132,7 +122,7 @@ function RdapSectionInner() {
               requestAnimationFrame(() => store.setRawInput(current))
             }
           }}
-          className="text-[10px] font-medium px-2 py-1 rounded bg-[#b58900]/15 text-[#b58900] hover:bg-[#b58900]/25 transition-colors cursor-pointer"
+          className="text-[10px] font-medium px-2 py-1 rounded-lg bg-sol-yellow/15 text-sol-yellow hover:bg-sol-yellow/25 transition-colors cursor-pointer"
         >
           Retry
         </button>

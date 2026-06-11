@@ -124,21 +124,21 @@ export function CommandItem({ command, isActive, onSelect, onMouseEnter, id }: C
       onMouseEnter={onMouseEnter}
       className={`flex items-center gap-3 px-3 py-2.5 mx-1.5 rounded-md cursor-pointer transition-colors ${
         isActive
-          ? 'bg-[#2aa198]/10 text-[#2aa198]'
-          : 'text-[#586e75] dark:text-[#93a1a1] hover:bg-[#eee8d5]/50 dark:hover:bg-[#073642]/50'
+          ? 'bg-sol-cyan/10 text-sol-cyan'
+          : 'text-ink hover:bg-surface/50'
       }`}
     >
       <CommandIcon icon={command.icon} />
       <div className="flex-1 min-w-0">
-        <span className={`text-sm font-medium ${isActive ? 'text-[#2aa198]' : ''}`}>
+        <span className={`text-sm font-medium ${isActive ? 'text-sol-cyan' : ''}`}>
           {command.label}
         </span>
-        <span className={`ml-2 text-xs ${isActive ? 'text-[#2aa198]/60' : 'text-[#93a1a1] dark:text-[#586e75]'}`}>
+        <span className={`ml-2 text-xs ${isActive ? 'text-sol-cyan/60' : 'text-ink-muted'}`}>
           {command.description}
         </span>
       </div>
       <span className={`text-[10px] uppercase tracking-wider shrink-0 ${
-        isActive ? 'text-[#2aa198]/50' : 'text-[#93a1a1]/60 dark:text-[#586e75]/60'
+        isActive ? 'text-sol-cyan/50' : 'text-ink-muted/60'
       }`}>
         {command.category}
       </span>

@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { drawerSpring } from './motion'
 
 interface DrawerProps {
   isOpen: boolean
@@ -71,20 +72,20 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            transition={drawerSpring}
             className="fixed top-0 right-0 h-full w-full sm:w-[480px] z-50 outline-none
-              bg-[#fdf6e3] dark:bg-[#002b36] border-l border-[#93a1a1]/20 dark:border-[#586e75]/20
+              bg-canvas border-l border-line/20
               shadow-2xl flex flex-col overscroll-contain"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#93a1a1]/20 dark:border-[#586e75]/20">
-              <h2 id={titleId} className="text-sm font-semibold text-[#586e75] dark:text-[#93a1a1] uppercase tracking-wider">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-line/20">
+              <h2 id={titleId} className="text-sm font-semibold text-ink uppercase tracking-wider">
                 {title}
               </h2>
               <button
                 type="button"
                 onClick={onClose}
-                className="p-1.5 rounded-lg hover:bg-[#eee8d5] dark:hover:bg-[#073642] text-[#93a1a1] dark:text-[#586e75] transition-colors"
+                className="p-1.5 rounded-lg hover:bg-surface text-ink-muted transition-colors"
                 aria-label={`Close ${title}`}
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

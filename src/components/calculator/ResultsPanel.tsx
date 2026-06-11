@@ -3,6 +3,7 @@ import { useCalculatorStore } from '@/store/calculator-store'
 import { AnimatedCard } from '@/components/shared/AnimatedCard'
 import { Badge } from '@/components/shared/Badge'
 import { CopyButton } from '@/components/shared/CopyButton'
+import { SectionLabel, LabelValue } from '@/components/shared/LabelValue'
 import { RdapSectionContent } from '@/components/whois/RdapSection'
 
 function formatNumber(n: number): string {
@@ -13,7 +14,7 @@ export function ResultsPanel() {
   const { result } = useCalculatorStore()
   if (!result) return null
 
-  const rfcColor = result.isPrivate ? 'emerald' : result.rfcType?.includes('CGNAT') ? 'violet' : result.rfcType?.includes('Multicast') ? 'red' : result.rfcType?.includes('Loopback') ? 'amber' : 'cyan'
+  const rfcColor = result.isPrivate ? 'green' : result.rfcType?.includes('CGNAT') ? 'violet' : result.rfcType?.includes('Multicast') ? 'red' : result.rfcType?.includes('Loopback') ? 'yellow' : 'cyan'
 
   const copyAllText = [
     `Network: ${result.networkAddress}/${result.prefixLength}`,
@@ -49,31 +50,27 @@ export function ResultsPanel() {
         <div className="flex items-start justify-between mb-4">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-2xl font-mono font-bold text-[#586e75] dark:text-[#93a1a1]">
+              <span className="text-2xl font-mono font-bold text-ink">
                 {result.networkAddress}/{result.prefixLength}
               </span>
-              <Badge color={rfcColor as 'emerald'}>
+              <Badge color={rfcColor as 'green'}>
                 {result.rfcType ?? 'Public'}
               </Badge>
-              <Badge color="slate">
+              <Badge color="neutral">
                 Class {result.ipClass}
               </Badge>
             </div>
             <div className="flex items-center gap-4 sm:gap-6 mt-2">
               <div>
-                <span className="text-[10px] text-[#586e75] dark:text-[#586e75] uppercase tracking-wider font-medium">
-                  Network Address
-                </span>
-                <div className="text-lg font-mono font-semibold text-[#586e75] dark:text-[#93a1a1] flex items-center gap-1.5">
+                <SectionLabel>Network Address</SectionLabel>
+                <div className="text-lg font-mono font-semibold text-ink flex items-center gap-1.5">
                   {result.networkAddress}
                   <CopyButton text={result.networkAddress} copyKey="network" />
                 </div>
               </div>
               <div>
-                <span className="text-[10px] text-[#586e75] dark:text-[#586e75] uppercase tracking-wider font-medium">
-                  Usable Hosts
-                </span>
-                <div className="text-lg font-semibold text-[#2aa198] flex items-center gap-1.5">
+                <SectionLabel>Usable Hosts</SectionLabel>
+                <div className="text-lg font-semibold text-sol-cyan flex items-center gap-1.5">
                   {formatNumber(result.usableHosts)}
                   <CopyButton text={String(result.usableHosts)} copyKey="usable" />
                 </div>
@@ -84,25 +81,28 @@ export function ResultsPanel() {
         </div>
 
         {/* Secondary tier */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 sm:gap-y-3 pt-3 border-t border-[#586e75]/20">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 sm:gap-y-3 pt-3 border-t border-line/20">
           {secondaryFields.map((field) => (
-            <div key={field.copyKey}>
-              <span className="text-[10px] text-[#586e75] dark:text-[#586e75] uppercase tracking-wider font-medium">
-                {field.label}
-              </span>
-              <div className={`text-sm font-semibold text-[#657b83] dark:text-[#839496] flex items-center gap-1 ${field.mono === false ? '' : 'font-mono'}`}>
-                {field.value}
-                <CopyButton text={field.value} copyKey={field.copyKey} />
-              </div>
-            </div>
+            <LabelValue
+              key={field.copyKey}
+              label={field.label}
+              copyText={field.value}
+              copyKey={field.copyKey}
+              mono={field.mono !== false}
+            >
+              {field.value}
+            </LabelValue>
           ))}
         </div>
 
         {/* RDAP / WHOIS */}
-        <div className="pt-3 mt-3 border-t border-[#586e75]/20">
-          <h4 className="text-[10px] text-[#586e75] dark:text-[#586e75] uppercase tracking-wider font-medium mb-3">
-            RDAP / WHOIS Lookup
-          </h4>
+        <div className="pt-3 mt-3 border-t border-line/20">
+          <div className="mb-3">
+            <SectionLabel>Registration (WHOIS / RDAP)</SectionLabel>
+            <p className="text-[10px] text-ink-muted mt-0.5">
+              Who this range is registered to — fetched from the regional internet registry for public IPs
+            </p>
+          </div>
           <RdapSectionContent />
         </div>
       </AnimatedCard>

@@ -2,6 +2,9 @@ import { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCalculatorStore } from '@/store/calculator-store'
 import { useClipboard } from '@/hooks/use-clipboard'
+import { Button } from '@/components/shared/Button'
+import { SegmentedControl } from '@/components/shared/SegmentedControl'
+import { SectionLabel } from '@/components/shared/LabelValue'
 
 const QUICK_PREFIXES = [24, 25, 26, 27, 28]
 
@@ -48,35 +51,37 @@ export function SplitterToolbar({ viewMode, onViewModeChange }: SplitterToolbarP
   const hasMore = morePrefixes.length > 0
 
   return (
-    <div className="flex flex-wrap items-center gap-2 justify-between mb-3 rounded-lg border border-[#586e75]/10 bg-[#fdf6e3]/35 px-2 py-2 dark:bg-[#002b36]/25">
+    <div className="flex flex-wrap items-center gap-2 justify-between mb-3 rounded-lg border border-line/10 bg-well/35 px-2 py-2">
       {/* Left: inline quick-add pills + actions */}
       <div className="flex items-center gap-1 flex-wrap">
         {/* Inline quick-add prefix pills */}
         {inlineQuick.map((p) => (
-          <button
-            type="button"
+          <Button
             key={p}
+            variant="outline"
+            size="xs"
             onClick={() => addSplit(p)}
             aria-label={`Add /${p} subnet`}
-            className="text-[11px] font-mono font-semibold px-2 py-1 rounded-md border border-[#586e75]/20 text-[#586e75] dark:text-[#93a1a1] hover:border-[#2aa198]/40 hover:bg-[#2aa198]/5 hover:text-[#2aa198] transition-colors"
+            className="font-mono font-semibold"
           >
             /{p}
-          </button>
+          </Button>
         ))}
 
         {/* More dropdown for non-quick prefixes */}
         {hasMore && (
           <div className="relative" ref={moreRef}>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="xs"
               onClick={() => setMoreOpen(!moreOpen)}
               aria-expanded={moreOpen}
               aria-haspopup="menu"
-              className="text-[11px] font-mono px-2 py-1 rounded-md text-[#93a1a1] dark:text-[#586e75] hover:text-[#2aa198] hover:bg-[#eee8d5] dark:hover:bg-[#073642] transition-colors"
+              className="font-mono"
               title="More prefix sizes"
             >
               More…
-            </button>
+            </Button>
 
             <AnimatePresence>
               {moreOpen && (
@@ -85,12 +90,10 @@ export function SplitterToolbar({ viewMode, onViewModeChange }: SplitterToolbarP
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 4, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute top-full left-0 mt-1 w-72 bg-[#fdf6e3] dark:bg-[#002b36] border border-[#93a1a1]/20 dark:border-[#586e75]/20 rounded-lg shadow-lg z-50 p-3"
+                  className="absolute top-full left-0 mt-1 w-72 bg-well border border-line/20 rounded-lg shadow-lg z-50 p-3"
                   role="menu"
                 >
-                  <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#93a1a1] dark:text-[#586e75] mb-2">
-                    All Available Prefixes
-                  </span>
+                  <SectionLabel className="mb-2">All Available Prefixes</SectionLabel>
                   <div className="max-h-48 overflow-y-auto space-y-0.5 -mx-1 px-1">
                     {morePrefixes.map((p) => (
                       <button
@@ -98,10 +101,10 @@ export function SplitterToolbar({ viewMode, onViewModeChange }: SplitterToolbarP
                         key={p}
                         onClick={() => { addSplit(p); setMoreOpen(false) }}
                         role="menuitem"
-                        className="w-full flex items-center justify-between text-xs px-3 py-2 rounded-lg text-[#586e75] dark:text-[#93a1a1] hover:text-[#2aa198] hover:bg-[#eee8d5] dark:hover:bg-[#073642] transition-colors"
+                        className="w-full flex items-center justify-between text-xs px-3 py-2 rounded-lg text-ink hover:text-sol-cyan hover:bg-surface transition-colors"
                       >
                         <span className="font-mono font-semibold">/{p}</span>
-                        <span className="text-[11px] text-[#93a1a1] dark:text-[#586e75]">
+                        <span className="text-[11px] text-ink-muted">
                           {Math.pow(2, 32 - p).toLocaleString()} addresses
                         </span>
                       </button>
@@ -115,7 +118,7 @@ export function SplitterToolbar({ viewMode, onViewModeChange }: SplitterToolbarP
 
         {/* Divider between add pills and utility actions */}
         {(inlineQuick.length > 0 || hasMore) && (
-          <div className="w-px h-4 bg-[#93a1a1]/15 dark:bg-[#586e75]/15 mx-0.5" />
+          <div className="w-px h-4 bg-line/15 mx-0.5" />
         )}
 
         {/* Copy All */}
@@ -124,8 +127,8 @@ export function SplitterToolbar({ viewMode, onViewModeChange }: SplitterToolbarP
           onClick={() => copy(allCidrs, 'splitter-copy-all')}
           className={`flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg transition-colors ${
             copied
-              ? 'text-[#859900] bg-[#859900]/10'
-              : 'text-[#586e75] dark:text-[#93a1a1] hover:text-[#2aa198] hover:bg-[#eee8d5] dark:hover:bg-[#073642]'
+              ? 'text-sol-green bg-sol-green/10'
+              : 'text-ink hover:text-sol-cyan hover:bg-surface'
           }`}
           title="Copy All CIDRs"
           aria-label={copied ? 'Copied all subnet CIDRs' : 'Copy all subnet CIDRs'}
@@ -143,13 +146,13 @@ export function SplitterToolbar({ viewMode, onViewModeChange }: SplitterToolbarP
           <span>{copied ? 'Copied!' : 'Copy'}</span>
         </button>
 
-        <div className="w-px h-4 bg-[#93a1a1]/15 dark:bg-[#586e75]/15" />
+        <div className="w-px h-4 bg-line/15" />
 
         {/* Reset */}
         <button
           type="button"
           onClick={resetSplits}
-          className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg text-[#586e75] dark:text-[#93a1a1] hover:text-[#dc322f] hover:bg-[#dc322f]/5 transition-colors"
+          className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg text-ink hover:text-sol-red hover:bg-sol-red/5 transition-colors"
           title="Reset All Subnets"
           aria-label="Reset all subnets"
         >
@@ -162,36 +165,24 @@ export function SplitterToolbar({ viewMode, onViewModeChange }: SplitterToolbarP
 
       {/* Right: view toggle + Designer link */}
       <div className="flex items-center gap-2">
-        <div className="flex gap-0.5 bg-[#eee8d5]/50 dark:bg-[#073642]/50 rounded-lg p-0.5" role="group" aria-label="Subnet split view">
-          {([
-            { id: 'table' as ViewMode, label: 'Table' },
-            { id: 'cards' as ViewMode, label: 'Cards' },
-          ]).map((mode) => {
-            const isActive = viewMode === mode.id
-            return (
-              <button
-                type="button"
-                key={mode.id}
-                onClick={() => onViewModeChange(mode.id)}
-                aria-pressed={isActive}
-                className={`text-[10px] font-semibold px-2.5 py-1 rounded transition-colors ${
-                  isActive
-                    ? 'bg-[#2aa198]/15 text-[#2aa198]'
-                    : 'text-[#93a1a1] dark:text-[#586e75] hover:text-[#586e75] dark:hover:text-[#93a1a1]'
-                }`}
-              >
-                {mode.label}
-              </button>
-            )
-          })}
-        </div>
+        <SegmentedControl
+          options={[
+            { value: 'table' as ViewMode, label: 'Table' },
+            { value: 'cards' as ViewMode, label: 'Cards' },
+          ]}
+          value={viewMode}
+          onChange={onViewModeChange}
+          size="xs"
+          role="tablist"
+          ariaLabel="Subnet split view"
+        />
 
-        <div className="w-px h-4 bg-[#93a1a1]/15 dark:bg-[#586e75]/15" />
+        <div className="w-px h-4 bg-line/15" />
 
         {/* Open in Designer */}
         <a
           href={designerHref}
-          className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg text-[#2aa198] hover:bg-[#2aa198]/10 transition-colors"
+          className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg text-sol-cyan hover:bg-sol-cyan/10 transition-colors"
           title="Open in Designer"
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

@@ -13,6 +13,7 @@ import {
 import { useDesignerStore } from '@/store/designer-store'
 import type { DesignerNodeData, SubnetContainerNodeData, VpcContainerNodeData } from '@/store/designer-store'
 import { decompressDiagramState } from '@/lib/export-diagram'
+import { buildDesignerUrl } from '@/lib/designer-state-extract'
 import { migrateDiagramState, type StorageState } from '@/lib/diagram-migration'
 import type { CloudProvider } from '@/lib/cloud-theme'
 import type { Node, Edge } from '@xyflow/react'
@@ -51,7 +52,8 @@ export function useDesignerUrlSync() {
           edges: migrated.edges,
           cloudProvider: provider,
         })
-        history.replaceState(null, '', '/designer')
+        // Replace the bulky ?d= payload with the canonical shareable URL
+        history.replaceState(null, '', buildDesignerUrl(migrated.nodes as Node<DesignerNodeData>[], provider))
       }
       return
     }
@@ -97,13 +99,13 @@ export function useDesignerUrlSync() {
     const merged = tryMergeWithSaved(parentResult.input, splits, provider)
     if (merged) {
       importDiagram(merged)
+      history.replaceState(null, '', buildDesignerUrl(merged.nodes, merged.cloudProvider))
     } else {
       const { nodes, edges } = generateInitialLayout(parentResult, splits, provider)
       initFromLayout(nodes, edges)
+      // Keep canonical params so refresh re-derives the same diagram
+      history.replaceState(null, '', buildDesignerUrl(nodes as Node<DesignerNodeData>[], provider))
     }
-
-    // Clean URL
-    history.replaceState(null, '', '/designer')
   }, [initFromLayout, setCloudProvider, importDiagram])
 }
 

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { SiAmazonwebservices, SiGooglecloud } from 'react-icons/si'
 import { VscAzure } from 'react-icons/vsc'
+import { SegmentedControl } from '@/components/shared/SegmentedControl'
 
 export type CloudProvider = 'aws' | 'azure' | 'gcp'
 
@@ -24,24 +25,15 @@ interface ProviderSelectorProps {
 
 export function ProviderSelector({ selected, onChange }: ProviderSelectorProps) {
   return (
-    <div className="flex gap-1.5" role="group" aria-label="Cloud provider">
-      {PROVIDERS.map((p) => (
-        <button
-          type="button"
-          key={p.id}
-          onClick={() => onChange(p.id)}
-          aria-pressed={selected === p.id}
-          className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors border flex items-center gap-1.5 ${
-            selected === p.id
-              ? 'border-current/20'
-              : 'bg-[#fdf6e3]/50 dark:bg-[#002b36]/30 text-[#586e75] border-transparent hover:bg-[#fdf6e3] dark:hover:bg-[#002b36]/50'
-          }`}
-          style={selected === p.id ? { color: p.color, backgroundColor: `${p.color}10`, borderColor: `${p.color}33` } : undefined}
-        >
-          <span style={{ color: p.color }}>{p.icon}</span>
-          {p.label}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl
+      options={PROVIDERS.map((p) => ({
+        value: p.id,
+        label: p.label,
+        icon: <span style={{ color: p.color }}>{p.icon}</span>,
+      }))}
+      value={selected}
+      onChange={onChange}
+      ariaLabel="Cloud provider"
+    />
   )
 }
