@@ -74,6 +74,54 @@ export function allocateSubnets(
   return splits
 }
 
+/**
+ * Build subnet splits from a list of explicit CIDRs (the designer handoff), preserving
+ * each subnet's actual network address instead of re-packing contiguously from a base.
+ * Results are sorted by network address so display order is stable and spatial.
+ * Returns null if any CIDR fails to parse.
+ */
+export function buildSplitsFromCidrs(
+  cidrs: string[],
+  labels?: string[],
+): SubnetSplit[] | null {
+  const entries: { network: number; prefix: number; label: string }[] = []
+
+  for (let i = 0; i < cidrs.length; i++) {
+    const parsed = parseIPv4WithCidr(cidrs[i])
+    if (!parsed) return null
+    entries.push({
+      network: getNetworkAddress(parsed.ip, parsed.prefix),
+      prefix: parsed.prefix,
+      label: labels?.[i] ?? `Subnet ${i + 1}`,
+    })
+  }
+
+  // Sort by network address (unsigned 32-bit values stay within JS safe-integer range)
+  entries.sort((a, b) => a.network - b.network)
+
+  return entries.map((entry, i) => {
+    const { network: networkAddress, prefix: prefixLength, label } = entry
+    const size = Math.pow(2, 32 - prefixLength)
+    const broadcastAddress = (networkAddress + size - 1) >>> 0
+    const firstHost = prefixLength >= 31 ? networkAddress : (networkAddress + 1) >>> 0
+    const lastHost = prefixLength >= 31 ? broadcastAddress : (broadcastAddress - 1) >>> 0
+    const usableHosts = prefixLength >= 31 ? (prefixLength === 32 ? 1 : 2) : size - 2
+
+    return {
+      cidr: cidrToString(networkAddress, prefixLength),
+      prefixLength,
+      networkAddress: ipv4ToString(networkAddress),
+      broadcastAddress: ipv4ToString(broadcastAddress),
+      firstHost: ipv4ToString(firstHost),
+      lastHost: ipv4ToString(lastHost),
+      size,
+      usableHosts,
+      label,
+      color: SPLIT_COLORS[i % SPLIT_COLORS.length],
+    }
+  })
+}
+
 export function getRemainingSpace(
   parentCidr: string,
   splits: SubnetSplit[],

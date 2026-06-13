@@ -5,7 +5,7 @@ import { parseIPv4, inferDefaultPrefix } from '@/lib/ipv4'
 import { parseCidr } from '@/lib/cidr'
 
 export function useUrlSync() {
-  const { rawInput, splitPrefixes, splitLabels, supernetInputs, activeDrawer, initFromUrl, setSupernetInputs } =
+  const { rawInput, splitPrefixes, splitLabels, explicitCidrs, supernetInputs, activeDrawer, initFromUrl, setSupernetInputs } =
     useCalculatorStore()
   const initializedRef = useRef(false)
 
@@ -15,7 +15,7 @@ export function useUrlSync() {
     const state = readUrl()
     if (state) {
       if (state.mode === 'network' && state.cidr) {
-        initFromUrl(state.cidr, state.splits, state.splitLabels)
+        initFromUrl(state.cidr, state.splits, state.splitLabels, state.splitCidrs)
       } else if (state.mode === 'supernet' && state.supernetInputs) {
         setSupernetInputs(state.supernetInputs.join('\n'))
       }
@@ -54,10 +54,18 @@ export function useUrlSync() {
       }
       if (!parseCidr(cidr)) return
       if (splitPrefixes.length > 0) {
-        updateUrl({ mode: 'network', cidr, splits: splitPrefixes, splitLabels })
+        // In explicit mode (designer handoff), keep full CIDRs in the URL so exact
+        // ranges survive a refresh or a round-trip back to the designer.
+        updateUrl({
+          mode: 'network',
+          cidr,
+          splits: splitPrefixes,
+          splitLabels,
+          splitCidrs: explicitCidrs ?? undefined,
+        })
       } else {
         updateUrl({ mode: 'network', cidr })
       }
     }
-  }, [rawInput, splitPrefixes, splitLabels, supernetInputs, activeDrawer])
+  }, [rawInput, splitPrefixes, splitLabels, explicitCidrs, supernetInputs, activeDrawer])
 }

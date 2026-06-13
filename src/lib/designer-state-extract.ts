@@ -4,7 +4,7 @@ import type { CloudProvider } from '@/lib/cloud-theme'
 
 export interface ExtractedDesignerState {
   cidr: string | null
-  splits: { prefix: number; label: string }[]
+  splits: { prefix: number; label: string; cidr: string }[]
   cloudProvider: CloudProvider
 }
 
@@ -26,7 +26,9 @@ export function buildDesignerUrl(
   const params: string[] = [`from=${encodeURIComponent(extracted.cidr)}`]
   if (extracted.splits.length > 0) {
     params.push(
-      `split=${extracted.splits.map((s) => `${s.prefix}~${encodeURIComponent(s.label)}`).join(',')}`,
+      // Encode full CIDRs so the canonical URL preserves each subnet's exact address
+      // (survives refresh and round-trips back to the calculator without re-packing).
+      `split=${extracted.splits.map((s) => `${s.cidr}~${encodeURIComponent(s.label)}`).join(',')}`,
     )
   }
   if (cloudProvider !== 'generic') {
@@ -55,7 +57,7 @@ export function extractDesignerState(
     if (slashIdx === -1) continue
     const prefix = Number(cidr.slice(slashIdx + 1))
     if (isNaN(prefix) || prefix < 0 || prefix > 32) continue
-    result.splits.push({ prefix, label: node.data.label })
+    result.splits.push({ prefix, label: node.data.label, cidr })
   }
 
   return result

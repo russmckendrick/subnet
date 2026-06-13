@@ -44,10 +44,18 @@ Components:
 - `<prefix~label>` — Child prefix length, optionally followed by `~` and a URL-encoded label
 - `,` — Separator between child entries
 
+Each `split` segment's head is either a **bare prefix** (`24` — the subnet is VLSM-packed
+contiguously from the parent's base) or a **full CIDR** (`10.0.2.0/24` — the subnet keeps
+that exact address). Full-CIDR segments are emitted by the designer handoff so the
+calculator shows the designer's actual ranges instead of re-packing them. Parsing is
+**all-or-nothing**: a `?split=` is treated as explicit only when *every* segment carries a
+full CIDR; any bare segment falls back to VLSM packing for the whole set.
+
 **Examples:**
-- `/10.0.0.0/16?split=24~Web,25~API,26~Database`
+- `/10.0.0.0/16?split=24~Web,25~API,26~Database` (bare prefixes, VLSM-packed)
 - `/192.168.0.0/16?split=24,24,24` (uses default labels)
 - `/10.0.0.0/8?split=16~Production,16~Staging`
+- `/10.0.0.0/16?split=10.0.0.0/24~Web,10.0.4.0/24~DB` (explicit CIDRs, e.g. after editing in the designer)
 
 ### Supernet Mode
 
@@ -87,7 +95,7 @@ When URL parameters are present, `useDesignerUrlSync` checks for a saved diagram
 
 Designer URL parameters are no longer stripped after load. Instead, the URL is kept **canonical** with the diagram:
 
-- `buildDesignerUrl()` in `src/lib/designer-state-extract.ts` derives `/designer?from=<cidr>&split=<segments>&provider=<provider>` from the current diagram nodes (falling back to plain `/designer` when no VPC exists; `provider` is omitted for `generic`)
+- `buildDesignerUrl()` in `src/lib/designer-state-extract.ts` derives `/designer?from=<cidr>&split=<segments>&provider=<provider>` from the current diagram nodes, emitting **full CIDRs** in each segment (`10.0.2.0/24~Web`) so a refresh reproduces the exact layout instead of re-packing (falling back to plain `/designer` when no VPC exists; `provider` is omitted for `generic`)
 - After `useDesignerUrlSync` initialises from `?from=` params (fresh layout or merge), it writes the canonical URL via `history.replaceState()`
 - After a `?d=` share link loads, the bulky compressed payload is **replaced** by the canonical `?from=&split=&provider=` parameters
 - `useDiagramPersistence` rewrites the canonical URL on every debounced auto-save, and when loading a saved diagram from localStorage
@@ -99,15 +107,15 @@ The result: refreshing or bookmarking the designer always keeps the diagram cont
 Navigation between the calculator and designer preserves state in both directions using URL parameters:
 
 **Calculator → Designer:**
-- The Header "Designer" link, command palette "Open Designer" command, and SplitterToolbar "Open in Designer" button always build `/designer?from={cidr}&split={prefix~label,...}` from calculator store state
+- The Header "Designer" link, command palette "Open Designer" command, and SplitterToolbar "Open in Designer" button always build `/designer?from={cidr}&split={cidr~label,...}` from calculator store state, emitting each subnet's full CIDR so exact ranges (including explicit/edited positions) survive the handoff
 - `useDesignerUrlSync` handles merge logic: if a saved diagram exists with the same VPC CIDR, only new subnets are added (existing nodes/resources preserved); otherwise a fresh layout is generated
 - Falls back to bare `/designer` when no CIDR is loaded
 
 **Designer → Calculator:**
 - The `useCalculatorHref()` hook in `src/hooks/use-calculator-href.ts` extracts CIDR and splits from designer nodes using `extractDesignerState()` from `src/lib/designer-state-extract.ts`
 - Finds the first `vpc-container` node for the parent CIDR
-- Collects all `subnet-container` nodes for split prefixes and labels
-- Encodes the result as a calculator URL via `encodeState()` (e.g. `/10.0.0.0/16?split=24~Web,25~API`)
+- Collects all `subnet-container` nodes for split prefixes, labels, and **full CIDRs**
+- Encodes the result as a calculator URL via `encodeState()` with `splitCidrs` so the calculator shows the designer's exact ranges instead of re-packing (e.g. `/10.0.0.0/16?split=10.0.0.0/24~Web,10.0.4.0/24~DB`)
 - Falls back to `/` when no VPC container exists in the diagram
 - Used by the `DesignerHeader` logo — the single state-preserving back link to the calculator
 
@@ -119,9 +127,16 @@ interface UrlState {
   cidr: string
   splits?: number[]
   splitLabels?: string[]
+  splitCidrs?: string[] // full subnet CIDRs (parallel to splits); present only for explicit/designer handoffs
   supernetInputs?: string[]
 }
 ```
+
+`splitCidrs` carries each subnet's exact CIDR. When present, the calculator and designer
+use these ranges verbatim; when absent, subnets are derived by VLSM-packing `splits` from
+the parent's base. `decodeState` populates it only when every `?split=` segment is a full
+CIDR; `encodeState` emits `splitCidrs[i]` as the segment head when set, otherwise the bare
+prefix.
 
 ## Label Encoding
 
@@ -138,7 +153,7 @@ Labels support arbitrary text through URL encoding:
 Produces the URL path + query string:
 
 - **Network (no splits):** Returns `/<cidr>` (e.g. `/10.0.0.0/16`)
-- **Network (with splits):** Returns `/<cidr>?split=<segments>` where each segment is `prefix` or `prefix~encodedLabel`
+- **Network (with splits):** Returns `/<cidr>?split=<segments>`. Each segment head is `splitCidrs[i]` (a full CIDR) when set, otherwise the bare `prefix`; an optional `~encodedLabel` follows
 - **Supernet:** Returns `/super?nets=<cidr1>,<cidr2>,...`
 
 ### decodeState(pathname: string, search: string) → UrlState | null
@@ -151,6 +166,11 @@ Parses a pathname and search string:
 4. If path matches CIDR pattern (`ip/prefix`) — parse as network mode, optionally with `?split=` query param
 5. If path matches bare IP pattern (`ip` without prefix) — validate with `parseIPv4()`, infer prefix via `inferDefaultPrefix()`, construct full CIDR, and continue as network mode (with optional `?split=`)
 6. Otherwise — return `null`
+
+`?split=` parsing (shared `parseSplitSegments` helper) reads each segment's head as a full
+CIDR when it contains `/`, else a bare prefix. It returns `splitCidrs` only when **every**
+segment is a full CIDR (all-or-nothing); a mix falls back to bare-prefix VLSM. Legacy hash
+URLs only ever carried bare prefixes and are parsed as such.
 
 ### updateUrl(state: UrlState) → void
 

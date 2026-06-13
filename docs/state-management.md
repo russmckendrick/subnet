@@ -225,14 +225,14 @@ State is preserved when navigating between the calculator and designer views:
 
 **Calculator → Designer:**
 - `Header.tsx`, `CommandPalette.tsx`, and `SplitterToolbar.tsx` read `rawInput`, `result`, and `splits` from `calculator-store`
-- Always build `/designer?from={cidr}&split={prefix~label,...}` URL from current calculator state
+- Always build `/designer?from={cidr}&split={cidr~label,...}` URL from current calculator state, emitting each subnet's **full CIDR** so exact ranges (including explicit/edited positions) survive the handoff
 - `useDesignerUrlSync` handles merge: if a saved diagram exists with the same VPC CIDR, new subnets are merged in (preserving existing nodes, resources, and positions); otherwise a fresh layout is generated
 - Falls back to bare `/designer` when no CIDR is loaded
 
 **Designer → Calculator:**
 - `useCalculatorHref()` hook reads `nodes` and `cloudProvider` from `designer-store`
-- Calls `extractDesignerState()` to find VPC container CIDR and subnet container splits
-- Calls `encodeState()` to produce a calculator URL (e.g. `/10.0.0.0/16?split=24~Web`)
+- Calls `extractDesignerState()` to find VPC container CIDR and subnet container splits (prefix, label, and **full CIDR**)
+- Calls `encodeState()` with `splitCidrs` to produce a calculator URL whose subnets keep their exact addresses, e.g. `/10.0.0.0/16?split=10.0.0.0/24~Web,10.0.4.0/24~DB` (the calculator builds splits via `buildSplitsFromCidrs` rather than re-packing)
 - Falls back to `/` when no VPC container exists
 - Used by the `DesignerHeader` logo, the single state-preserving back link (the duplicate "Calculator" button was removed)
 

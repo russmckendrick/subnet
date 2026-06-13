@@ -3,6 +3,13 @@ export interface UrlState {
   cidr: string
   splits?: number[]
   splitLabels?: string[]
+  /**
+   * Full subnet CIDRs (e.g. `10.0.2.0/24`), parallel to `splits`. Present only when
+   * the URL encodes explicit subnet addresses (the designer handoff) rather than bare
+   * prefix sizes. When present, the calculator/designer use these exact ranges instead
+   * of re-packing subnets contiguously from the parent's base.
+   */
+  splitCidrs?: string[]
   supernetInputs?: string[]
 }
 
@@ -16,6 +23,47 @@ function decodeLabel(encoded: string): string {
   } catch {
     return encoded
   }
+}
+
+/**
+ * Parse a `?split=` parameter value into prefixes, labels, and (optionally) full CIDRs.
+ *
+ * Each comma-separated segment is `head~label`, where `head` is either a bare prefix
+ * (`24`) or a full CIDR (`10.0.2.0/24`). `splitCidrs` is returned only when **every**
+ * segment carries a full CIDR (all-or-nothing) — a mix falls back to bare-prefix VLSM.
+ */
+function parseSplitSegments(
+  splitParam: string,
+): { splits: number[]; splitLabels: string[]; splitCidrs?: string[] } | null {
+  const splits: number[] = []
+  const splitLabels: string[] = []
+  const cidrs: (string | null)[] = []
+
+  for (const segment of splitParam.split(',')) {
+    const sepIdx = segment.indexOf('~')
+    const head = sepIdx === -1 ? segment : segment.slice(0, sepIdx)
+    const label = sepIdx === -1 ? undefined : segment.slice(sepIdx + 1)
+
+    let prefix: number
+    let cidr: string | null = null
+    if (head.includes('/')) {
+      cidr = head
+      prefix = Number(head.slice(head.lastIndexOf('/') + 1))
+    } else {
+      prefix = Number(head)
+    }
+
+    if (!isNaN(prefix) && prefix >= 0 && prefix <= 32) {
+      splits.push(prefix)
+      splitLabels.push(label ? decodeLabel(label) : `Subnet ${splits.length}`)
+      cidrs.push(cidr)
+    }
+  }
+
+  if (splits.length === 0) return null
+
+  const allExplicit = cidrs.every((c) => c !== null)
+  return { splits, splitLabels, splitCidrs: allExplicit ? (cidrs as string[]) : undefined }
 }
 
 import { parseIPv4, inferDefaultPrefix } from './ipv4'
@@ -40,7 +88,10 @@ export function encodeState(state: UrlState): string {
       if (state.splits && state.splits.length > 0) {
         const segments = state.splits.map((prefix, i) => {
           const label = state.splitLabels?.[i]
-          return label ? `${prefix}~${encodeLabel(label)}` : `${prefix}`
+          // Emit the full CIDR when known (designer handoff) so exact ranges survive
+          // the round-trip; otherwise the bare prefix (VLSM, address is derivable).
+          const head = state.splitCidrs?.[i] ?? `${prefix}`
+          return label ? `${head}~${encodeLabel(label)}` : head
         })
         return `${path}?split=${segments.join(',')}`
       }
@@ -86,18 +137,9 @@ export function decodeState(pathname: string, search: string): UrlState | null {
         const splitParam = params.get('split')
 
         if (splitParam) {
-          const splits: number[] = []
-          const splitLabels: string[] = []
-          for (const segment of splitParam.split(',')) {
-            const [prefixStr, label] = segment.split('~')
-            const p = Number(prefixStr)
-            if (!isNaN(p) && p >= 0 && p <= 32) {
-              splits.push(p)
-              splitLabels.push(label ? decodeLabel(label) : `Subnet ${splits.length}`)
-            }
-          }
-          if (splits.length > 0) {
-            return { mode: 'network', cidr, splits, splitLabels }
+          const parsed = parseSplitSegments(splitParam)
+          if (parsed) {
+            return { mode: 'network', cidr, ...parsed }
           }
         }
 
@@ -112,18 +154,9 @@ export function decodeState(pathname: string, search: string): UrlState | null {
   const splitParam = params.get('split')
 
   if (splitParam) {
-    const splits: number[] = []
-    const splitLabels: string[] = []
-    for (const segment of splitParam.split(',')) {
-      const [prefixStr, label] = segment.split('~')
-      const prefix = Number(prefixStr)
-      if (!isNaN(prefix) && prefix >= 0 && prefix <= 32) {
-        splits.push(prefix)
-        splitLabels.push(label ? decodeLabel(label) : `Subnet ${splits.length}`)
-      }
-    }
-    if (splits.length > 0) {
-      return { mode: 'network', cidr, splits, splitLabels }
+    const parsed = parseSplitSegments(splitParam)
+    if (parsed) {
+      return { mode: 'network', cidr, ...parsed }
     }
   }
 

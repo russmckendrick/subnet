@@ -99,7 +99,7 @@ Usage: `bg-surface text-ink border-line/20`. Micro-labels use `text-sol-base01` 
 
 - `CidrResult` (in `src/lib/cidr.ts`) — Full parsed CIDR with network/broadcast addresses, masks, host counts, IP class, RFC type, cloud context.
 - `SubnetSplit` (in `src/lib/subnet-math.ts`) — A single allocated subnet within a splitter session, with CIDR, label, color, and host info.
-- `UrlState` (in `src/lib/url-codec.ts`) — Serializable state for path-based URL encoding (mode, cidr, splits, labels).
+- `UrlState` (in `src/lib/url-codec.ts`) — Serializable state for path-based URL encoding (mode, cidr, splits, labels, and optional `splitCidrs` — full subnet CIDRs carried by the designer handoff so exact ranges survive instead of being re-packed). `?split=` segments are parsed by `parseSplitSegments`, which detects full-CIDR vs bare-prefix heads (all-or-nothing).
 - `RdapResult` (in `src/lib/rdap.ts`) — Parsed RDAP registration data: network name, RIR, country, organization, allocated range, dates.
 - `RdapLookupState` (in `src/lib/rdap.ts`) — Discriminated union: `idle | loading | success | error | private`.
 - `Command` (in `src/lib/commands.ts`) — Command palette entry with id, label, description, category, keywords, icon, optional `requiresResult`, and action string.
@@ -111,7 +111,7 @@ Usage: `bg-surface text-ink border-line/20`. Micro-labels use `text-sol-base01` 
 - `DesignerNodeData` (in `src/store/designer-store.ts`) — Union of all 5 node data types.
 - `DiagramJsonData` (in `src/lib/export-diagram.ts`) — Validated JSON import structure: `{ nodes, edges, version, cloudProvider? }`.
 - `SaveEntry` (in `src/lib/diagram-saves.ts`) — Named save manifest entry: id, name, createdAt, updatedAt, nodeCount, cloudProvider.
-- `ExtractedDesignerState` (in `src/lib/designer-state-extract.ts`) — Extracted CIDR, splits (prefix + label), and cloud provider from designer diagram nodes. `buildDesignerUrl()` in the same file produces the canonical `/designer?from&split&provider` URL.
+- `ExtractedDesignerState` (in `src/lib/designer-state-extract.ts`) — Extracted CIDR, splits (prefix + label + full CIDR), and cloud provider from designer diagram nodes. `buildDesignerUrl()` in the same file produces the canonical `/designer?from&split&provider` URL, emitting full CIDRs per split so a refresh reproduces exact positions.
 - `MetaTags` (in `worker/meta-tags.ts`) — Worker-side meta tag data: title, description, ogImage, ogUrl, canonical, jsonLd.
 
 ### Command Palette
@@ -144,7 +144,7 @@ The designer at `/designer` uses **nested containment** to produce cloud-native 
 - **Keyboard Shortcuts** — `Escape` (deselect/close modal), `Cmd/Ctrl+E` (toggle export), `Cmd/Ctrl+S` (save to localStorage), `1`/`2`/`3` (layer switching).
 - **Floating Toolbar** — Bottom-center bar with Fit View, Export, Save, and Clear buttons.
 - **URL Params** — `?provider=aws|azure|gcp` sets cloud provider: `/designer?from=10.0.0.0/16&split=24~Web,25~API&provider=aws`. `?d={compressed}` loads a shared diagram (base64url-encoded pako-deflated JSON), handled by `useDesignerUrlSync` before `?from=` processing.
-- **Bidirectional Navigation** — All navigation links between calculator and designer preserve state. Calculator → Designer: Header link, command palette, and SplitterToolbar always build `/designer?from=&split=` from calculator store state. `useDesignerUrlSync` handles merge logic: if a saved diagram exists with the same VPC CIDR, new subnets are merged in (preserving existing nodes, edges, positions, and user-added resources); otherwise a fresh layout is generated. Designer → Calculator: `useCalculatorHref()` hook extracts CIDR and splits from diagram nodes via `extractDesignerState()` and encodes a calculator URL via `encodeState()`. Used by `DesignerHeader` back links and mobile fallback.
+- **Bidirectional Navigation** — All navigation links between calculator and designer preserve state, carrying **full subnet CIDRs** in `?split=` so the two views always show identical ranges (no contiguous re-packing on the round-trip). Calculator → Designer: Header link, command palette, and SplitterToolbar build `/designer?from=&split={cidr~label,...}` from calculator store state. `useDesignerUrlSync` parses full-CIDR segments via `buildSplitsFromCidrs` (exact addresses) or bare prefixes via `allocateSubnets` (VLSM pack), then handles merge logic: if a saved diagram exists with the same VPC CIDR, new subnets are merged in (preserving existing nodes, edges, positions, and user-added resources); otherwise a fresh layout is generated. Designer → Calculator: `useCalculatorHref()` extracts CIDR + splits (with CIDRs) via `extractDesignerState()` and encodes a calculator URL via `encodeState()` with `splitCidrs`; the calculator store enters "explicit" mode (`explicitCidrs`) and builds splits from those exact CIDRs. Any action that changes the subnet set (add/remove/reset/CIDR edit) reverts to VLSM packing. Used by `DesignerHeader` back links and mobile fallback.
 
 ### Deployment
 

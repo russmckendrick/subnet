@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { parseCidr } from '@/lib/cidr'
-import { allocateSubnets } from '@/lib/subnet-math'
+import { allocateSubnets, buildSplitsFromCidrs } from '@/lib/subnet-math'
 import { generateInitialLayout } from '@/lib/diagram-layout'
 import {
   SUBNET_CONTAINER_WIDTH,
@@ -75,24 +75,35 @@ export function useDesignerUrlSync() {
     const parentResult = parseCidr(fromCidr)
     if (!parentResult) return
 
-    // Parse splits (same format as calculator URL: prefix~label,prefix~label)
+    // Parse splits. Each segment is `head~label`, where head is a bare prefix (`24`,
+    // VLSM-packed) or a full CIDR (`10.0.2.0/24`, exact address from a designer handoff).
     const prefixes: number[] = []
     const labels: string[] = []
+    const cidrs: string[] = []
+    let allExplicit = true
 
     if (splitParam) {
       for (const segment of splitParam.split(',')) {
-        const [prefixStr, label] = segment.split('~')
-        const p = Number(prefixStr)
+        const sepIdx = segment.indexOf('~')
+        const head = sepIdx === -1 ? segment : segment.slice(0, sepIdx)
+        const label = sepIdx === -1 ? undefined : decodeURIComponent(segment.slice(sepIdx + 1))
+        const p = head.includes('/') ? Number(head.slice(head.lastIndexOf('/') + 1)) : Number(head)
         if (!isNaN(p) && p >= 0 && p <= 32) {
           prefixes.push(p)
-          labels.push(label ? decodeURIComponent(label) : `Subnet ${prefixes.length}`)
+          labels.push(label ?? `Subnet ${prefixes.length}`)
+          if (head.includes('/')) cidrs.push(head)
+          else allExplicit = false
         }
       }
     }
 
     if (prefixes.length === 0) return
 
-    const splits = allocateSubnets(fromCidr, prefixes, labels)
+    // Full CIDRs preserve exact addresses; bare prefixes pack contiguously from the base.
+    const splits =
+      allExplicit && cidrs.length === prefixes.length
+        ? buildSplitsFromCidrs(cidrs, labels)
+        : allocateSubnets(fromCidr, prefixes, labels)
     if (!splits || splits.length === 0) return
 
     // Try to merge with existing saved diagram

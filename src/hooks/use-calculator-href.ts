@@ -20,6 +20,9 @@ export function useCalculatorHref(): string {
       cidr: extracted.cidr,
       splits: extracted.splits.map((s) => s.prefix),
       splitLabels: extracted.splits.map((s) => s.label),
+      // Carry exact subnet CIDRs so the calculator shows the designer's actual ranges
+      // instead of re-packing them contiguously from the parent's base.
+      splitCidrs: extracted.splits.map((s) => s.cidr),
     })
   }, [nodes, cloudProvider])
 }

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { parseCidr, type CidrResult } from '@/lib/cidr'
-import { allocateSubnets, getRemainingSpace, getAvailablePrefixes, type SubnetSplit } from '@/lib/subnet-math'
+import { allocateSubnets, buildSplitsFromCidrs, getRemainingSpace, getAvailablePrefixes, type SubnetSplit } from '@/lib/subnet-math'
 import { findSmallestContainingCidr } from '@/lib/subnet-math'
 import { config } from '@/lib/config'
 
@@ -18,6 +18,12 @@ interface CalculatorState {
   splits: SubnetSplit[]
   remainingSpace: number
   availablePrefixes: number[]
+  /**
+   * When set, the splitter is in "explicit" mode: subnets keep these exact CIDRs
+   * (from the designer handoff) instead of being re-packed contiguously from the base.
+   * Cleared (null) by any action that changes the subnet set — add/remove/reset/CIDR edit.
+   */
+  explicitCidrs: string[] | null
 
   // Supernet
   supernetInputs: string
@@ -50,7 +56,7 @@ interface CalculatorState {
   setActiveDrawer: (drawer: 'none' | 'supernet' | 'reference') => void
   setCommandPaletteOpen: (open: boolean) => void
   setExportModalOpen: (open: boolean) => void
-  initFromUrl: (cidr: string, splits?: number[], labels?: string[]) => void
+  initFromUrl: (cidr: string, splits?: number[], labels?: string[], cidrs?: string[]) => void
 }
 
 function recalcSplits(parentCidr: string, prefixes: number[], labels: string[]) {
@@ -63,7 +69,27 @@ function recalcSplits(parentCidr: string, prefixes: number[], labels: string[]) 
   const splits = allocateSubnets(parentCidr, sortedPrefixes, sortedLabels)
   const remaining = splits ? getRemainingSpace(parentCidr, splits) : 0
   const available = getAvailablePrefixes(parentCidr, splits ?? [])
-  return { splitPrefixes: sortedPrefixes, splitLabels: sortedLabels, splits: splits ?? [], remainingSpace: remaining, availablePrefixes: available }
+  return { splitPrefixes: sortedPrefixes, splitLabels: sortedLabels, splits: splits ?? [], remainingSpace: remaining, availablePrefixes: available, explicitCidrs: null as string[] | null }
+}
+
+/**
+ * Build splitter state from explicit subnet CIDRs (the designer handoff), preserving
+ * each subnet's exact address. Falls back to VLSM packing if any CIDR fails to parse.
+ */
+function recalcSplitsExplicit(parentCidr: string, cidrs: string[], labels: string[]) {
+  const splits = buildSplitsFromCidrs(cidrs, labels)
+  if (!splits) return recalcSplits(parentCidr, cidrs.map((c) => Number(c.slice(c.lastIndexOf('/') + 1))), labels)
+
+  const remaining = getRemainingSpace(parentCidr, splits)
+  const available = getAvailablePrefixes(parentCidr, splits)
+  return {
+    splitPrefixes: splits.map((s) => s.prefixLength),
+    splitLabels: splits.map((s) => s.label),
+    splits,
+    remainingSpace: remaining,
+    availablePrefixes: available,
+    explicitCidrs: splits.map((s) => s.cidr),
+  }
 }
 
 const initialSplitCalc = recalcSplits(config.defaultCidr, [], [])
@@ -77,6 +103,7 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   splits: initialSplitCalc.splits,
   remainingSpace: initialSplitCalc.remainingSpace,
   availablePrefixes: initialSplitCalc.availablePrefixes,
+  explicitCidrs: initialSplitCalc.explicitCidrs,
   supernetInputs: '',
   supernetResult: null,
   activeDrawer: 'none',
@@ -183,13 +210,18 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
 
   dismissHandoff: () => set({ handoff: null }),
 
-  initFromUrl: (cidr, splits, labels) => {
+  initFromUrl: (cidr, splits, labels, cidrs) => {
     const result = parseCidr(cidr)
     const state: Partial<CalculatorState> = {
       rawInput: cidr,
       result,
     }
-    if (splits && splits.length > 0) {
+    if (cidrs && cidrs.length > 0) {
+      // Explicit CIDRs (designer handoff) — preserve exact subnet addresses.
+      const splitLabels = labels ?? cidrs.map((_, i) => `Subnet ${i + 1}`)
+      const calc = recalcSplitsExplicit(cidr, cidrs, splitLabels)
+      Object.assign(state, calc)
+    } else if (splits && splits.length > 0) {
       const splitLabels = labels ?? splits.map((_, i) => `Subnet ${i + 1}`)
       const calc = recalcSplits(cidr, splits, splitLabels)
       Object.assign(state, calc)

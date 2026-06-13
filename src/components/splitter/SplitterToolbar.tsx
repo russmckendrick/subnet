@@ -42,7 +42,9 @@ export function SplitterToolbar({ viewMode, onViewModeChange }: SplitterToolbarP
 
   if (splits.length === 0) return null
 
-  const designerHref = `/designer?from=${encodeURIComponent(rawInput)}&split=${splits.map((s) => `${s.prefixLength}~${encodeURIComponent(s.label)}`).join(',')}`
+  // Emit full CIDRs (not bare prefixes) so the designer reproduces exact subnet addresses,
+  // including when the calculator is in explicit mode after a designer handoff.
+  const designerHref = `/designer?from=${encodeURIComponent(rawInput)}&split=${splits.map((s) => `${s.cidr}~${encodeURIComponent(s.label)}`).join(',')}`
   const allCidrs = splits.map((s) => `${s.label}: ${s.cidr}`).join('\n')
 
   // Quick prefixes shown inline, the rest go in the "More" dropdown

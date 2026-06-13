@@ -93,7 +93,8 @@ export function CommandPalette() {
       if (result && rawInput) {
         const params: string[] = [`from=${encodeURIComponent(rawInput)}`]
         if (splits.length > 0) {
-          params.push(`split=${splits.map((s) => `${s.prefixLength}~${encodeURIComponent(s.label)}`).join(',')}`)
+          // Full CIDRs preserve exact subnet addresses across the handoff (and round-trips).
+          params.push(`split=${splits.map((s) => `${s.cidr}~${encodeURIComponent(s.label)}`).join(',')}`)
         }
         href = `/designer?${params.join('&')}`
       }
