@@ -78,25 +78,21 @@ export function CidrInput() {
     inputRef.current?.focus()
   }, [])
 
-  const handleIpChange = useCallback((newIp: string) => {
-    setSplitIp(newIp)
-    const trimmed = newIp.trim()
-    if (trimmed) {
-      const parsed = parseIPv4(trimmed)
-      if (parsed !== null) {
-        setRawInput(`${trimmed}/${currentPrefix}`)
-      }
-    } else {
-      setRawInput('')
+  // Switching mode remounts the input (guided IP vs. CIDR live in separate JSX
+  // branches), so after an auto-switch — e.g. typing a "/" in the guided field
+  // — keep focus in the new input with the cursor at the end so typing flows.
+  const didMountRef = useRef(false)
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true
+      return
     }
-  }, [currentPrefix, setRawInput])
-
-  const handlePrefixChange = useCallback((newPrefix: number) => {
-    const trimmed = splitIp.trim()
-    if (trimmed && parseIPv4(trimmed) !== null) {
-      setRawInput(`${trimmed}/${newPrefix}`)
-    }
-  }, [splitIp, setRawInput])
+    const el = inputRef.current
+    if (!el) return
+    el.focus()
+    const end = el.value.length
+    el.setSelectionRange(end, end)
+  }, [inputMode])
 
   const handleCidrChange = useCallback((nextValue: string) => {
     const trimmed = nextValue.trim()
@@ -113,6 +109,34 @@ export function CidrInput() {
       setCidrDraft({ value: nextValue, baseRawInput: rawInput })
     }
   }, [rawInput, setRawInput])
+
+  const handleIpChange = useCallback((newIp: string) => {
+    // Typing a prefix into the guided IP field means the user wants full CIDR
+    // notation — switch to CIDR mode and hand the value over so they can keep
+    // typing, rather than rejecting the slash as an invalid IP address.
+    if (newIp.includes('/')) {
+      setInputMode('cidr')
+      handleCidrChange(newIp)
+      return
+    }
+    setSplitIp(newIp)
+    const trimmed = newIp.trim()
+    if (trimmed) {
+      const parsed = parseIPv4(trimmed)
+      if (parsed !== null) {
+        setRawInput(`${trimmed}/${currentPrefix}`)
+      }
+    } else {
+      setRawInput('')
+    }
+  }, [currentPrefix, setRawInput, setInputMode, handleCidrChange])
+
+  const handlePrefixChange = useCallback((newPrefix: number) => {
+    const trimmed = splitIp.trim()
+    if (trimmed && parseIPv4(trimmed) !== null) {
+      setRawInput(`${trimmed}/${newPrefix}`)
+    }
+  }, [splitIp, setRawInput])
 
   const handleClear = useCallback(() => {
     setSplitIp('')
